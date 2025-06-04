@@ -1,19 +1,18 @@
 /**
- * Registers the block with WordPress, pulling in block.json and
- * wiring up the `edit` and `save` functions.
+ * src/index.js
+ *
+ * Entry point for webpack / @wordpress/scripts.
+ * This registers our block type using the block.json manifest
+ * and points to the `edit()` and `save()` implementations.
  */
 
-import './styles/editor.scss';
-// If you ever have front‐end-only styles, you could import them here.
-// For now, we only need `editor.scss` so the editor UI is styled correctly.
-
+import { registerBlockType } from '@wordpress/blocks';
 import edit from './edit';
 import save from './save';
 
-import metadata from '../block.json';
-import { registerBlockType } from '@wordpress/blocks';
-
-registerBlockType( metadata.name, {
+registerBlockType( 'endoplanner/v2-wizard', {
+    apiVersion: 2,
+    icon: 'admin-tools',
     edit,
     save,
 } );

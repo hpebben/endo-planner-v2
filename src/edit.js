@@ -1,22 +1,20 @@
 /**
- * The editor‐side code for the block.  
- * In this example, we simply render your existing Step2 (patency map) component.
+ * src/edit.js
+ *
+ * This is the editor view for “endoplanner/v2-wizard”.
+ * Replace the inside of <div>…</div> with your actual wizard React components.
  */
 
-import React from 'react';
+import { __ } from '@wordpress/i18n';
 import { useBlockProps } from '@wordpress/block-editor';
-import Step2 from './components/steps/Step2_Patency';
 
-export default function Edit( { attributes, setAttributes } ) {
-    // `attributes.patencySegments` is where we keep our JSON object of segments.
-    // `setAttributes` must receive an object containing the new attributes.
-    // Here, we pass the entire attributes object (so Step2 can update it).
+export default function Edit() {
+    const blockProps = useBlockProps();
+
     return (
-        <div { ...useBlockProps() }>
-            <Step2
-                data={ attributes }
-                setData={ ( newData ) => setAttributes( newData ) }
-            />
+        <div { ...blockProps } style={ { padding: '1rem', border: '1px solid #ccc' } }>
+            <h2>{ __( 'EndoPlanner Wizard (Editor)', 'endoplanner' ) }</h2>
+            <p>{ __( 'Replace this area with your multi-step React wizard.', 'endoplanner' ) }</p>
         </div>
     );
 }

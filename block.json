@@ -1,23 +1,12 @@
 {
-  "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 2,
-  "name": "endo-planner/block",
-  "version": "1.0.0",
-  "title": "EndoPlanner 2.0",
+  "name": "endoplanner/v2-wizard",
+  "title": "EndoPlanner Wizard",
   "category": "widgets",
-  "icon": "heart-pulse", 
-  "description": "A Gutenberg block wizard for patency mapping (Step 2).",
+  "icon": "admin-tools",
+  "description": "A multi-step wizard for clinical indication, patency mapping, case summary and more.",
   "supports": {
     "html": false
   },
-  "attributes": {
-    "patencySegments": {
-      "type": "object",
-      "default": {}
-    }
-  },
-  "editorScript": "endo-planner-block",
-  "editorStyle": "endo-planner-editor",
-  "script": "endo-planner-block",
-  "style": "endo-planner-editor"
+  "textdomain": "endoplanner"
 }
