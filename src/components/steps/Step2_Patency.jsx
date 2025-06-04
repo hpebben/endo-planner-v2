@@ -68,6 +68,17 @@ export default function Step2({ data, setData }) {
         setModalOpen(true);
       };
     });
+
+    // Cleanup: remove event handlers and styling on unmount or when segments change
+    return () => {
+      vesselSegments.forEach((seg) => {
+        const el = document.getElementById(seg.id);
+        if (!el) return;
+        el.onclick = null;
+        el.style.cursor = '';
+        el.removeAttribute('fill');
+      });
+    };
   }, [segments]);
 
   // Called when user clicks “Save” in the SliderModal
