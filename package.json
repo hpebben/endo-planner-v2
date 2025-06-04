@@ -5,13 +5,15 @@
   "license": "GPL-2.0-or-later",
   "scripts": {
     "build": "wp-scripts build",
-    "start": "wp-scripts start"
+    "start": "wp-scripts start",
+    "test": "wp-scripts test-unit-js --passWithNoTests"
   },
   "devDependencies": {
     "@wordpress/scripts": "^24.6.0",
     "sass": "^1.64.0"
   },
   "dependencies": {
+    "jspdf": "^3.0.1",
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
   }
