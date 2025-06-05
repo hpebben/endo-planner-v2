@@ -10,7 +10,7 @@ const vesselSegments = [
   { id: 'Left_common_iliac_Afbeelding', name: 'Left Common Iliac' },
   { id: 'Right_common_iliac_Afbeelding', name: 'Right Common Iliac' },
   { id: 'Left_external_iliac_Afbeelding', name: 'Left External Iliac' },
-  { id: 'Right_extrnal_iliac_Afbeelding', name: 'Right External Iliac' },
+  { id: 'Right_external_iliac_Afbeelding', name: 'Right External Iliac' },
   { id: 'Left_internal_iliac_Afbeelding', name: 'Left Internal Iliac' },
   { id: 'Right_internal_iliac_Afbeelding', name: 'Right Internal Iliac' },
   { id: 'Left_common_femoral_Afbeelding', name: 'Left Common Femoral' },
