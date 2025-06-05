@@ -1,5 +1,14 @@
-/**
- * src/frontend.js
- * If you need any front‐end JavaScript (e.g. interactive behavior on the published page),
- * import it here. Otherwise you can leave it empty or delete it.
- */
+import React from 'react';
+import ReactDOM from 'react-dom';
+import Wizard from './components/wizard';
+
+document.addEventListener( 'DOMContentLoaded', () => {
+    if ( document.body.classList.contains( 'block-editor-page' ) ) {
+        return; // don't hydrate inside the editor
+    }
+
+    const blocks = document.querySelectorAll( '.wp-block-endoplanner-v2-wizard' );
+    blocks.forEach( ( container ) => {
+        ReactDOM.render( <Wizard />, container );
+    } );
+} );

@@ -6,6 +6,12 @@
  * something on the front end.
  */
 
-export default function Save() {
-    return null;
+import { useBlockProps } from '@wordpress/block-editor';
+import './frontend';
+
+export default function save() {
+    const blockProps = useBlockProps.save();
+    return (
+        <div { ...blockProps } />
+    );
 }
