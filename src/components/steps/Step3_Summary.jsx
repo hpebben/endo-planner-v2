@@ -17,7 +17,7 @@ export default function Step3({ data }) {
         <ul>
           <li><strong>Stage:</strong> {stage || '—'}</li>
           <li><strong>Wound Grade:</strong> {wound || '—'}</li>
-          <li><strong>Ischemia Level:</strong> {ischemia || '—'}</li>
+          <li><strong>Ischemia:</strong> {ischemia || '—'}</li>
           <li><strong>Infection:</strong> {infection || '—'}</li>
         </ul>
       </section>
