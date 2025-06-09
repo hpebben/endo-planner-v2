@@ -1,5 +1,6 @@
 // src/components/steps/Step3_Summary.jsx
 import React from 'react';
+import { __ } from '@wordpress/i18n';
 
 export default function Step3({ data }) {
   const {
@@ -13,25 +14,25 @@ export default function Step3({ data }) {
   return (
     <div className="step3-summary">
       <section>
-        <h3>1. Clinical Indication</h3>
+        <h3>{ __( '1. Clinical Indication', 'endoplanner' ) }</h3>
         <ul>
-          <li><strong>Stage:</strong> {stage || '—'}</li>
-          <li><strong>Wound Grade:</strong> {wound || '—'}</li>
-          <li><strong>Ischemia:</strong> {ischemia || '—'}</li>
-          <li><strong>Infection:</strong> {infection || '—'}</li>
+          <li><strong>{ __( 'Stage:', 'endoplanner' ) }</strong> {stage || '—'}</li>
+          <li><strong>{ __( 'Wound Grade:', 'endoplanner' ) }</strong> {wound || '—'}</li>
+          <li><strong>{ __( 'Ischemia:', 'endoplanner' ) }</strong> {ischemia || '—'}</li>
+          <li><strong>{ __( 'Infection:', 'endoplanner' ) }</strong> {infection || '—'}</li>
         </ul>
       </section>
 
       <section>
-        <h3>2. Vessel Patency</h3>
+        <h3>{ __( '2. Vessel Patency', 'endoplanner' ) }</h3>
         {Object.keys(patencySegments).length > 0 ? (
           <table className="patency-table">
             <thead>
               <tr>
-                <th>Segment</th>
-                <th>Stenosis (%)</th>
-                <th>Length (cm)</th>
-                <th>Calcification</th>
+                <th>{ __( 'Segment', 'endoplanner' ) }</th>
+                <th>{ __( 'Stenosis (%)', 'endoplanner' ) }</th>
+                <th>{ __( 'Length (cm)', 'endoplanner' ) }</th>
+                <th>{ __( 'Calcification', 'endoplanner' ) }</th>
               </tr>
             </thead>
             <tbody>
@@ -46,7 +47,7 @@ export default function Step3({ data }) {
             </tbody>
           </table>
         ) : (
-          <p>No vessel data has been entered yet.</p>
+          <p>{ __( 'No vessel data has been entered yet.', 'endoplanner' ) }</p>
         )}
       </section>
     </div>

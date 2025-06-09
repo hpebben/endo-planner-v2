@@ -1,12 +1,13 @@
 // src/components/steps/Step4_Intervention.jsx
 import React, { useState, useEffect } from 'react';
 import { CheckboxControl, TextareaControl } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 
 const interventionOptions = [
-  { key: 'angioplasty', label: 'Balloon Angioplasty' },
-  { key: 'stenting',    label: 'Stent Placement' },
-  { key: 'atherectomy', label: 'Atherectomy' },
-  { key: 'bypass',      label: 'Bypass Surgery' },
+  { key: 'angioplasty', label: __( 'Balloon Angioplasty', 'endoplanner' ) },
+  { key: 'stenting',    label: __( 'Stent Placement', 'endoplanner' ) },
+  { key: 'atherectomy', label: __( 'Atherectomy', 'endoplanner' ) },
+  { key: 'bypass',      label: __( 'Bypass Surgery', 'endoplanner' ) },
   // …add more as needed
 ];
 
@@ -26,7 +27,7 @@ export default function Step4({ data, setData }) {
 
   return (
     <div className="step4-intervention">
-      <h3>4. Intervention Planning</h3>
+      <h3>{ __( '4. Intervention Planning', 'endoplanner' ) }</h3>
       {interventionOptions.map((opt) => (
         <CheckboxControl
           key={opt.key}
@@ -37,10 +38,10 @@ export default function Step4({ data, setData }) {
       ))}
 
       <TextareaControl
-        label="Additional Notes"
+        label={ __( 'Additional Notes', 'endoplanner' ) }
         value={notes}
         onChange={(val) => setNotes(val)}
-        help="E.g. device preferences, access site, etc."
+        help={ __( 'E.g. device preferences, access site, etc.', 'endoplanner' ) }
       />
     </div>
   );
