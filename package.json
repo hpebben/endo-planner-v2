@@ -5,7 +5,9 @@
   "license": "GPL-2.0-or-later",
   "scripts": {
     "build": "wp-scripts build",
-    "start": "wp-scripts start"
+    "start": "wp-scripts start",
+    "version": "node scripts/bump-version.js",
+    "postversion": "git add endo-planner.php && git commit -m \"chore: bump plugin version to v$npm_package_version\""
   },
   "devDependencies": {
     "@wordpress/scripts": "^24.6.0",
