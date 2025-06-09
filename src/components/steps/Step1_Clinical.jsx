@@ -2,11 +2,36 @@ import { Fragment } from 'react';
 import IconButton from '../UI/IconButton';
 
 const stageOptions = [
-  { key: 'I',    label: 'Asymptomatic', icon: 'visibility' },
-  { key: 'IIa',  label: 'Intermittent Claudication IIA', icon: 'walking' },
-  { key: 'IIb',  label: 'Intermittent Claudication IIB', icon: 'running' },
-  { key: 'III',  label: 'Rest Pain', icon: 'tired' },
-  { key: 'IV',   label: 'Ulcer/Gangrene', icon: 'warning' },
+  {
+    key: 'I',
+    label: 'Asymptomatic',
+    icon: 'visibility',
+    tooltip: 'No symptoms or functional limitation.'
+  },
+  {
+    key: 'IIa',
+    label: 'Intermittent Claudication IIA',
+    icon: 'walking',
+    tooltip: 'Pain-free walking distance greater than 200 m.'
+  },
+  {
+    key: 'IIb',
+    label: 'Intermittent Claudication IIB',
+    icon: 'running',
+    tooltip: 'Pain occurs after walking less than 200 m.'
+  },
+  {
+    key: 'III',
+    label: 'Rest Pain',
+    icon: 'tired',
+    tooltip: 'Ischemic rest pain present.'
+  },
+  {
+    key: 'IV',
+    label: 'Ulcer/Gangrene',
+    icon: 'warning',
+    tooltip: 'Tissue loss with ulceration or gangrene.'
+  },
 ];
 
 const woundOptions = [
@@ -56,6 +81,7 @@ export default function Step1({ data, setData }) {
             key={o.key}
             icon={o.icon}
             label={o.label}
+            tooltip={o.tooltip}
             isSelected={ data.stage === o.key }
             onClick={() => selectStage(o.key)}
           />
