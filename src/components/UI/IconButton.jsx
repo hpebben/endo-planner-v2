@@ -1,4 +1,5 @@
 import { Tooltip } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 import PropTypes from 'prop-types';
 
 export default function IconButton({ icon, label, tooltip, isSelected, onClick }) {

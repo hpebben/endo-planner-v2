@@ -1,0 +1,444 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-09 13:36+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/components/UI/SliderModal.jsx:23
+#: src/components/steps/Step2_Patency.jsx:123
+msgid "Edit"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:9
+msgid "Asymptomatic"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:11
+msgid "No symptoms or functional limitation."
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:15
+msgid "Intermittent Claudication IIA"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:17
+msgid "Pain-free walking distance greater than 200 m."
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:21
+msgid "Intermittent Claudication IIB"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:23
+msgid "Pain occurs after walking less than 200 m."
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:27
+msgid "Rest Pain"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:29
+msgid "Ischemic rest pain present."
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:33
+msgid "Ulcer/Gangrene"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:35
+msgid "Tissue loss with ulceration or gangrene."
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:42
+msgid "No wound"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:44
+msgid "No ulceration or gangrene"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:48
+msgid "Small ulcer"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:50
+msgid "Superficial ulcer < 1 cm"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:54
+msgid "Deep ulcer"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:56
+msgid "Deeper ulcer with exposed structures"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:60
+msgid "Extensive"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:62
+msgid "Extensive tissue loss or gangrene"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:69
+#: src/components/steps/Step1_Clinical.jsx:96
+msgid "None"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:71
+msgid "No ischemia"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:75
+#: src/components/steps/Step1_Clinical.jsx:102
+msgid "Mild"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:77
+msgid "Mild reduction in perfusion"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:81
+#: src/components/steps/Step1_Clinical.jsx:108
+msgid "Moderate"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:83
+msgid "Significant ischemia present"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:87
+#: src/components/steps/Step1_Clinical.jsx:114
+msgid "Severe"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:89
+msgid "Severe ischemia with critical findings"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:98
+msgid "No infection"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:104
+msgid "Local infection only"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:110
+msgid "Deeper or spreading infection"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:116
+msgid "Systemic infection or sepsis"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:139
+#: src/components/steps/Step5_Export.jsx:20
+msgid "Stage"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:152
+msgid "Wound Grade"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:165
+#: src/components/steps/Step5_Export.jsx:22
+msgid "Ischemia"
+msgstr ""
+
+#: src/components/steps/Step1_Clinical.jsx:178
+#: src/components/steps/Step5_Export.jsx:23
+msgid "Infection"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:10
+msgid "Aorta"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:11
+msgid "Iliac Artery"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:12
+msgid "Left Common Iliac"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:13
+msgid "Right Common Iliac"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:14
+msgid "Left External Iliac"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:15
+msgid "Right External Iliac"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:16
+msgid "Left Internal Iliac"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:17
+msgid "Right Internal Iliac"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:18
+msgid "Left Common Femoral"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:19
+msgid "Right Common Femoral"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:20
+msgid "Left Superficial Femoral"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:21
+msgid "Right Superficial Femoral"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:22
+msgid "Left Profunda"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:23
+msgid "Right Profunda"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:24
+msgid "Left Popliteal"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:25
+msgid "Right Popliteal"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:26
+msgid "Left Anterior Tibial"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:27
+msgid "Right Anterior Tibial"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:28
+msgid "Left Peroneal"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:29
+msgid "Right Peroneal"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:30
+msgid "Left Posterior Tibial"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:31
+msgid "Right Posterior Tibial"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:32
+msgid "Crural Trunk"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:33
+msgid "Left Dorsal Pedal"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:34
+msgid "Right Dorsal Pedal"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:35
+msgid "Left Medial Plantar"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:36
+msgid "Left Lateral Plantar"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:37
+msgid "Left Plantar Arch"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:38
+msgid "Right Plantar Arch"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:39
+msgid "Left Metatarsal"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:40
+msgid "Right Metatarsal"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:41
+msgid "Pedal Vessel"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:109
+msgid "Selected Vessel Data"
+msgstr ""
+
+#: src/components/steps/Step2_Patency.jsx:127
+msgid "No segments set yet."
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:17
+#: src/components/steps/Step5_Export.jsx:17
+msgid "1. Clinical Indication"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:19
+msgid "Stage:"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:20
+msgid "Wound Grade:"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:21
+msgid "Ischemia:"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:22
+msgid "Infection:"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:27
+#: src/components/steps/Step5_Export.jsx:28
+msgid "2. Vessel Patency"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:32
+msgid "Segment"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:33
+msgid "Stenosis (%)"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:34
+msgid "Length (cm)"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:35
+msgid "Calcification"
+msgstr ""
+
+#: src/components/steps/Step3_Summary.jsx:50
+msgid "No vessel data has been entered yet."
+msgstr ""
+
+#: src/components/steps/Step4_Intervention.jsx:7
+msgid "Balloon Angioplasty"
+msgstr ""
+
+#: src/components/steps/Step4_Intervention.jsx:8
+msgid "Stent Placement"
+msgstr ""
+
+#: src/components/steps/Step4_Intervention.jsx:9
+msgid "Atherectomy"
+msgstr ""
+
+#: src/components/steps/Step4_Intervention.jsx:10
+msgid "Bypass Surgery"
+msgstr ""
+
+#: src/components/steps/Step4_Intervention.jsx:30
+msgid "4. Intervention Planning"
+msgstr ""
+
+#: src/components/steps/Step4_Intervention.jsx:41
+msgid "Additional Notes"
+msgstr ""
+
+#: src/components/steps/Step4_Intervention.jsx:44
+msgid "E.g. device preferences, access site, etc."
+msgstr ""
+
+#: src/components/steps/Step5_Export.jsx:13
+msgid "EndoPlanner Report"
+msgstr ""
+
+#: src/components/steps/Step5_Export.jsx:21
+msgid "Wound"
+msgstr ""
+
+#: src/components/steps/Step5_Export.jsx:39
+msgid "- No data entered"
+msgstr ""
+
+#: src/components/steps/Step5_Export.jsx:44
+msgid "4. Planned Interventions"
+msgstr ""
+
+#: src/components/steps/Step5_Export.jsx:51
+msgid "- None selected"
+msgstr ""
+
+#: src/components/steps/Step5_Export.jsx:57
+msgid "Notes:"
+msgstr ""
+
+#: src/components/steps/Step5_Export.jsx:63
+msgid "EndoPlanner_Report.pdf"
+msgstr ""
+
+#: src/components/steps/Step5_Export.jsx:68
+msgid "5. Review & Export"
+msgstr ""
+
+#: src/components/steps/Step5_Export.jsx:70
+msgid "Download PDF"
+msgstr ""
+
+#: src/components/wizard.jsx:11
+msgid "Clinical Indication"
+msgstr ""
+
+#: src/components/wizard.jsx:12
+msgid "Vessel Patency"
+msgstr ""
+
+#: src/components/wizard.jsx:13
+msgid "Case Summary"
+msgstr ""
+
+#: src/components/wizard.jsx:14
+msgid "Intervention Plan"
+msgstr ""
+
+#: src/components/wizard.jsx:15
+msgid "Export EndoPlan"
+msgstr ""
+
+#: src/components/wizard.jsx:33
+msgid "Back"
+msgstr ""
+
+#: src/components/wizard.jsx:35
+msgid "Next"
+msgstr ""
+
+#: src/components/wizard.jsx:36
+msgid "Finish"
+msgstr ""
