@@ -1,33 +1,46 @@
 import { Fragment } from 'react';
 import IconButton from '../UI/IconButton';
+import DashIcon from '../icons/DashIcon';
+import WoundGrade0 from '../icons/WoundGrade0';
+import WoundGrade1 from '../icons/WoundGrade1';
+import WoundGrade2 from '../icons/WoundGrade2';
+import WoundGrade3 from '../icons/WoundGrade3';
+import IschemiaGrade0 from '../icons/IschemiaGrade0';
+import IschemiaGrade1 from '../icons/IschemiaGrade1';
+import IschemiaGrade2 from '../icons/IschemiaGrade2';
+import IschemiaGrade3 from '../icons/IschemiaGrade3';
+import InfectionGrade0 from '../icons/InfectionGrade0';
+import InfectionGrade1 from '../icons/InfectionGrade1';
+import InfectionGrade2 from '../icons/InfectionGrade2';
+import InfectionGrade3 from '../icons/InfectionGrade3';
 
 const stageOptions = [
-  { key: 'I',    label: 'Asymptomatic', icon: 'visibility' },
-  { key: 'IIa',  label: 'Intermittent Claudication IIA', icon: 'walking' },
-  { key: 'IIb',  label: 'Intermittent Claudication IIB', icon: 'running' },
-  { key: 'III',  label: 'Rest Pain', icon: 'tired' },
-  { key: 'IV',   label: 'Ulcer/Gangrene', icon: 'warning' },
+  { key: 'I',    label: 'Asymptomatic', icon: <DashIcon name="visibility" /> },
+  { key: 'IIa',  label: 'Intermittent Claudication IIA', icon: <DashIcon name="walking" /> },
+  { key: 'IIb',  label: 'Intermittent Claudication IIB', icon: <DashIcon name="running" /> },
+  { key: 'III',  label: 'Rest Pain', icon: <DashIcon name="tired" /> },
+  { key: 'IV',   label: 'Ulcer/Gangrene', icon: <DashIcon name="warning" /> },
 ];
 
 const woundOptions = [
-  { key: '0', label: 'No wound',       icon: 'yes' },
-  { key: '1', label: 'Small ulcer',    icon: 'universal-access-alt' },
-  { key: '2', label: 'Deep ulcer',     icon: 'flag' },
-  { key: '3', label: 'Extensive',      icon: 'shield' },
+  { key: '0', label: 'No wound',       icon: <WoundGrade0 /> },
+  { key: '1', label: 'Small ulcer',    icon: <WoundGrade1 /> },
+  { key: '2', label: 'Deep ulcer',     icon: <WoundGrade2 /> },
+  { key: '3', label: 'Extensive',      icon: <WoundGrade3 /> },
 ];
 
 const ischemiaOptions = [
-  { key: '0', label: 'None',         icon: 'yes' },
-  { key: '1', label: 'Mild',         icon: 'minus' },
-  { key: '2', label: 'Moderate',     icon: 'warning' },
-  { key: '3', label: 'Severe',       icon: 'dismiss' },
+  { key: '0', label: 'None',         icon: <IschemiaGrade0 /> },
+  { key: '1', label: 'Mild',         icon: <IschemiaGrade1 /> },
+  { key: '2', label: 'Moderate',     icon: <IschemiaGrade2 /> },
+  { key: '3', label: 'Severe',       icon: <IschemiaGrade3 /> },
 ];
 
 const infectionOptions = [
-  { key: '0', label: 'None',         icon: 'yes' },
-  { key: '1', label: 'Mild',         icon: 'minus' },
-  { key: '2', label: 'Moderate',     icon: 'warning' },
-  { key: '3', label: 'Severe',       icon: 'dismiss' },
+  { key: '0', label: 'None',         icon: <InfectionGrade0 /> },
+  { key: '1', label: 'Mild',         icon: <InfectionGrade1 /> },
+  { key: '2', label: 'Moderate',     icon: <InfectionGrade2 /> },
+  { key: '3', label: 'Severe',       icon: <InfectionGrade3 /> },
 ];
 
 export default function Step1({ data, setData }) {

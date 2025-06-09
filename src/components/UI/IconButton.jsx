@@ -5,7 +5,7 @@ export default function IconButton({ icon, label, isSelected, onClick }) {
       onClick={onClick}
       type="button"
     >
-      <span className={`dashicons dashicons-${icon}`}></span>
+      { icon }
       <div className="label">{ label }</div>
     </button>
   );
