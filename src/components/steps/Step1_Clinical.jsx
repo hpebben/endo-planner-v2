@@ -1,118 +1,119 @@
 import { Fragment } from 'react';
 import PropTypes from 'prop-types';
+import { __ } from '@wordpress/i18n';
 import IconButton from '../UI/IconButton';
 
 const stageOptions = [
   {
     key: 'I',
-    label: 'Asymptomatic',
+    label: __( 'Asymptomatic', 'endoplanner' ),
     icon: 'visibility',
-    tooltip: 'No symptoms or functional limitation.'
+    tooltip: __( 'No symptoms or functional limitation.', 'endoplanner' )
   },
   {
     key: 'IIa',
-    label: 'Intermittent Claudication IIA',
+    label: __( 'Intermittent Claudication IIA', 'endoplanner' ),
     icon: 'walking',
-    tooltip: 'Pain-free walking distance greater than 200 m.'
+    tooltip: __( 'Pain-free walking distance greater than 200 m.', 'endoplanner' )
   },
   {
     key: 'IIb',
-    label: 'Intermittent Claudication IIB',
+    label: __( 'Intermittent Claudication IIB', 'endoplanner' ),
     icon: 'running',
-    tooltip: 'Pain occurs after walking less than 200 m.'
+    tooltip: __( 'Pain occurs after walking less than 200 m.', 'endoplanner' )
   },
   {
     key: 'III',
-    label: 'Rest Pain',
+    label: __( 'Rest Pain', 'endoplanner' ),
     icon: 'tired',
-    tooltip: 'Ischemic rest pain present.'
+    tooltip: __( 'Ischemic rest pain present.', 'endoplanner' )
   },
   {
     key: 'IV',
-    label: 'Ulcer/Gangrene',
+    label: __( 'Ulcer/Gangrene', 'endoplanner' ),
     icon: 'warning',
-    tooltip: 'Tissue loss with ulceration or gangrene.'
+    tooltip: __( 'Tissue loss with ulceration or gangrene.', 'endoplanner' )
   },
 ];
 
 const woundOptions = [
   {
     key: '0',
-    label: 'No wound',
+    label: __( 'No wound', 'endoplanner' ),
     icon: 'yes',
-    tooltip: 'No ulceration or gangrene'
+    tooltip: __( 'No ulceration or gangrene', 'endoplanner' )
   },
   {
     key: '1',
-    label: 'Small ulcer',
+    label: __( 'Small ulcer', 'endoplanner' ),
     icon: 'universal-access-alt',
-    tooltip: 'Superficial ulcer < 1 cm'
+    tooltip: __( 'Superficial ulcer < 1 cm', 'endoplanner' )
   },
   {
     key: '2',
-    label: 'Deep ulcer',
+    label: __( 'Deep ulcer', 'endoplanner' ),
     icon: 'flag',
-    tooltip: 'Deeper ulcer with exposed structures'
+    tooltip: __( 'Deeper ulcer with exposed structures', 'endoplanner' )
   },
   {
     key: '3',
-    label: 'Extensive',
+    label: __( 'Extensive', 'endoplanner' ),
     icon: 'shield',
-    tooltip: 'Extensive tissue loss or gangrene'
+    tooltip: __( 'Extensive tissue loss or gangrene', 'endoplanner' )
   },
 ];
 
 const ischemiaOptions = [
   {
     key: '0',
-    label: 'None',
+    label: __( 'None', 'endoplanner' ),
     icon: 'yes',
-    tooltip: 'No ischemia'
+    tooltip: __( 'No ischemia', 'endoplanner' )
   },
   {
     key: '1',
-    label: 'Mild',
+    label: __( 'Mild', 'endoplanner' ),
     icon: 'minus',
-    tooltip: 'Mild reduction in perfusion'
+    tooltip: __( 'Mild reduction in perfusion', 'endoplanner' )
   },
   {
     key: '2',
-    label: 'Moderate',
+    label: __( 'Moderate', 'endoplanner' ),
     icon: 'warning',
-    tooltip: 'Significant ischemia present'
+    tooltip: __( 'Significant ischemia present', 'endoplanner' )
   },
   {
     key: '3',
-    label: 'Severe',
+    label: __( 'Severe', 'endoplanner' ),
     icon: 'dismiss',
-    tooltip: 'Severe ischemia with critical findings'
+    tooltip: __( 'Severe ischemia with critical findings', 'endoplanner' )
   },
 ];
 
 const infectionOptions = [
   {
     key: '0',
-    label: 'None',
+    label: __( 'None', 'endoplanner' ),
     icon: 'yes',
-    tooltip: 'No infection'
+    tooltip: __( 'No infection', 'endoplanner' )
   },
   {
     key: '1',
-    label: 'Mild',
+    label: __( 'Mild', 'endoplanner' ),
     icon: 'minus',
-    tooltip: 'Local infection only'
+    tooltip: __( 'Local infection only', 'endoplanner' )
   },
   {
     key: '2',
-    label: 'Moderate',
+    label: __( 'Moderate', 'endoplanner' ),
     icon: 'warning',
-    tooltip: 'Deeper or spreading infection'
+    tooltip: __( 'Deeper or spreading infection', 'endoplanner' )
   },
   {
     key: '3',
-    label: 'Severe',
+    label: __( 'Severe', 'endoplanner' ),
     icon: 'dismiss',
-    tooltip: 'Systemic infection or sepsis'
+    tooltip: __( 'Systemic infection or sepsis', 'endoplanner' )
   },
 ];
 
@@ -135,7 +136,7 @@ export default function Step1({ data, setData }) {
 
   return (
     <Fragment>
-      <h3>Stage</h3>
+      <h3>{ __( 'Stage', 'endoplanner' ) }</h3>
       <div className="step1-grid">
         { stageOptions.map((o) =>
           <IconButton
@@ -148,7 +149,7 @@ export default function Step1({ data, setData }) {
           />
         )}
       </div>
-      <h3>Wound Grade</h3>
+      <h3>{ __( 'Wound Grade', 'endoplanner' ) }</h3>
       <div className="step1-grid">
         { woundOptions.map((o) => (
           <IconButton
@@ -161,7 +162,7 @@ export default function Step1({ data, setData }) {
           />
         )) }
       </div>
-      <h3>Ischemia</h3>
+      <h3>{ __( 'Ischemia', 'endoplanner' ) }</h3>
       <div className="step1-grid">
         { ischemiaOptions.map((o) => (
           <IconButton
@@ -174,7 +175,7 @@ export default function Step1({ data, setData }) {
           />
         )) }
       </div>
-      <h3>Infection</h3>
+      <h3>{ __( 'Infection', 'endoplanner' ) }</h3>
       <div className="step1-grid">
         { infectionOptions.map((o) => (
           <IconButton
