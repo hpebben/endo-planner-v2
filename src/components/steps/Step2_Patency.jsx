@@ -1,6 +1,7 @@
 // src/components/steps/Step2_Patency.jsx
 
 import React, { useState, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import SliderModal from '../UI/SliderModal';
 import VesselMap from '../VesselMap';
@@ -130,3 +131,16 @@ export default function Step2({ data, setData }) {
     </div>
   );
 }
+
+Step2.propTypes = {
+  data: PropTypes.shape({
+    patencySegments: PropTypes.objectOf(
+      PropTypes.shape({
+        severity: PropTypes.number,
+        length: PropTypes.number,
+        calcium: PropTypes.string,
+      })
+    ),
+  }).isRequired,
+  setData: PropTypes.func.isRequired,
+};

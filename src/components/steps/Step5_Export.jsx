@@ -1,5 +1,6 @@
 // src/components/steps/Step5_Export.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import jsPDF from 'jspdf';
@@ -72,3 +73,21 @@ export default function Step5({ data }) {
     </div>
   );
 }
+
+Step5.propTypes = {
+  data: PropTypes.shape({
+    stage: PropTypes.string,
+    wound: PropTypes.string,
+    ischemia: PropTypes.string,
+    infection: PropTypes.string,
+    patencySegments: PropTypes.objectOf(
+      PropTypes.shape({
+        severity: PropTypes.number,
+        length: PropTypes.number,
+        calcium: PropTypes.string,
+      })
+    ),
+    interventions: PropTypes.arrayOf(PropTypes.string),
+    interventionNotes: PropTypes.string,
+  }).isRequired,
+};
