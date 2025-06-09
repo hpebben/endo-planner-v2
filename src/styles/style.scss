@@ -1,0 +1,20 @@
+.endo-wizard .step1-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.icon-button {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    background: #fff;
+}
+
+.icon-button.selected {
+    border-color: #007cba;
+    background: #e7f5ff;
+}
