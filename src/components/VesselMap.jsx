@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function VesselMap() {
+export default function VesselMap({ segmentRefs = {}, segmentColors = {}, onSegmentClick = () => {} }) {
   return (
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 708.48 1484.64">
   <defs>
@@ -8,7 +8,14 @@ export default function VesselMap() {
   </defs>
 
   {/* pedal_Afbeelding */}
-  <g id="pedal_Afbeelding" data-name="pedal Afbeelding">
+  <g
+    id="pedal_Afbeelding"
+    data-name="pedal Afbeelding"
+    ref={segmentRefs.pedal_Afbeelding}
+    onClick={() => onSegmentClick('pedal_Afbeelding')}
+    fill={segmentColors.pedal_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -32,7 +39,14 @@ export default function VesselMap() {
   </g>
 
   {/* Left_metatarsal_Afbeelding */}
-  <g id="Left_metatarsal_Afbeelding" data-name="Left metatarsal Afbeelding">
+  <g
+    id="Left_metatarsal_Afbeelding"
+    data-name="Left metatarsal Afbeelding"
+    ref={segmentRefs.Left_metatarsal_Afbeelding}
+    onClick={() => onSegmentClick('Left_metatarsal_Afbeelding')}
+    fill={segmentColors.Left_metatarsal_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -78,7 +92,14 @@ export default function VesselMap() {
   </g>
 
   {/* Left_plantar_arch_Afbeelding */}
-  <g id="Left_plantar_arch_Afbeelding" data-name="Left plantar arch Afbeelding">
+  <g
+    id="Left_plantar_arch_Afbeelding"
+    data-name="Left plantar arch Afbeelding"
+    ref={segmentRefs.Left_plantar_arch_Afbeelding}
+    onClick={() => onSegmentClick('Left_plantar_arch_Afbeelding')}
+    fill={segmentColors.Left_plantar_arch_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -100,7 +121,14 @@ export default function VesselMap() {
   </g>
 
   {/* Left_lateral_plantar_Afbeelding */}
-  <g id="Left_lateral_plantar_Afbeelding" data-name="Left lateral plantar Afbeelding">
+  <g
+    id="Left_lateral_plantar_Afbeelding"
+    data-name="Left lateral plantar Afbeelding"
+    ref={segmentRefs.Left_lateral_plantar_Afbeelding}
+    onClick={() => onSegmentClick('Left_lateral_plantar_Afbeelding')}
+    fill={segmentColors.Left_lateral_plantar_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -114,7 +142,14 @@ export default function VesselMap() {
   </g>
 
   {/* Left_dorsal_pedal_Afbeelding */}
-  <g id="Left_dorsal_pedal_Afbeelding" data-name="Left dorsal pedal Afbeelding">
+  <g
+    id="Left_dorsal_pedal_Afbeelding"
+    data-name="Left dorsal pedal Afbeelding"
+    ref={segmentRefs.Left_dorsal_pedal_Afbeelding}
+    onClick={() => onSegmentClick('Left_dorsal_pedal_Afbeelding')}
+    fill={segmentColors.Left_dorsal_pedal_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -128,7 +163,14 @@ export default function VesselMap() {
   </g>
 
   {/* Left_medial_plantar_Afbeelding */}
-  <g id="Left_medial_plantar_Afbeelding" data-name="Left medial plantar Afbeelding">
+  <g
+    id="Left_medial_plantar_Afbeelding"
+    data-name="Left medial plantar Afbeelding"
+    ref={segmentRefs.Left_medial_plantar_Afbeelding}
+    onClick={() => onSegmentClick('Left_medial_plantar_Afbeelding')}
+    fill={segmentColors.Left_medial_plantar_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -142,7 +184,14 @@ export default function VesselMap() {
   </g>
 
   {/* Right_metatarsal_Afbeelding */}
-  <g id="Right_metatarsal_Afbeelding" data-name="Right metatarsal Afbeelding">
+  <g
+    id="Right_metatarsal_Afbeelding"
+    data-name="Right metatarsal Afbeelding"
+    ref={segmentRefs.Right_metatarsal_Afbeelding}
+    onClick={() => onSegmentClick('Right_metatarsal_Afbeelding')}
+    fill={segmentColors.Right_metatarsal_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -172,7 +221,14 @@ export default function VesselMap() {
   </g>
 
   {/* Right_plantar_arch_Afbeelding */}
-  <g id="Right_plantar_arch_Afbeelding" data-name="Right plantar arch Afbeelding">
+  <g
+    id="Right_plantar_arch_Afbeelding"
+    data-name="Right plantar arch Afbeelding"
+    ref={segmentRefs.Right_plantar_arch_Afbeelding}
+    onClick={() => onSegmentClick('Right_plantar_arch_Afbeelding')}
+    fill={segmentColors.Right_plantar_arch_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -194,7 +250,14 @@ export default function VesselMap() {
   </g>
 
   {/* Left_lateral_plantar_Afbeelding */}
-  <g id="Left_lateral_plantar_Afbeelding" data-name="Left lateral plantar Afbeelding">
+  <g
+    id="Left_lateral_plantar_Afbeelding"
+    data-name="Left lateral plantar Afbeelding"
+    ref={segmentRefs.Left_lateral_plantar_Afbeelding}
+    onClick={() => onSegmentClick('Left_lateral_plantar_Afbeelding')}
+    fill={segmentColors.Left_lateral_plantar_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -208,7 +271,14 @@ export default function VesselMap() {
   </g>
 
   {/* Left_dorsal_pedal_Afbeelding */}
-  <g id="Left_dorsal_pedal_Afbeelding" data-name="Left dorsal pedal Afbeelding">
+  <g
+    id="Left_dorsal_pedal_Afbeelding"
+    data-name="Left dorsal pedal Afbeelding"
+    ref={segmentRefs.Left_dorsal_pedal_Afbeelding}
+    onClick={() => onSegmentClick('Left_dorsal_pedal_Afbeelding')}
+    fill={segmentColors.Left_dorsal_pedal_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -222,7 +292,14 @@ export default function VesselMap() {
   </g>
 
   {/* Left_medial_plantar_Afbeelding */}
-  <g id="Left_medial_plantar_Afbeelding" data-name="Left medial plantar Afbeelding">
+  <g
+    id="Left_medial_plantar_Afbeelding"
+    data-name="Left medial plantar Afbeelding"
+    ref={segmentRefs.Left_medial_plantar_Afbeelding}
+    onClick={() => onSegmentClick('Left_medial_plantar_Afbeelding')}
+    fill={segmentColors.Left_medial_plantar_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -236,7 +313,14 @@ export default function VesselMap() {
   </g>
 
   {/* Right_metatarsal_Afbeelding */}
-  <g id="Right_metatarsal_Afbeelding" data-name="Right metatarsal Afbeelding">
+  <g
+    id="Right_metatarsal_Afbeelding"
+    data-name="Right metatarsal Afbeelding"
+    ref={segmentRefs.Right_metatarsal_Afbeelding}
+    onClick={() => onSegmentClick('Right_metatarsal_Afbeelding')}
+    fill={segmentColors.Right_metatarsal_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -266,7 +350,14 @@ export default function VesselMap() {
   </g>
 
   {/* Right_plantar_arch_Afbeelding */}
-  <g id="Right_plantar_arch_Afbeelding" data-name="Right plantar arch Afbeelding">
+  <g
+    id="Right_plantar_arch_Afbeelding"
+    data-name="Right plantar arch Afbeelding"
+    ref={segmentRefs.Right_plantar_arch_Afbeelding}
+    onClick={() => onSegmentClick('Right_plantar_arch_Afbeelding')}
+    fill={segmentColors.Right_plantar_arch_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -288,7 +379,14 @@ export default function VesselMap() {
   </g>
 
   {/* Right_lateral_plantar_Afbeelding */}
-  <g id="Right_lateral_plantar_Afbeelding" data-name="Right lateral plantar Afbeelding">
+  <g
+    id="Right_lateral_plantar_Afbeelding"
+    data-name="Right lateral plantar Afbeelding"
+    ref={segmentRefs.Right_lateral_plantar_Afbeelding}
+    onClick={() => onSegmentClick('Right_lateral_plantar_Afbeelding')}
+    fill={segmentColors.Right_lateral_plantar_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -302,7 +400,14 @@ export default function VesselMap() {
   </g>
 
   {/* Right_medial_plantar_Afbeelding */}
-  <g id="Right_medial_plantar_Afbeelding" data-name="Right medial plantar Afbeelding">
+  <g
+    id="Right_medial_plantar_Afbeelding"
+    data-name="Right medial plantar Afbeelding"
+    ref={segmentRefs.Right_medial_plantar_Afbeelding}
+    onClick={() => onSegmentClick('Right_medial_plantar_Afbeelding')}
+    fill={segmentColors.Right_medial_plantar_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -316,7 +421,14 @@ export default function VesselMap() {
   </g>
 
   {/* Right_dorsal_pedal_Afbeelding */}
-  <g id="Right_dorsal_pedal_Afbeelding" data-name="Right dorsal pedal Afbeelding">
+  <g
+    id="Right_dorsal_pedal_Afbeelding"
+    data-name="Right dorsal pedal Afbeelding"
+    ref={segmentRefs.Right_dorsal_pedal_Afbeelding}
+    onClick={() => onSegmentClick('Right_dorsal_pedal_Afbeelding')}
+    fill={segmentColors.Right_dorsal_pedal_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"
@@ -330,7 +442,14 @@ export default function VesselMap() {
   </g>
 
   {/* crural_Afbeelding */}
-  <g id="crural_Afbeelding" data-name="crural Afbeelding">
+  <g
+    id="crural_Afbeelding"
+    data-name="crural Afbeelding"
+    ref={segmentRefs.crural_Afbeelding}
+    onClick={() => onSegmentClick('crural_Afbeelding')}
+    fill={segmentColors.crural_Afbeelding}
+    style={{ cursor: 'pointer' }}
+  >
     <g>
       <path
         className="cls-1"

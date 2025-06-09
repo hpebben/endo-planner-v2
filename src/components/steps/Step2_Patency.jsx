@@ -1,6 +1,6 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import SliderModal from '../UI/SliderModal';
 import VesselMap from '../VesselMap';
 
@@ -45,42 +45,31 @@ export default function Step2({ data, setData }) {
   const [activeSegment, setActiveSegment] = useState(null);
   const segments = data.patencySegments || {};
 
-  // On render (and whenever `segments` changes), color each vessel and attach onClick
-  useEffect(() => {
+  // refs for each vessel segment
+  const segmentRefs = useMemo(() => {
+    const refs = {};
     vesselSegments.forEach((seg) => {
-      const el = document.getElementById(seg.id);
-      if (!el) return;
+      refs[seg.id] = React.createRef();
+    });
+    return refs;
+  }, []);
 
-      const vals = segments[seg.id] || {
-        severity: 0,
-        length: 0,
-        calcium: 'none',
-      };
-
-      const color =
+  const segmentColors = useMemo(() => {
+    const colors = {};
+    vesselSegments.forEach((seg) => {
+      const vals = segments[seg.id] || { severity: 0 };
+      colors[seg.id] =
         vals.severity >= 100 ? '#d63638' :
         vals.severity > 0   ? '#f5a623' :
                               '#7fc241';
-
-      el.setAttribute('fill', color);
-      el.style.cursor = 'pointer';
-      el.onclick = () => {
-        setActiveSegment(seg.id);
-        setModalOpen(true);
-      };
     });
-
-    // Cleanup: remove event handlers and styling on unmount or when segments change
-    return () => {
-      vesselSegments.forEach((seg) => {
-        const el = document.getElementById(seg.id);
-        if (!el) return;
-        el.onclick = null;
-        el.style.cursor = '';
-        el.removeAttribute('fill');
-      });
-    };
+    return colors;
   }, [segments]);
+
+  const handleSegmentClick = (id) => {
+    setActiveSegment(id);
+    setModalOpen(true);
+  };
 
   // Called when user clicks “Save” in the SliderModal
   const handleSave = (values) => {
@@ -96,7 +85,11 @@ export default function Step2({ data, setData }) {
   return (
     <div className="step2-patency">
       <div className="vessel-map-wrapper">
-          <VesselMap />
+          <VesselMap
+            segmentRefs={segmentRefs}
+            segmentColors={segmentColors}
+            onSegmentClick={handleSegmentClick}
+          />
       </div>
 
       <SliderModal
