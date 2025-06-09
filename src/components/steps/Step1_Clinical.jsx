@@ -36,24 +36,84 @@ const stageOptions = [
 ];
 
 const woundOptions = [
-  { key: '0', label: 'No wound',       icon: 'yes' },
-  { key: '1', label: 'Small ulcer',    icon: 'universal-access-alt' },
-  { key: '2', label: 'Deep ulcer',     icon: 'flag' },
-  { key: '3', label: 'Extensive',      icon: 'shield' },
+  {
+    key: '0',
+    label: 'No wound',
+    icon: 'yes',
+    tooltip: 'No ulceration or gangrene'
+  },
+  {
+    key: '1',
+    label: 'Small ulcer',
+    icon: 'universal-access-alt',
+    tooltip: 'Superficial ulcer < 1 cm'
+  },
+  {
+    key: '2',
+    label: 'Deep ulcer',
+    icon: 'flag',
+    tooltip: 'Deeper ulcer with exposed structures'
+  },
+  {
+    key: '3',
+    label: 'Extensive',
+    icon: 'shield',
+    tooltip: 'Extensive tissue loss or gangrene'
+  },
 ];
 
 const ischemiaOptions = [
-  { key: '0', label: 'None',         icon: 'yes' },
-  { key: '1', label: 'Mild',         icon: 'minus' },
-  { key: '2', label: 'Moderate',     icon: 'warning' },
-  { key: '3', label: 'Severe',       icon: 'dismiss' },
+  {
+    key: '0',
+    label: 'None',
+    icon: 'yes',
+    tooltip: 'No ischemia'
+  },
+  {
+    key: '1',
+    label: 'Mild',
+    icon: 'minus',
+    tooltip: 'Mild reduction in perfusion'
+  },
+  {
+    key: '2',
+    label: 'Moderate',
+    icon: 'warning',
+    tooltip: 'Significant ischemia present'
+  },
+  {
+    key: '3',
+    label: 'Severe',
+    icon: 'dismiss',
+    tooltip: 'Severe ischemia with critical findings'
+  },
 ];
 
 const infectionOptions = [
-  { key: '0', label: 'None',         icon: 'yes' },
-  { key: '1', label: 'Mild',         icon: 'minus' },
-  { key: '2', label: 'Moderate',     icon: 'warning' },
-  { key: '3', label: 'Severe',       icon: 'dismiss' },
+  {
+    key: '0',
+    label: 'None',
+    icon: 'yes',
+    tooltip: 'No infection'
+  },
+  {
+    key: '1',
+    label: 'Mild',
+    icon: 'minus',
+    tooltip: 'Local infection only'
+  },
+  {
+    key: '2',
+    label: 'Moderate',
+    icon: 'warning',
+    tooltip: 'Deeper or spreading infection'
+  },
+  {
+    key: '3',
+    label: 'Severe',
+    icon: 'dismiss',
+    tooltip: 'Systemic infection or sepsis'
+  },
 ];
 
 export default function Step1({ data, setData }) {
@@ -95,6 +155,7 @@ export default function Step1({ data, setData }) {
             key={o.key}
             icon={o.icon}
             label={o.label}
+            tooltip={o.tooltip}
             isSelected={ data.wound === o.key }
             onClick={() => selectWound(o.key)}
           />
@@ -107,6 +168,7 @@ export default function Step1({ data, setData }) {
             key={o.key}
             icon={o.icon}
             label={o.label}
+            tooltip={o.tooltip}
             isSelected={ data.ischemia === o.key }
             onClick={() => selectIschemia(o.key)}
           />
@@ -119,6 +181,7 @@ export default function Step1({ data, setData }) {
             key={o.key}
             icon={o.icon}
             label={o.label}
+            tooltip={o.tooltip}
             isSelected={ data.infection === o.key }
             onClick={() => selectInfection(o.key)}
           />
