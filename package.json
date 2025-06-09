@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "jspdf": "^2.x",
+    "prop-types": "^15.8.1",
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
   }

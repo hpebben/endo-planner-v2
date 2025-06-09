@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function IconButton({ icon, label, tooltip, isSelected, onClick }) {
   return (
     <button
@@ -12,3 +14,11 @@ export default function IconButton({ icon, label, tooltip, isSelected, onClick }
     </button>
   );
 }
+
+IconButton.propTypes = {
+  icon: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  tooltip: PropTypes.string,
+  isSelected: PropTypes.bool,
+  onClick: PropTypes.func.isRequired,
+};

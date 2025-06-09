@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import PropTypes from 'prop-types';
 import IconButton from '../UI/IconButton';
 
 const stageOptions = [
@@ -126,3 +127,8 @@ export default function Step1({ data, setData }) {
     </Fragment>
   );
 }
+
+Step1.propTypes = {
+  data: PropTypes.object.isRequired,
+  setData: PropTypes.func.isRequired,
+};
