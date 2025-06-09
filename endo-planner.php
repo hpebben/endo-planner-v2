@@ -1,10 +1,13 @@
 <?php
 /**
  * Plugin Name: EndoPlanner 2.0
+ * Plugin URI:  https://github.com/hpebben/endo-planner-v2
  * Description: A Gutenberg‐based wizard for clinical indication, patency mapping, case summary, intervention planning, and PDF export.
- * Version:     0.0.0
+ * Version:     1.0.0
  * Author:      hpebben
  * License:     GPL2+
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Update URI:  false
  *
  * GitHub Plugin URI: https://github.com/hpebben/endo-planner-v2
  */
