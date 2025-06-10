@@ -2,3 +2,46 @@
 .editor-block-list__block.is-selected .wp-block-endoplanner-v2-wizard {
   /* Add any editor‐only styles here */
 }
+
+.clinical-indication-container,
+.vessel-patency-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.step-group {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.step-group h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.step-group .components-button,
+.vessel-map-container,
+.patency-summary-sidebar {
+  margin: 0.5rem;
+}
+
+.vessel-patency-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.vessel-map-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.patency-summary-sidebar {
+  width: 250px;
+}
