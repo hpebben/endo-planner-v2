@@ -1,12 +1,12 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
 import SliderModal from '../UI/SliderModal';
-import VesselMap from '../components/VesselMap';
+import { ReactComponent as VesselMap } from '../../vessel-map.svg';
 
 // List every <g id="..."> exactly as it appears in the SVG
 const vesselSegments = [
@@ -50,26 +50,6 @@ export default function Step2({ data, setData }) {
   const [activeSegment, setActiveSegment] = useState(null);
   const segments = data.patencySegments || {};
 
-  // refs for each vessel segment
-  const segmentRefs = useMemo(() => {
-    const refs = {};
-    vesselSegments.forEach((seg) => {
-      refs[seg.id] = React.createRef();
-    });
-    return refs;
-  }, []);
-
-  const segmentColors = useMemo(() => {
-    const colors = {};
-    vesselSegments.forEach((seg) => {
-      const vals = segments[seg.id] || { severity: 0 };
-      colors[seg.id] =
-        vals.severity >= 100 ? '#d63638' :
-        vals.severity > 0   ? '#f5a623' :
-                              '#7fc241';
-    });
-    return colors;
-  }, [segments]);
 
   const handleSegmentClick = (id) => {
     setActiveSegment(id);
@@ -91,9 +71,10 @@ export default function Step2({ data, setData }) {
     <div {...blockProps} className="vessel-patency-container">
       <div className="vessel-map-center">
         <VesselMap
-          segmentRefs={segmentRefs}
-          segmentColors={segmentColors}
-          onSegmentClick={handleSegmentClick}
+          onClick={({ target }) => {
+            const segId = target.id || target.closest('path')?.id;
+            if (segId) handleSegmentClick(segId);
+          }}
         />
       </div>
       <SliderModal
