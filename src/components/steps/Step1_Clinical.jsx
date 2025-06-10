@@ -110,9 +110,7 @@ export default function Step1({ data, setData }) {
         { stageOptions.map((o) => (
           <Button
             key={o.key}
-            className="step-button"
-            isSecondary
-            isPressed={ data.stage === o.key }
+            className={`step-button${ data.stage === o.key ? ' selected' : '' }`}
             onClick={() => selectStage(o.key)}
           >
             { o.label }
@@ -125,9 +123,7 @@ export default function Step1({ data, setData }) {
         { woundOptions.map((o) => (
           <Button
             key={o.key}
-            className="step-button"
-            isSecondary
-            isPressed={ data.wound === o.key }
+            className={`step-button${ data.wound === o.key ? ' selected' : '' }`}
             onClick={() => selectWound(o.key)}
           >
             { o.label }
@@ -140,9 +136,7 @@ export default function Step1({ data, setData }) {
         { ischemiaOptions.map((o) => (
           <Button
             key={o.key}
-            className="step-button"
-            isSecondary
-            isPressed={ data.ischemia === o.key }
+            className={`step-button${ data.ischemia === o.key ? ' selected' : '' }`}
             onClick={() => selectIschemia(o.key)}
           >
             { o.label }
@@ -155,9 +149,7 @@ export default function Step1({ data, setData }) {
         { infectionOptions.map((o) => (
           <Button
             key={o.key}
-            className="step-button"
-            isSecondary
-            isPressed={ data.infection === o.key }
+            className={`step-button${ data.infection === o.key ? ' selected' : '' }`}
             onClick={() => selectInfection(o.key)}
           >
             { o.label }
