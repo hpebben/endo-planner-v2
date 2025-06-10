@@ -103,12 +103,14 @@ export default function Step1({ data, setData }) {
   };
 
   return (
-    <div {...blockProps} className="clinical-indication-container">
+    <div className="clinical-indication-center">
+      <div {...blockProps} className="clinical-indication-container">
       <div className="step-group">
         <h3>{ __( 'Stage', 'endoplanner' ) }</h3>
         { stageOptions.map((o) => (
           <Button
             key={o.key}
+            className="step-button"
             isSecondary
             isPressed={ data.stage === o.key }
             onClick={() => selectStage(o.key)}
@@ -123,6 +125,7 @@ export default function Step1({ data, setData }) {
         { woundOptions.map((o) => (
           <Button
             key={o.key}
+            className="step-button"
             isSecondary
             isPressed={ data.wound === o.key }
             onClick={() => selectWound(o.key)}
@@ -137,6 +140,7 @@ export default function Step1({ data, setData }) {
         { ischemiaOptions.map((o) => (
           <Button
             key={o.key}
+            className="step-button"
             isSecondary
             isPressed={ data.ischemia === o.key }
             onClick={() => selectIschemia(o.key)}
@@ -151,6 +155,7 @@ export default function Step1({ data, setData }) {
         { infectionOptions.map((o) => (
           <Button
             key={o.key}
+            className="step-button"
             isSecondary
             isPressed={ data.infection === o.key }
             onClick={() => selectInfection(o.key)}
@@ -158,6 +163,7 @@ export default function Step1({ data, setData }) {
             { o.label }
           </Button>
         )) }
+      </div>
       </div>
     </div>
   );

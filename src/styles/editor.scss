@@ -13,6 +13,11 @@
   align-items: center;
 }
 
+.clinical-indication-center {
+  display: flex;
+  justify-content: center;
+}
+
 .step-group {
   width: 100%;
   margin-bottom: 1.5rem;
@@ -24,10 +29,13 @@
   margin-bottom: 0.5rem;
 }
 
-.step-group .components-button,
-.vessel-map-container,
+.step-group .step-button {
+  margin: 0.5rem;
+}
+
 .patency-summary-sidebar {
   margin: 0.5rem;
+  width: 250px;
 }
 
 .vessel-patency-container {
@@ -36,12 +44,33 @@
   align-items: flex-start;
 }
 
-.vessel-map-container {
+.vessel-map-center {
   flex: 1;
   display: flex;
   justify-content: center;
+  margin: auto;
+  max-width: 600px;
 }
 
-.patency-summary-sidebar {
-  width: 250px;
+.step-button {
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid transparent;
+  background-color: #f3f3f3;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.step-button:hover {
+  background-color: #e5e5e5;
+}
+
+.step-button.is-pressed {
+  background-color: #007cba;
+  color: #fff;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.15);
+}
+
+.wizard-nav .components-button {
+  @extend .step-button;
+  margin: 0.5rem;
 }

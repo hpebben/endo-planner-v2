@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function VesselMap({ segmentRefs = {}, segmentColors = {}, onSegmentClick = () => {} }) {
   return (
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 708.48 1484.64">
+<svg width="100%" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 708.48 1484.64">
   <defs>
     <style>{`.cls-1 { fill: none; }`}</style>
   </defs>

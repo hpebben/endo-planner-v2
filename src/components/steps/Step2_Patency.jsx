@@ -89,13 +89,14 @@ export default function Step2({ data, setData }) {
 
   return (
     <div {...blockProps} className="vessel-patency-container">
-      <div className="vessel-map-container">
+      <div className="vessel-map-center">
         <VesselMap
           segmentRefs={segmentRefs}
           segmentColors={segmentColors}
           onSegmentClick={handleSegmentClick}
         />
-        <SliderModal
+      </div>
+      <SliderModal
           isOpen={modalOpen}
           segment={activeSegment}
           values={segments[activeSegment] || {
