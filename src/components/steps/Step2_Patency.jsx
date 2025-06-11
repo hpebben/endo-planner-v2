@@ -1,7 +1,7 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useState, useEffect } from 'react';
-import { ReactComponent as VesselMap } from '../../assets/vessel-map.svg';
+import React, { useState } from 'react';
+import VesselMap from '../VesselMap';
 import SliderModal from '../UI/SliderModal';
 import { Button } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
@@ -48,20 +48,16 @@ export default function Step2_Patency({ data, setData }) {
   const [activeSegment, setActiveSegment] = useState(null);
   const segments = data.patencySegments || {};
 
-  useEffect(() => {
-    vesselSegments.forEach((seg) => {
-      const el = document.getElementById(seg.id);
-      if (!el) return;
-      const vals = segments[seg.id] || { severity: 0, length: 0, calcium: 'none' };
-      const color = vals.severity >= 100 ? '#d63638' : vals.severity > 0 ? '#f5a623' : '#7fc241';
-      el.setAttribute('fill', color);
-      el.style.cursor = 'pointer';
-      el.onclick = () => {
-        setActiveSegment(seg.id);
-        setModalOpen(true);
-      };
-    });
-  }, [segments]);
+  const segmentColors = vesselSegments.reduce((acc, seg) => {
+    const vals = segments[seg.id] || { severity: 0 };
+    acc[seg.id] = vals.severity >= 100 ? '#d63638' : vals.severity > 0 ? '#f5a623' : '#7fc241';
+    return acc;
+  }, {});
+
+  const handleSegmentClick = (id) => {
+    setActiveSegment(id);
+    setModalOpen(true);
+  };
 
   const handleSave = (values) => {
     setData({ ...data, patencySegments: { ...segments, [activeSegment]: values } });
@@ -72,13 +68,10 @@ export default function Step2_Patency({ data, setData }) {
   return (
     <div { ...blockProps } className="step2-patency vessel-patency-container">
       <div className="vessel-map-center">
-        <VesselMap onClick={({ target }) => {
-          const id = target.id || target.closest('path')?.id;
-          if (id) {
-            setActiveSegment(id);
-            setModalOpen(true);
-          }
-        }} />
+        <VesselMap
+          onSegmentClick={handleSegmentClick}
+          segmentColors={segmentColors}
+        />
       </div>
       <aside className="patency-summary-sidebar">
         <h4>Selected Vessel Data</h4>
