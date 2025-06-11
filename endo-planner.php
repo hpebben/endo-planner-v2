@@ -2,7 +2,7 @@
 /**
  * Plugin Name: EndoPlanner 2.0
  * Description: A Gutenberg‐based wizard for clinical indication, patency mapping, case summary, intervention planning, and PDF export.
- * Version:     1.6.1
+ * Version:     1.6.2
  * Author:      hpebben
  * License:     GPL2+
  *
