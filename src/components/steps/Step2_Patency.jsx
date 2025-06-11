@@ -1,6 +1,6 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import VesselMap from '../VesselMap';
 import SliderModal from '../UI/SliderModal';
 import { Button } from '@wordpress/components';
@@ -54,6 +54,16 @@ export default function Step2_Patency({ data, setData }) {
     return acc;
   }, {});
 
+  useEffect(() => {
+    Object.entries(segmentColors).forEach(([id, color]) => {
+      document.querySelectorAll(`#${id} path`).forEach((el) => {
+        el.setAttribute('fill', 'none');
+        el.setAttribute('stroke', color);
+        el.setAttribute('stroke-width', '4');
+      });
+    });
+  }, [segmentColors]);
+
   const handleSegmentClick = (id) => {
     setActiveSegment(id);
     setModalOpen(true);
@@ -103,3 +113,5 @@ export default function Step2_Patency({ data, setData }) {
     </div>
   );
 }
+
+export { vesselSegments };

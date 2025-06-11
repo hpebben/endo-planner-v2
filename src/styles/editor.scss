@@ -10,14 +10,15 @@
   max-width: 600px;
   margin: 2rem auto;
 }
-.clinical-center .components-button {
-  margin: 0.5rem;
-  border-radius: 6px;
-  transition: background-color 0.2s;
+.clinical-center .components-radio-control__input {
+  margin: 0 0.5rem;
 }
-.clinical-center .components-button.is-pressed {
-  background-color: #007cba;
-  color: #fff;
+.clinical-center .help-text {
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 0.25rem;
+  text-align: center;
+  max-width: 500px;
 }
 
 .step-group {
@@ -52,11 +53,10 @@
 }
 .vessel-map-center svg path {
   cursor: pointer;
-  transition: fill 0.2s, stroke 0.2s;
+  transition: stroke 0.2s;
 }
 .vessel-map-center svg path:hover {
   stroke: #007cba;
-  stroke-width: 2px;
 }
 
 .patency-summary-sidebar {
