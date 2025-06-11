@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
+import { useState } from 'react';
 
 const stageOptions = [
   {
@@ -86,25 +87,34 @@ const infectionOptions = [
 export default function Step1({ data, setData }) {
   const blockProps = useBlockProps();
 
-  const selectStage = ( key ) => {
+  const [selectedStage, setSelectedStage] = useState(data.stage || '');
+  const [selectedWound, setSelectedWound] = useState(data.wound || '');
+  const [selectedIschemia, setSelectedIschemia] = useState(data.ischemia || '');
+  const [selectedInfection, setSelectedInfection] = useState(data.infection || '');
+
+  const selectStage = (key) => {
+    setSelectedStage(key);
     setData({ ...data, stage: key });
   };
 
   const selectWound = (key) => {
+    setSelectedWound(key);
     setData({ ...data, wound: key });
   };
 
   const selectIschemia = (key) => {
+    setSelectedIschemia(key);
     setData({ ...data, ischemia: key });
   };
 
   const selectInfection = (key) => {
+    setSelectedInfection(key);
     setData({ ...data, infection: key });
   };
 
   return (
-    <div className="clinical-indication-center">
-      <div {...blockProps} className="clinical-indication-container">
+    <div className="clinical-center">
+      <div {...blockProps}>
       <div className="step-group">
         <h3>{ __( 'Stage', 'endoplanner' ) }</h3>
         { stageOptions.map((o) => (
@@ -112,7 +122,7 @@ export default function Step1({ data, setData }) {
             key={o.key}
             className="step-button"
             isSecondary
-            isPressed={ data.stage === o.key }
+            isPressed={ selectedStage === o.key }
             onClick={() => selectStage(o.key)}
           >
             { o.label }
@@ -127,7 +137,7 @@ export default function Step1({ data, setData }) {
             key={o.key}
             className="step-button"
             isSecondary
-            isPressed={ data.wound === o.key }
+            isPressed={ selectedWound === o.key }
             onClick={() => selectWound(o.key)}
           >
             { o.label }
@@ -142,7 +152,7 @@ export default function Step1({ data, setData }) {
             key={o.key}
             className="step-button"
             isSecondary
-            isPressed={ data.ischemia === o.key }
+            isPressed={ selectedIschemia === o.key }
             onClick={() => selectIschemia(o.key)}
           >
             { o.label }
@@ -157,7 +167,7 @@ export default function Step1({ data, setData }) {
             key={o.key}
             className="step-button"
             isSecondary
-            isPressed={ data.infection === o.key }
+            isPressed={ selectedInfection === o.key }
             onClick={() => selectInfection(o.key)}
           >
             { o.label }
