@@ -3,8 +3,7 @@
   /* Add any editor‐only styles here */
 }
 
-.clinical-indication-container,
-.vessel-patency-container {
+.clinical-indication-container {
   max-width: 800px;
   margin: 0 auto;
   padding: 1rem;
@@ -33,22 +32,23 @@
   margin: 0.5rem;
 }
 
-.patency-summary-sidebar {
-  margin: 0.5rem;
-  width: 250px;
-}
-
 .vessel-patency-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: flex-start;
+  gap: 2rem;
+  margin: 2rem auto;
+  max-width: 1000px;
 }
 
 .vessel-map-center {
+  flex: 1;
   display: flex;
   justify-content: center;
-  margin: 2rem auto;
-  max-width: 600px;
+}
+
+.patency-summary-sidebar {
+  width: 300px;
 }
 
 .step-button {

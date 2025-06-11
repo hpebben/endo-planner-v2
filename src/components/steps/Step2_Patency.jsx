@@ -1,131 +1,112 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { __ } from '@wordpress/i18n';
+import React, { useState, useEffect } from 'react';
+import { ReactComponent as VesselMap } from '../../assets/vessel-map.svg';
+import SliderModal from '../UI/SliderModal';
 import { Button } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
-import SliderModal from '../UI/SliderModal';
-import { ReactComponent as VesselMap } from '../../vessel-map.svg';
 
 // List every <g id="..."> exactly as it appears in the SVG
 const vesselSegments = [
-  { id: 'Aorta_Afbeelding', name: __( 'Aorta', 'endoplanner' ) },
-  { id: 'iliac_Afbeelding', name: __( 'Iliac Artery', 'endoplanner' ) },
-  { id: 'Left_common_iliac_Afbeelding', name: __( 'Left Common Iliac', 'endoplanner' ) },
-  { id: 'Right_common_iliac_Afbeelding', name: __( 'Right Common Iliac', 'endoplanner' ) },
-  { id: 'Left_external_iliac_Afbeelding', name: __( 'Left External Iliac', 'endoplanner' ) },
-  { id: 'Right_external_iliac_Afbeelding', name: __( 'Right External Iliac', 'endoplanner' ) },
-  { id: 'Left_internal_iliac_Afbeelding', name: __( 'Left Internal Iliac', 'endoplanner' ) },
-  { id: 'Right_internal_iliac_Afbeelding', name: __( 'Right Internal Iliac', 'endoplanner' ) },
-  { id: 'Left_common_femoral_Afbeelding', name: __( 'Left Common Femoral', 'endoplanner' ) },
-  { id: 'Right_common_femoral_Afbeelding', name: __( 'Right Common Femoral', 'endoplanner' ) },
-  { id: 'Left_superficial_femoral_Afbeelding', name: __( 'Left Superficial Femoral', 'endoplanner' ) },
-  { id: 'Right_superficial_femoral_Afbeelding', name: __( 'Right Superficial Femoral', 'endoplanner' ) },
-  { id: 'Left_profunda_Afbeelding', name: __( 'Left Profunda', 'endoplanner' ) },
-  { id: 'Right_profunda_Afbeelding', name: __( 'Right Profunda', 'endoplanner' ) },
-  { id: 'Left_popliteal_artery_Afbeelding', name: __( 'Left Popliteal', 'endoplanner' ) },
-  { id: 'Right_popliteal_artery_Afbeelding', name: __( 'Right Popliteal', 'endoplanner' ) },
-  { id: 'Left_anterior_tibial_Afbeelding', name: __( 'Left Anterior Tibial', 'endoplanner' ) },
-  { id: 'Right_anterior_tibital_Afbeelding', name: __( 'Right Anterior Tibial', 'endoplanner' ) },
-  { id: 'Left_peroneal_Afbeelding', name: __( 'Left Peroneal', 'endoplanner' ) },
-  { id: 'Right_peroneal_Afbeelding', name: __( 'Right Peroneal', 'endoplanner' ) },
-  { id: 'Left_posterior_tibial2_Afbeelding', name: __( 'Left Posterior Tibial', 'endoplanner' ) },
-  { id: 'Right_posterior_tibial_Afbeelding', name: __( 'Right Posterior Tibial', 'endoplanner' ) },
-  { id: 'crural_Afbeelding', name: __( 'Crural Trunk', 'endoplanner' ) },
-  { id: 'Left_dorsal_pedal_Afbeelding', name: __( 'Left Dorsal Pedal', 'endoplanner' ) },
-  { id: 'Right_dorsal_pedal_Afbeelding', name: __( 'Right Dorsal Pedal', 'endoplanner' ) },
-  { id: 'Left_medial_plantar_Afbeelding', name: __( 'Left Medial Plantar', 'endoplanner' ) },
-  { id: 'Left_lateral_plantar_Afbeelding', name: __( 'Left Lateral Plantar', 'endoplanner' ) },
-  { id: 'Left_plantar_arch_Afbeelding', name: __( 'Left Plantar Arch', 'endoplanner' ) },
-  { id: 'Right_plantar_arch_Afbeelding', name: __( 'Right Plantar Arch', 'endoplanner' ) },
-  { id: 'Left_metatarsal_Afbeelding', name: __( 'Left Metatarsal', 'endoplanner' ) },
-  { id: 'Right_metatarsal_Afbeelding', name: __( 'Right Metatarsal', 'endoplanner' ) },
-  { id: 'pedal_Afbeelding', name: __( 'Pedal Vessel', 'endoplanner' ) },
+  { id: 'Aorta_Afbeelding', name: 'Aorta' },
+  { id: 'iliac_Afbeelding', name: 'Iliac Artery' },
+  { id: 'Left_common_iliac_Afbeelding', name: 'Left Common Iliac' },
+  { id: 'Right_common_iliac_Afbeelding', name: 'Right Common Iliac' },
+  { id: 'Left_external_iliac_Afbeelding', name: 'Left External Iliac' },
+  { id: 'Right_external_iliac_Afbeelding', name: 'Right External Iliac' },
+  { id: 'Left_internal_iliac_Afbeelding', name: 'Left Internal Iliac' },
+  { id: 'Right_internal_iliac_Afbeelding', name: 'Right Internal Iliac' },
+  { id: 'Left_common_femoral_Afbeelding', name: 'Left Common Femoral' },
+  { id: 'Right_common_femoral_Afbeelding', name: 'Right Common Femoral' },
+  { id: 'Left_superficial_femoral_Afbeelding', name: 'Left Superficial Femoral' },
+  { id: 'Right_superficial_femoral_Afbeelding', name: 'Right Superficial Femoral' },
+  { id: 'Left_profunda_Afbeelding', name: 'Left Profunda' },
+  { id: 'Right_profunda_Afbeelding', name: 'Right Profunda' },
+  { id: 'Left_popliteal_artery_Afbeelding', name: 'Left Popliteal' },
+  { id: 'Right_popliteal_artery_Afbeelding', name: 'Right Popliteal' },
+  { id: 'Left_anterior_tibial_Afbeelding', name: 'Left Anterior Tibial' },
+  { id: 'Right_anterior_tibital_Afbeelding', name: 'Right Anterior Tibial' },
+  { id: 'Left_peroneal_Afbeelding', name: 'Left Peroneal' },
+  { id: 'Right_peroneal_Afbeelding', name: 'Right Peroneal' },
+  { id: 'Left_posterior_tibial2_Afbeelding', name: 'Left Posterior Tibial' },
+  { id: 'Right_posterior_tibial_Afbeelding', name: 'Right Posterior Tibial' },
+  { id: 'crural_Afbeelding', name: 'Crural Trunk' },
+  { id: 'Left_dorsal_pedal_Afbeelding', name: 'Left Dorsal Pedal' },
+  { id: 'Right_dorsal_pedal_Afbeelding', name: 'Right Dorsal Pedal' },
+  { id: 'Left_medial_plantar_Afbeelding', name: 'Left Medial Plantar' },
+  { id: 'Left_lateral_plantar_Afbeelding', name: 'Left Lateral Plantar' },
+  { id: 'Left_plantar_arch_Afbeelding', name: 'Left Plantar Arch' },
+  { id: 'Right_plantar_arch_Afbeelding', name: 'Right Plantar Arch' },
+  { id: 'Left_metatarsal_Afbeelding', name: 'Left Metatarsal' },
+  { id: 'Right_metatarsal_Afbeelding', name: 'Right Metatarsal' },
+  { id: 'pedal_Afbeelding', name: 'Pedal Vessel' },
 ];
 
-export default function Step2({ data, setData }) {
+export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
   const [modalOpen, setModalOpen] = useState(false);
   const [activeSegment, setActiveSegment] = useState(null);
   const segments = data.patencySegments || {};
 
+  useEffect(() => {
+    vesselSegments.forEach((seg) => {
+      const el = document.getElementById(seg.id);
+      if (!el) return;
+      const vals = segments[seg.id] || { severity: 0, length: 0, calcium: 'none' };
+      const color = vals.severity >= 100 ? '#d63638' : vals.severity > 0 ? '#f5a623' : '#7fc241';
+      el.setAttribute('fill', color);
+      el.style.cursor = 'pointer';
+      el.onclick = () => {
+        setActiveSegment(seg.id);
+        setModalOpen(true);
+      };
+    });
+  }, [segments]);
 
-  const handleSegmentClick = (id) => {
-    setActiveSegment(id);
-    setModalOpen(true);
-  };
-
-  // Called when user clicks “Save” in the SliderModal
   const handleSave = (values) => {
-    const updated = {
-      ...segments,
-      [activeSegment]: values,
-    };
-    setData({ ...data, patencySegments: updated });
+    setData({ ...data, patencySegments: { ...segments, [activeSegment]: values } });
     setModalOpen(false);
     setActiveSegment(null);
   };
 
   return (
-    <div {...blockProps} className="vessel-patency-container">
+    <div { ...blockProps } className="step2-patency vessel-patency-container">
       <div className="vessel-map-center">
-        <VesselMap
-          onClick={({ target }) => {
-            const segId = target.id || target.closest('path')?.id;
-            if (segId) handleSegmentClick(segId);
-          }}
-        />
+        <VesselMap onClick={({ target }) => {
+          const id = target.id || target.closest('path')?.id;
+          if (id) {
+            setActiveSegment(id);
+            setModalOpen(true);
+          }
+        }} />
       </div>
-      <SliderModal
-          isOpen={modalOpen}
-          segment={activeSegment}
-          values={segments[activeSegment] || {
-            severity: 0,
-            length: 0,
-            calcium: 'none',
-          }}
-          onClose={() => setModalOpen(false)}
-          onSave={handleSave}
-        />
-      </div>
-
       <aside className="patency-summary-sidebar">
-        <h4>{ __( 'Selected Vessel Data', 'endoplanner' ) }</h4>
+        <h4>Selected Vessel Data</h4>
         <ul>
           {Object.entries(segments).map(([id, vals]) => (
             <li key={id}>
-              <strong>{vesselSegments.find((s) => s.id === id)?.name || id}</strong>
+              <strong>
+                {vesselSegments.find((s) => s.id === id)?.name || id}
+              </strong>
               : {vals.severity}% stenosis, {vals.length} cm, {vals.calcium}{' '}
-              <Button
-                isSecondary
-                onClick={() => {
-                  setActiveSegment(id);
-                  setModalOpen(true);
-                }}
-              >
-                { __( 'Edit', 'endoplanner' ) }
+              <Button isSecondary onClick={() => {
+                setActiveSegment(id);
+                setModalOpen(true);
+              }}>
+                Edit
               </Button>
             </li>
           ))}
-          {Object.keys(segments).length === 0 && (
-            <li>{ __( 'No segments set yet.', 'endoplanner' ) }</li>
-          )}
+          {Object.keys(segments).length === 0 && <li>No segments set yet.</li>}
         </ul>
       </aside>
+      <SliderModal
+        isOpen={modalOpen}
+        segment={activeSegment}
+        values={segments[activeSegment] || { severity:0, length:0, calcium:'none' }}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSave}
+      />
     </div>
   );
 }
-
-Step2.propTypes = {
-  data: PropTypes.shape({
-    patencySegments: PropTypes.objectOf(
-      PropTypes.shape({
-        severity: PropTypes.number,
-        length: PropTypes.number,
-        calcium: PropTypes.string,
-      })
-    ),
-  }).isRequired,
-  setData: PropTypes.func.isRequired,
-};
