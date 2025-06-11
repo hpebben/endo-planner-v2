@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 
 export default function Step5({ data }) {
   const handleExport = () => {
