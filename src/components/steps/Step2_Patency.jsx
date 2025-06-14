@@ -1,8 +1,7 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import VesselMap from '../VesselMap';
-import SliderModal from '../UI/SliderModal';
 import { Button } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
 
@@ -44,13 +43,10 @@ const vesselSegments = [
 
 export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [activeSegment, setActiveSegment] = useState(null);
   const segments = data.patencySegments || {};
 
   const segmentColors = vesselSegments.reduce((acc, seg) => {
-    const vals = segments[seg.id] || { severity: 0 };
-    acc[seg.id] = vals.severity >= 100 ? '#d63638' : vals.severity > 0 ? '#f5a623' : '#7fc241';
+    acc[seg.id] = segments[seg.id] ? '#007cba' : '#ccc';
     return acc;
   }, {});
 
@@ -65,51 +61,45 @@ export default function Step2_Patency({ data, setData }) {
   }, [segmentColors]);
 
   const handleSegmentClick = (id) => {
-    setActiveSegment(id);
-    setModalOpen(true);
-  };
-
-  const handleSave = (values) => {
-    setData({ ...data, patencySegments: { ...segments, [activeSegment]: values } });
-    setModalOpen(false);
-    setActiveSegment(null);
+    setData((prev) => {
+      const segs = prev.patencySegments || {};
+      const updated = { ...segs };
+      if (segs[id]) {
+        delete updated[id];
+      } else {
+        updated[id] = segs[id] || { severity: 0, length: 0, calcium: 'none' };
+      }
+      return { ...prev, patencySegments: updated };
+    });
   };
 
   return (
-    <div { ...blockProps } className="step2-patency vessel-patency-container">
-      <div className="vessel-map-center">
-        <VesselMap
-          onSegmentClick={handleSegmentClick}
-          segmentColors={segmentColors}
-        />
+    <div {...blockProps} className="step2-patency">
+      <div className="patency-container">
+        <div className="svg-wrapper">
+          <VesselMap
+            onSegmentClick={handleSegmentClick}
+            segmentColors={segmentColors}
+          />
+        </div>
+        <aside className="patency-summary">
+          <h4>Selected Segments</h4>
+          <ul>
+            {Object.keys(segments).length ? (
+              Object.keys(segments).map((id) => (
+                <li key={id}>
+                  {vesselSegments.find((s) => s.id === id)?.name || id}{' '}
+                  <Button isSecondary onClick={() => handleSegmentClick(id)}>
+                    Remove
+                  </Button>
+                </li>
+              ))
+            ) : (
+              <li>No segments selected.</li>
+            )}
+          </ul>
+        </aside>
       </div>
-      <aside className="patency-summary-sidebar">
-        <h4>Selected Vessel Data</h4>
-        <ul>
-          {Object.entries(segments).map(([id, vals]) => (
-            <li key={id}>
-              <strong>
-                {vesselSegments.find((s) => s.id === id)?.name || id}
-              </strong>
-              : {vals.severity}% stenosis, {vals.length} cm, {vals.calcium}{' '}
-              <Button isSecondary onClick={() => {
-                setActiveSegment(id);
-                setModalOpen(true);
-              }}>
-                Edit
-              </Button>
-            </li>
-          ))}
-          {Object.keys(segments).length === 0 && <li>No segments set yet.</li>}
-        </ul>
-      </aside>
-      <SliderModal
-        isOpen={modalOpen}
-        segment={activeSegment}
-        values={segments[activeSegment] || { severity:0, length:0, calcium:'none' }}
-        onClose={() => setModalOpen(false)}
-        onSave={handleSave}
-      />
     </div>
   );
 }
