@@ -37,13 +37,20 @@ export default function Step1({ data, setData }) {
 
   return (
     <div {...blockProps}>
-      <RadioControl
-        label={__('Stage', 'endoplanner')}
-        selected={data.stage}
-        options={stageOptions}
-        onChange={(value) => setData({ ...data, stage: value })}
-      />
-      <p className="help-text">Stage I–IV based on Rutherford classification.</p>
+      <h3>Stage</h3>
+      <small className="subtitle">Stage I – IV based on Fontaine classification</small>
+      <div className="clinical-buttons">
+        {stageOptions.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            className={data.clinicalStage === opt.value ? 'selected' : ''}
+            onClick={() => setData({ ...data, clinicalStage: opt.value })}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
 
       <RadioControl
         label={__('Wound Grade', 'endoplanner')}

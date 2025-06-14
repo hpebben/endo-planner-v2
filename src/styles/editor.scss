@@ -36,7 +36,29 @@
   margin: 0.5rem;
 }
 
-.vessel-patency-container {
+.clinical-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.clinical-buttons button {
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+}
+.clinical-buttons button.selected {
+  background: #e7f5ff;
+  border-color: #007cba;
+}
+.subtitle {
+  display: block;
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #666;
+}
+.patency-container {
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -44,22 +66,21 @@
   margin: 2rem auto;
   max-width: 1000px;
 }
-
-.vessel-map-center {
+.svg-wrapper {
+  flex: 1;
   display: flex;
   justify-content: center;
-  margin: 2rem auto;
-  max-width: 800px;
 }
-.vessel-map-center svg path {
+.svg-wrapper svg path {
   cursor: pointer;
   transition: stroke 0.2s;
 }
-.vessel-map-center svg path:hover {
+.svg-wrapper svg path:hover {
   stroke: #007cba;
 }
-
-.patency-summary-sidebar {
+.patency-summary {
+  border: 1px solid #ccc;
+  padding: 1rem;
   width: 300px;
 }
 
