@@ -1,6 +1,6 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import VesselMap from '../VesselMap';
 import { Button } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
@@ -43,6 +43,8 @@ const vesselSegments = [
 
 export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
+  const wrapperRef = useRef(null);
+  const [tooltip, setTooltip] = useState({ visible: false, text: '', x: 0, y: 0 });
   const segments = data.patencySegments || {};
 
   const segmentColors = vesselSegments.reduce((acc, seg) => {
@@ -73,14 +75,38 @@ export default function Step2_Patency({ data, setData }) {
     });
   };
 
+  const handleHover = (id, name, e) => {
+    if (!wrapperRef.current) return;
+    const rect = wrapperRef.current.getBoundingClientRect();
+    setTooltip({
+      visible: true,
+      text: name,
+      x: e.clientX - rect.left + 10,
+      y: e.clientY - rect.top + 10,
+    });
+  };
+
+  const handleLeave = () => setTooltip({ visible: false, text: '', x: 0, y: 0 });
+
   return (
     <div {...blockProps} className="step2-patency">
       <div className="patency-container">
-        <div className="svg-wrapper">
+        <div className="svg-wrapper" ref={wrapperRef}>
           <VesselMap
             onSegmentClick={handleSegmentClick}
+            onSegmentMouseEnter={handleHover}
+            onSegmentMouseLeave={handleLeave}
+            onSegmentMouseMove={handleHover}
             segmentColors={segmentColors}
           />
+          {tooltip.visible && (
+            <div
+              className="segment-tooltip"
+              style={{ left: tooltip.x, top: tooltip.y }}
+            >
+              {tooltip.text}
+            </div>
+          )}
         </div>
         <aside className="patency-summary">
           <h4>Selected Segments</h4>
@@ -88,8 +114,14 @@ export default function Step2_Patency({ data, setData }) {
             {Object.keys(segments).length ? (
               Object.keys(segments).map((id) => (
                 <li key={id}>
-                  {vesselSegments.find((s) => s.id === id)?.name || id}{' '}
-                  <Button isSecondary onClick={() => handleSegmentClick(id)}>
+                  <strong>
+                    {vesselSegments.find((s) => s.id === id)?.name || id}
+                  </strong>
+                  : {segments[id].severity}% / {segments[id].length} cm{' '}
+                  <Button
+                    isSecondary
+                    onClick={() => handleSegmentClick(id)}
+                  >
                     Remove
                   </Button>
                 </li>
