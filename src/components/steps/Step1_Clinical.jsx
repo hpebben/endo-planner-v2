@@ -135,53 +135,56 @@ export default function Step1({ data, setData }) {
       </div>
       {hoverStage && <small className="tooltip-caption">{hoverStage}</small>}
 
-      <h4>{__('Wound Grade', 'endoplanner')}</h4>
+      <h4>{__('Wound (W)', 'endoplanner')}</h4>
       <div className="option-buttons">
         {woundOptions.map((opt) => (
-          <label key={opt.value} title={opt.desc} className="radio-option">
+          <label key={opt.value} title={opt.desc} className="wifi-button">
             <input
               type="radio"
               name="wound"
               value={opt.value}
-              aria-label={opt.desc}
               checked={data.wound === opt.value}
-              onChange={(e) => setData({ ...data, wound: e.target.value })}
+              onChange={() =>
+                setData({ ...data, wound: opt.value })
+              }
             />
-            {opt.value}
+            <span>{opt.value}</span>
           </label>
         ))}
       </div>
 
-      <h4>{__('Ischemia', 'endoplanner')}</h4>
+      <h4>{__('Ischemia (I)', 'endoplanner')}</h4>
       <div className="option-buttons">
         {ischemiaOptions.map((opt) => (
-          <label key={opt.value} title={opt.desc} className="radio-option">
+          <label key={opt.value} title={opt.desc} className="wifi-button">
             <input
               type="radio"
               name="ischemia"
               value={opt.value}
-              aria-label={opt.desc}
               checked={data.ischemia === opt.value}
-              onChange={(e) => setData({ ...data, ischemia: e.target.value })}
+              onChange={() =>
+                setData({ ...data, ischemia: opt.value })
+              }
             />
-            {opt.value}
+            <span>{opt.value}</span>
           </label>
         ))}
       </div>
 
-      <h4>{__('Infection', 'endoplanner')}</h4>
+      <h4>{__('Foot Infection (fI)', 'endoplanner')}</h4>
       <div className="option-buttons">
         {infectionOptions.map((opt) => (
-          <label key={opt.value} title={opt.desc} className="radio-option">
+          <label key={opt.value} title={opt.desc} className="wifi-button">
             <input
               type="radio"
               name="infection"
               value={opt.value}
-              aria-label={opt.desc}
               checked={data.infection === opt.value}
-              onChange={(e) => setData({ ...data, infection: e.target.value })}
+              onChange={() =>
+                setData({ ...data, infection: opt.value })
+              }
             />
-            {opt.value}
+            <span>{opt.value}</span>
           </label>
         ))}
       </div>
