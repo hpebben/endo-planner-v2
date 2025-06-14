@@ -81,7 +81,7 @@ export default function Step1({ data, setData }) {
       />
       <div className="slider-markers">
         {[0, 1, 2, 3].map((n) => (
-          <span key={n}>{n}</span>
+          <span key={n} className="slider-marker">{n}</span>
         ))}
       </div>
 
@@ -100,7 +100,7 @@ export default function Step1({ data, setData }) {
       />
       <div className="slider-markers">
         {[0, 1, 2, 3].map((n) => (
-          <span key={n}>{n}</span>
+          <span key={n} className="slider-marker">{n}</span>
         ))}
       </div>
 
@@ -119,7 +119,7 @@ export default function Step1({ data, setData }) {
       />
       <div className="slider-markers">
         {[0, 1, 2, 3].map((n) => (
-          <span key={n}>{n}</span>
+          <span key={n} className="slider-marker">{n}</span>
         ))}
       </div>
 
