@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import VesselMap from '../VesselMap';
+import SliderModal from '../UI/SliderModal';
 import { Button } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
+import { __ } from '@wordpress/i18n';
 
 // List every <g id="..."> exactly as it appears in the SVG
 const vesselSegments = [
@@ -45,6 +47,8 @@ export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
   const wrapperRef = useRef(null);
   const [tooltip, setTooltip] = useState({ visible: false, text: '', x: 0, y: 0 });
+  const [activeSeg, setActiveSeg] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const segments = data.patencySegments || {};
 
   const segmentColors = vesselSegments.reduce((acc, seg) => {
@@ -68,16 +72,39 @@ export default function Step2_Patency({ data, setData }) {
   }, [segmentColors, segments]);
 
   const handleSegmentClick = (id) => {
+    const segs = data.patencySegments || {};
+    if (!segs[id]) {
+      setData((prev) => ({
+        ...prev,
+        patencySegments: {
+          ...segs,
+          [id]: { severity: 0, length: 0, calcium: 'none' },
+        },
+      }));
+    }
+    setActiveSeg(id);
+    setModalOpen(true);
+  };
+
+  const removeSegment = (id) => {
     setData((prev) => {
       const segs = prev.patencySegments || {};
       const updated = { ...segs };
-      if (segs[id]) {
-        delete updated[id];
-      } else {
-        updated[id] = segs[id] || { severity: 0, length: 0, calcium: 'none' };
-      }
+      delete updated[id];
       return { ...prev, patencySegments: updated };
     });
+  };
+
+  const handleSave = (values) => {
+    setData((prev) => ({
+      ...prev,
+      patencySegments: {
+        ...(prev.patencySegments || {}),
+        [activeSeg]: values,
+      },
+    }));
+    setModalOpen(false);
+    setActiveSeg(null);
   };
 
   const handleHover = (id, name, e) => {
@@ -114,7 +141,7 @@ export default function Step2_Patency({ data, setData }) {
           )}
         </div>
         <aside className="patency-summary">
-          <h4>Selected Segments</h4>
+          <h4>{__('Selected Segments', 'endoplanner')}</h4>
           <ul>
             {Object.keys(segments).length ? (
               Object.keys(segments).map((id) => (
@@ -126,18 +153,38 @@ export default function Step2_Patency({ data, setData }) {
                   {segments[id].calcium}
                   <Button
                     isSecondary
-                    onClick={() => handleSegmentClick(id)}
+                    onClick={() => {
+                      setActiveSeg(id);
+                      setModalOpen(true);
+                    }}
+                    style={{ marginRight: '0.5em' }}
                   >
-                    Remove
+                    {__('Edit', 'endoplanner')}
+                  </Button>
+                  <Button
+                    isSecondary
+                    onClick={() => removeSegment(id)}
+                  >
+                    {__('Remove', 'endoplanner')}
                   </Button>
                 </li>
               ))
             ) : (
-              <li>No segments selected.</li>
+              <li>{__('No segments selected.', 'endoplanner')}</li>
             )}
           </ul>
         </aside>
       </div>
+      <SliderModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setActiveSeg(null);
+        }}
+        segment={vesselSegments.find((s) => s.id === activeSeg)?.name || activeSeg}
+        values={segments[activeSeg] || {}}
+        onSave={handleSave}
+      />
     </div>
   );
 }

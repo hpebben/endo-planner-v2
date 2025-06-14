@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function Step5({ data }) {
   const handleExport = () => {
@@ -27,19 +28,31 @@ export default function Step5({ data }) {
 
     doc.setFontSize(14);
     doc.text(__( '2. Vessel Patency', 'endoplanner' ), 40, y);
-    y += 20;
-    if (data.patencySegments) {
-      Object.entries(data.patencySegments).forEach(([id, v]) => {
-        doc.text(
-          `${id}: ${v.severity}% stenosis, ${v.length} cm, ${v.calcium}`,
-          60,
-          (y += 16)
-        );
+    y += 10;
+    if (data.patencySegments && Object.keys(data.patencySegments).length) {
+      const rows = Object.entries(data.patencySegments).map(([id, v]) => [
+        id,
+        v.severity,
+        v.length,
+        v.calcium,
+      ]);
+      autoTable(doc, {
+        startY: y,
+        head: [
+          [
+            __('Segment', 'endoplanner'),
+            __('Stenosis %', 'endoplanner'),
+            __('Length (cm)', 'endoplanner'),
+            __('Calcification', 'endoplanner'),
+          ],
+        ],
+        body: rows,
       });
+      y = doc.lastAutoTable.finalY + 10;
     } else {
       doc.text(__( '- No data entered', 'endoplanner' ), 60, (y += 16));
+      y += 10;
     }
-    y += 10;
 
     doc.setFontSize(14);
     doc.text(__( '4. Planned Interventions', 'endoplanner' ), 40, y);

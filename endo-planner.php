@@ -60,4 +60,6 @@ register_block_type(
     )
 );
 
-error_log( 'Plugin path = ' . plugin_dir_path( __FILE__ ) );
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+    error_log( 'Plugin path = ' . plugin_dir_path( __FILE__ ) );
+}
