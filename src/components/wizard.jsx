@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
 import Step1 from './steps/Step1_Clinical';
 import Step2 from './steps/Step2_Patency';
@@ -18,6 +18,28 @@ const steps = [
 export default function Wizard() {
   const [ current, setCurrent ] = useState( 0 );
   const [ data, setData ] = useState({}); // gather all selections
+
+  // Load saved progress
+  useEffect(() => {
+    const saved = localStorage.getItem('endoplannerState');
+    if (saved) {
+      try {
+        const { step, data: savedData } = JSON.parse(saved);
+        if (savedData) setData(savedData);
+        if (typeof step === 'number') setCurrent(step);
+      } catch (e) {
+        /* ignore */
+      }
+    }
+  }, []);
+
+  // Persist progress
+  useEffect(() => {
+    localStorage.setItem(
+      'endoplannerState',
+      JSON.stringify({ step: current, data })
+    );
+  }, [current, data]);
 
   const StepComponent = steps[current].component;
 
