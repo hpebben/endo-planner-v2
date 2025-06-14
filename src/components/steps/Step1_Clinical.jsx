@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import { useBlockProps } from '@wordpress/block-editor';
 
 const stageOptions = [
-  { label: __( 'I Asymptomatic', 'endoplanner' ), value: 'i' },
-  { label: __( 'IIa <100 m', 'endoplanner' ), value: 'iia' },
-  { label: __( 'IIb >100 m', 'endoplanner' ), value: 'iib' },
-  { label: __( 'III Rest Pain', 'endoplanner' ), value: 'iii' },
-  { label: __( 'IV Ulcer/Gangrene', 'endoplanner' ), value: 'iv' },
+  { label: __( 'I Asymptomatic (0)', 'endoplanner' ), value: 'i' },
+  { label: __( 'IIa <100 m (1)', 'endoplanner' ), value: 'iia' },
+  { label: __( 'IIb >100 m (2)', 'endoplanner' ), value: 'iib' },
+  { label: __( 'III Rest Pain (3)', 'endoplanner' ), value: 'iii' },
+  { label: __( 'IV Ulcer/Gangrene (4)', 'endoplanner' ), value: 'iv' },
 ];
 
 const wifiDescriptions = {
@@ -27,7 +27,7 @@ const wifiDescriptions = {
   infection: {
     0: 'Uninfected',
     1: 'Mild local infection, erythema 0.5–2 cm',
-    2: 'Moderate local infection, >2 cm or deeper tissue',
+    2: 'Moderate infection, >2 cm or deeper tissue',
     3: 'Severe infection with SIRS',
   },
 };
@@ -49,14 +49,16 @@ export default function Step1({ data, setData }) {
 
   return (
     <div {...blockProps}>
-      <h3>Stage</h3>
-      <p className="subtitle">Stage I–IV based on Fontaine classification</p>
-      <div className="option-buttons">
+      <h2 className="section-title">{__('Stage', 'endoplanner')}</h2>
+      <p className="section-subtitle">
+        {__('Stage I\u2013IV based on Fontaine classification', 'endoplanner')}
+      </p>
+      <div className="stage-buttons">
         {stageOptions.map((opt) => (
           <button
             key={opt.value}
             type="button"
-            className={data.stage === opt.value ? 'active' : ''}
+            className={`stage-btn${data.stage === opt.value ? ' active' : ''}`}
             onClick={() => setData({ ...data, stage: opt.value })}
           >
             {opt.label}
@@ -65,52 +67,63 @@ export default function Step1({ data, setData }) {
       </div>
 
       <div className="section-spacer" />
-      <div className="wifi-section">
-        <label className="wifi-label">{__('Wound (W)', 'endoplanner')}</label>
-        <p className="wifi-desc">{wifiDescriptions.wound[values.wound]}</p>
-        <input
-          type="range"
-          min={0}
-          max={3}
-          step={1}
-          value={values.wound}
-          onChange={(e) => onChangeSection('wound', Number(e.target.value))}
-          className="wifi-slider"
-        />
-      </div>
 
-      <div className="section-spacer" />
-      <div className="wifi-section">
-        <label className="wifi-label">{__('Ischemia (I)', 'endoplanner')}</label>
-        <p className="wifi-desc">{wifiDescriptions.ischemia[values.ischemia]}</p>
-        <input
-          type="range"
-          min={0}
-          max={3}
-          step={1}
-          value={values.ischemia}
-          onChange={(e) => onChangeSection('ischemia', Number(e.target.value))}
-          className="wifi-slider"
-        />
-      </div>
-
-      <div className="section-spacer" />
-      <div className="wifi-section">
-        <label className="wifi-label">{__('Foot Infection (fI)', 'endoplanner')}</label>
-        <p className="wifi-desc">{wifiDescriptions.infection[values.infection]}</p>
-        <input
-          type="range"
-          min={0}
-          max={3}
-          step={1}
-          value={values.infection}
-          onChange={(e) => onChangeSection('infection', Number(e.target.value))}
-          className="wifi-slider"
-        />
+      <h2 className="section-title">{__('Wound', 'endoplanner')}</h2>
+      <p className="wifi-desc">{wifiDescriptions.wound[values.wound]}</p>
+      <input
+        type="range"
+        min={0}
+        max={3}
+        step={1}
+        value={values.wound}
+        onChange={(e) => onChangeSection('wound', Number(e.target.value))}
+        className="wifi-slider"
+      />
+      <div className="slider-markers">
+        {[0, 1, 2, 3].map((n) => (
+          <span key={n}>{n}</span>
+        ))}
       </div>
 
       <div className="section-spacer" />
 
+      <h2 className="section-title">{__('Ischemia', 'endoplanner')}</h2>
+      <p className="wifi-desc">{wifiDescriptions.ischemia[values.ischemia]}</p>
+      <input
+        type="range"
+        min={0}
+        max={3}
+        step={1}
+        value={values.ischemia}
+        onChange={(e) => onChangeSection('ischemia', Number(e.target.value))}
+        className="wifi-slider"
+      />
+      <div className="slider-markers">
+        {[0, 1, 2, 3].map((n) => (
+          <span key={n}>{n}</span>
+        ))}
+      </div>
+
+      <div className="section-spacer" />
+
+      <h2 className="section-title">{__('Infection', 'endoplanner')}</h2>
+      <p className="wifi-desc">{wifiDescriptions.infection[values.infection]}</p>
+      <input
+        type="range"
+        min={0}
+        max={3}
+        step={1}
+        value={values.infection}
+        onChange={(e) => onChangeSection('infection', Number(e.target.value))}
+        className="wifi-slider"
+      />
+      <div className="slider-markers">
+        {[0, 1, 2, 3].map((n) => (
+          <span key={n}>{n}</span>
+        ))}
+      </div>
+
+      <div className="section-spacer" />
     </div>
   );
 }
