@@ -30,22 +30,29 @@
     background: #e7f5ff;
 }
 
-.clinical-buttons {
+.option-buttons {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
-.clinical-buttons button {
+.option-buttons button {
     border: 1px solid #ccc;
-    background: #f9f9f9;
-    padding: 0.4rem 0.75rem;
+    background: #fff;
+    padding: 0.35rem 0.75rem;
     cursor: pointer;
 }
 
-.clinical-buttons button.selected {
+.option-buttons button.active {
+    border: 2px solid #007cba;
     background: #e7f5ff;
-    border-color: #007cba;
+}
+
+.tooltip-caption {
+    font-size: 0.75rem;
+    font-style: italic;
+    margin-bottom: 0.75rem;
+    display: block;
 }
 
 .subtitle {
@@ -69,10 +76,26 @@
     flex: 1;
     display: flex;
     justify-content: center;
+    position: relative;
+}
+
+.segment-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .patency-summary {
     border: 1px solid #ccc;
+    background: #fff;
     padding: 1rem;
     width: 300px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    align-self: center;
 }
