@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import { useBlockProps } from '@wordpress/block-editor';
@@ -12,56 +13,39 @@ const stageOptions = [
 
 const wifiDescriptions = {
   wound: {
-    0: __( 'No ulcer or gangrene (ischemic pain at rest)', 'endoplanner' ),
-    1: __(
-      'Small or superficial ulcer on leg or foot, without gangrene (SDA or SC)',
-      'endoplanner'
-    ),
-    2: __(
-      'Deep ulcer with exposed bone, joint, or tendon ± gangrene limited to digits (MAD or standard TMA ± SC)',
-      'endoplanner'
-    ),
-    3: __(
-      'Deep, extensive ulcer involving forefoot and/or midfoot ± calcaneal involvement ± extensive gangrene (CR of the foot or nontraditional TMA)',
-      'endoplanner'
-    ),
+    0: 'No ulcer or gangrene (ischemic pain at rest)',
+    1: 'Small/superficial ulcer, no gangrene',
+    2: 'Deep ulcer with exposed bone/joint ± digit gangrene',
+    3: 'Extensive ulcer ± calcaneal involvement ± extensive gangrene',
   },
   ischemia: {
-    0: __(
-      'ABI ≥ 0.80; Ankle SBP > 100 mmHg; TP/TcPO₂ ≥ 60 mmHg',
-      'endoplanner'
-    ),
-    1: __(
-      'ABI 0.60–0.79; Ankle SBP 70–100 mmHg; TP/TcPO₂ 40–59 mmHg',
-      'endoplanner'
-    ),
-    2: __(
-      'ABI 0.40–0.59; Ankle SBP 50–70 mmHg; TP/TcPO₂ 30–39 mmHg',
-      'endoplanner'
-    ),
-    3: __(
-      'ABI ≤ 0.39; Ankle SBP < 50 mmHg; TP/TcPO₂ < 30 mmHg',
-      'endoplanner'
-    ),
+    0: 'ABI ≥0.8; SBP >100 mmHg; TP ≥60 mmHg',
+    1: 'ABI 0.6–0.79; SBP 70–100 mmHg; TP 40–59 mmHg',
+    2: 'ABI 0.4–0.59; SBP 50–70 mmHg; TP 30–39 mmHg',
+    3: 'ABI ≤0.39; SBP <50 mmHg; TP <30 mmHg',
   },
   infection: {
-    0: __( 'Uninfected', 'endoplanner' ),
-    1: __(
-      'Mild local infection, involving only the skin and subcutaneous tissue, erythema > 0.5 to ≤ 2 cm',
-      'endoplanner'
-    ),
-    2: __(
-      'Moderate local infection, with erythema > 2 cm or involving deeper structures',
-      'endoplanner'
-    ),
-    3: __( 'Severe local infection with signs of SIRS', 'endoplanner' ),
+    0: 'Uninfected',
+    1: 'Mild local infection, erythema 0.5–2 cm',
+    2: 'Moderate local infection, >2 cm or deeper tissue',
+    3: 'Severe infection with SIRS',
   },
 };
 
 export default function Step1({ data, setData }) {
   const blockProps = useBlockProps({ className: 'clinical-center' });
-  const clinical = data.clinical || {};
-  const setClinical = (vals) => setData({ ...data, clinical: vals });
+  const values = {
+    wound: Number(data.clinical?.wound ?? 0),
+    ischemia: Number(data.clinical?.ischemia ?? 0),
+    infection: Number(data.clinical?.infection ?? 0),
+  };
+
+  const onChangeSection = (key, newVal) => {
+    setData({
+      ...data,
+      clinical: { ...data.clinical, [key]: newVal },
+    });
+  };
 
   return (
     <div {...blockProps}>
@@ -80,47 +64,52 @@ export default function Step1({ data, setData }) {
         ))}
       </div>
 
-      <h4>{__('Wound (W)', 'endoplanner')}</h4>
-      <div className="clinical-options">
-        {[0, 1, 2, 3].map((grade) => (
-          <button
-            key={grade}
-            className={clinical.wound === String(grade) ? 'selected' : ''}
-            onClick={() => setClinical({ ...clinical, wound: String(grade) })}
-            title={wifiDescriptions.wound[grade]}
-          >
-            {grade}
-          </button>
-        ))}
+      <div className="section-spacer" />
+      <div className="wifi-section">
+        <label className="wifi-label">{__('Wound (W)', 'endoplanner')}</label>
+        <p className="wifi-desc">{wifiDescriptions.wound[values.wound]}</p>
+        <input
+          type="range"
+          min={0}
+          max={3}
+          step={1}
+          value={values.wound}
+          onChange={(e) => onChangeSection('wound', Number(e.target.value))}
+          className="wifi-slider"
+        />
       </div>
 
-      <h4>{__('Ischemia (I)', 'endoplanner')}</h4>
-      <div className="clinical-options">
-        {[0, 1, 2, 3].map((grade) => (
-          <button
-            key={grade}
-            className={clinical.ischemia === String(grade) ? 'selected' : ''}
-            onClick={() => setClinical({ ...clinical, ischemia: String(grade) })}
-            title={wifiDescriptions.ischemia[grade]}
-          >
-            {grade}
-          </button>
-        ))}
+      <div className="section-spacer" />
+      <div className="wifi-section">
+        <label className="wifi-label">{__('Ischemia (I)', 'endoplanner')}</label>
+        <p className="wifi-desc">{wifiDescriptions.ischemia[values.ischemia]}</p>
+        <input
+          type="range"
+          min={0}
+          max={3}
+          step={1}
+          value={values.ischemia}
+          onChange={(e) => onChangeSection('ischemia', Number(e.target.value))}
+          className="wifi-slider"
+        />
       </div>
 
-      <h4>{__('Foot Infection (fI)', 'endoplanner')}</h4>
-      <div className="clinical-options">
-        {[0, 1, 2, 3].map((grade) => (
-          <button
-            key={grade}
-            className={clinical.infection === String(grade) ? 'selected' : ''}
-            onClick={() => setClinical({ ...clinical, infection: String(grade) })}
-            title={wifiDescriptions.infection[grade]}
-          >
-            {grade}
-          </button>
-        ))}
+      <div className="section-spacer" />
+      <div className="wifi-section">
+        <label className="wifi-label">{__('Foot Infection (fI)', 'endoplanner')}</label>
+        <p className="wifi-desc">{wifiDescriptions.infection[values.infection]}</p>
+        <input
+          type="range"
+          min={0}
+          max={3}
+          step={1}
+          value={values.infection}
+          onChange={(e) => onChangeSection('infection', Number(e.target.value))}
+          className="wifi-slider"
+        />
       </div>
+
+      <div className="section-spacer" />
 
     </div>
   );
