@@ -3,13 +3,8 @@ import React from 'react';
 import { __ } from '@wordpress/i18n';
 
 export default function Step3({ data }) {
-  const {
-    stage,
-    wound,
-    ischemia,
-    infection,
-    patencySegments = {},
-  } = data;
+  const { stage, clinical = {}, patencySegments = {} } = data;
+  const { wound, ischemia, infection } = clinical;
 
   return (
     <div className="step3-summary">

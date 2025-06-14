@@ -64,24 +64,43 @@
 }
 
 
-.segment-tooltip {
-    position: absolute;
+
+.tooltip {
+    position: fixed;
     pointer-events: none;
-    background: #fff;
-    border: 1px solid #ccc;
+    background: #333;
+    color: #fff;
     padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
     border-radius: 3px;
-    font-size: 0.75rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
 }
 
-.patency-summary {
-    border: 1px solid #ddd;
-    padding: 1em;
+.clinical-options {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.clinical-options button {
+    padding: 0.5rem 1rem;
+    background: #f0f0f0;
+    border: 2px solid #ccc;
     border-radius: 4px;
-    background: #fafafa;
-    flex: 0 0 250px;
-    margin-left: 1em;
+    cursor: pointer;
+}
+.clinical-options button.selected {
+    border-color: #0073aa;
+    background: #eaf5fc;
+}
+.clinical-options button:hover {
+    background: #eef8fd;
+}
+
+.patency-summary-sidebar {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 1rem;
 }
 
 .wifi-button {
@@ -103,18 +122,21 @@
 
 .patency-container {
     display: flex;
-    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
 }
 .patency-svg {
     flex: 1;
 }
 
-.svg-wrapper path:hover {
-    opacity: 0.8;
-    stroke: #0073aa;
-    stroke-width: 2px;
+svg path {
+    cursor: pointer;
+    transition: fill 0.2s, stroke 0.2s;
 }
-
+svg path:hover {
+    stroke: #0073aa;
+    stroke-width: 2;
+}
 .svg-wrapper path.selected {
     fill: orange;
 }
