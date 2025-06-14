@@ -48,7 +48,7 @@ export default function Step2_Patency({ data, setData }) {
   const segments = data.patencySegments || {};
 
   const segmentColors = vesselSegments.reduce((acc, seg) => {
-    acc[seg.id] = segments[seg.id] ? '#007cba' : '#ccc';
+    acc[seg.id] = segments[seg.id] ? '#ff9800' : '#ccc';
     return acc;
   }, {});
 
@@ -58,9 +58,14 @@ export default function Step2_Patency({ data, setData }) {
         el.setAttribute('fill', 'none');
         el.setAttribute('stroke', color);
         el.setAttribute('stroke-width', '4');
+        if (segments[id]) {
+          el.classList.add('selected');
+        } else {
+          el.classList.remove('selected');
+        }
       });
     });
-  }, [segmentColors]);
+  }, [segmentColors, segments]);
 
   const handleSegmentClick = (id) => {
     setData((prev) => {
@@ -91,7 +96,7 @@ export default function Step2_Patency({ data, setData }) {
   return (
     <div {...blockProps} className="step2-patency">
       <div className="patency-container">
-        <div className="svg-wrapper" ref={wrapperRef}>
+        <div className="svg-wrapper patency-svg" ref={wrapperRef}>
           <VesselMap
             onSegmentClick={handleSegmentClick}
             onSegmentMouseEnter={handleHover}
@@ -117,7 +122,8 @@ export default function Step2_Patency({ data, setData }) {
                   <strong>
                     {vesselSegments.find((s) => s.id === id)?.name || id}
                   </strong>
-                  : {segments[id].severity}% / {segments[id].length} cm{' '}
+                  : {segments[id].severity}% stenosis, {segments[id].length} cm,{' '}
+                  {segments[id].calcium}
                   <Button
                     isSecondary
                     onClick={() => handleSegmentClick(id)}
