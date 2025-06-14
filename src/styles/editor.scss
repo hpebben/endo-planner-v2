@@ -51,6 +51,14 @@
   border: 2px solid #007cba;
   background: #e7f5ff;
 }
+.option-buttons label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.option-buttons label:not(:last-child) {
+  margin-right: 0.5rem;
+}
 .tooltip-caption {
   font-size: 0.75rem;
   font-style: italic;
