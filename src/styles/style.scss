@@ -30,22 +30,23 @@
     background: #e7f5ff;
 }
 
-.option-buttons {
+.stage-buttons {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
 }
 
-.option-buttons button {
-    border: 1px solid #ccc;
-    background: #fff;
-    padding: 0.35rem 0.75rem;
+.stage-btn {
+    padding: 0.5rem 1rem;
+    background: #f0f0f0;
+    border: 1px solid #999;
+    border-radius: 4px;
     cursor: pointer;
 }
 
-.option-buttons button.active {
-    border: 2px solid #007cba;
-    background: #e7f5ff;
+.stage-btn.active {
+    border-color: #0073e6;
+    background: #e6f0ff;
 }
 
 .tooltip-caption {
@@ -141,6 +142,16 @@ svg path:hover {
     fill: orange;
 }
 
+.section-title {
+    font-size: 1.5rem;
+    margin: 2.5rem 0 0.75rem;
+    font-weight: 600;
+}
+.section-subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
 .wifi-section {
     margin: 2rem 0;
 }
@@ -156,7 +167,27 @@ svg path:hover {
 }
 .wifi-slider {
     width: 100%;
+    appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: #ddd;
     margin-bottom: 0.25rem;
+}
+.wifi-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #0073e6;
+    cursor: pointer;
+    margin-top: -5px;
+}
+.slider-markers {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #333;
+    margin-bottom: 1rem;
 }
 .section-spacer {
     height: 2rem;
