@@ -1,6 +1,6 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import VesselMap from '../VesselMap';
 import SliderModal from '../UI/SliderModal';
 import { Button } from '@wordpress/components';
@@ -45,8 +45,7 @@ const vesselSegments = [
 
 export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
-  const wrapperRef = useRef(null);
-  const [tooltip, setTooltip] = useState({ visible: false, text: '', x: 0, y: 0 });
+  const [tooltip, setTooltip] = useState(null);
   const [activeSeg, setActiveSeg] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const segments = data.patencySegments || {};
@@ -57,16 +56,25 @@ export default function Step2_Patency({ data, setData }) {
   }, {});
 
   useEffect(() => {
-    Object.entries(segmentColors).forEach(([id, color]) => {
-      document.querySelectorAll(`#${id} path`).forEach((el) => {
+    vesselSegments.forEach((seg) => {
+      document.querySelectorAll(`#${seg.id} path`).forEach((el) => {
+        if (!el.querySelector('title')) {
+          const t = document.createElement('title');
+          t.textContent = seg.name;
+          el.prepend(t);
+        }
         el.setAttribute('fill', 'none');
-        el.setAttribute('stroke', color);
+        el.setAttribute('stroke', segmentColors[seg.id] || '#ccc');
         el.setAttribute('stroke-width', '4');
-        if (segments[id]) {
+        if (segments[seg.id]) {
           el.classList.add('selected');
         } else {
           el.classList.remove('selected');
         }
+        el.onclick = () => handleSegmentClick(seg.id);
+        el.onmouseenter = (event) =>
+          setTooltip({ x: event.clientX, y: event.clientY, name: seg.name });
+        el.onmouseleave = () => setTooltip(null);
       });
     });
   }, [segmentColors, segments]);
@@ -107,40 +115,20 @@ export default function Step2_Patency({ data, setData }) {
     setActiveSeg(null);
   };
 
-  const handleHover = (id, name, e) => {
-    if (!wrapperRef.current) return;
-    const rect = wrapperRef.current.getBoundingClientRect();
-    setTooltip({
-      visible: true,
-      text: name,
-      x: e.clientX - rect.left + 10,
-      y: e.clientY - rect.top + 10,
-    });
-  };
-
-  const handleLeave = () => setTooltip({ visible: false, text: '', x: 0, y: 0 });
+  // tooltip is handled via DOM event handlers above
 
   return (
     <div {...blockProps} className="step2-patency">
       <div className="patency-container">
-        <div className="svg-wrapper patency-svg" ref={wrapperRef}>
-          <VesselMap
-            onSegmentClick={handleSegmentClick}
-            onSegmentMouseEnter={handleHover}
-            onSegmentMouseLeave={handleLeave}
-            onSegmentMouseMove={handleHover}
-            segmentColors={segmentColors}
-          />
-          {tooltip.visible && (
-            <div
-              className="segment-tooltip"
-              style={{ left: tooltip.x, top: tooltip.y }}
-            >
-              {tooltip.text}
+        <div className="svg-wrapper patency-svg">
+          <VesselMap segmentColors={segmentColors} />
+          {tooltip && (
+            <div className="tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
+              {tooltip.name}
             </div>
           )}
         </div>
-        <aside className="patency-summary">
+        <aside className="patency-summary-sidebar">
           <h4>{__('Selected Segments', 'endoplanner')}</h4>
           <ul>
             {Object.keys(segments).length ? (

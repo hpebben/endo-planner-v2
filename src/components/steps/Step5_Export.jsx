@@ -18,11 +18,12 @@ export default function Step5({ data }) {
     doc.setFontSize(14);
     doc.text(__( '1. Clinical Indication', 'endoplanner' ), 40, y);
     y += 20;
+    const clinical = data.clinical || {};
     [
       `${__( 'Stage', 'endoplanner' )}: ${data.stage || '-'}`,
-      `${__( 'Wound', 'endoplanner' )}: ${data.wound || '-'}`,
-      `${__( 'Ischemia', 'endoplanner' )}: ${data.ischemia || '-'}`,
-      `${__( 'Infection', 'endoplanner' )}: ${data.infection || '-'}`,
+      `${__( 'Wound', 'endoplanner' )}: ${clinical.wound || '-'}`,
+      `${__( 'Ischemia', 'endoplanner' )}: ${clinical.ischemia || '-'}`,
+      `${__( 'Infection', 'endoplanner' )}: ${clinical.infection || '-'}`,
     ].forEach((line) => { doc.text(line, 60, (y += 16)); });
     y += 10;
 
@@ -90,9 +91,11 @@ export default function Step5({ data }) {
 Step5.propTypes = {
   data: PropTypes.shape({
     stage: PropTypes.string,
-    wound: PropTypes.string,
-    ischemia: PropTypes.string,
-    infection: PropTypes.string,
+    clinical: PropTypes.shape({
+      wound: PropTypes.string,
+      ischemia: PropTypes.string,
+      infection: PropTypes.string,
+    }),
     patencySegments: PropTypes.objectOf(
       PropTypes.shape({
         severity: PropTypes.number,

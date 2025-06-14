@@ -1,191 +1,124 @@
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
-import { useState } from 'react';
 import { useBlockProps } from '@wordpress/block-editor';
 
 const stageOptions = [
-  {
-    label: __( 'Asymptomatic', 'endoplanner' ),
-    value: 'asymptomatic',
-    tooltip: 'Fontaine I–IV',
-  },
-  {
-    label: __( 'Intermittent Claudication IIA', 'endoplanner' ),
-    value: 'iia',
-    tooltip: 'Fontaine I–IV',
-  },
-  {
-    label: __( 'Intermittent Claudication IIB', 'endoplanner' ),
-    value: 'iib',
-    tooltip: 'Fontaine I–IV',
-  },
-  { label: __( 'Rest Pain', 'endoplanner' ), value: 'iii', tooltip: 'Fontaine I–IV' },
-  {
-    label: __( 'Ulcer/Gangrene', 'endoplanner' ),
-    value: 'iv',
-    tooltip: 'Fontaine I–IV',
-  },
+  { label: __( 'I Asymptomatic', 'endoplanner' ), value: 'i' },
+  { label: __( 'IIa <100 m', 'endoplanner' ), value: 'iia' },
+  { label: __( 'IIb >100 m', 'endoplanner' ), value: 'iib' },
+  { label: __( 'III Rest Pain', 'endoplanner' ), value: 'iii' },
+  { label: __( 'IV Ulcer/Gangrene', 'endoplanner' ), value: 'iv' },
 ];
 
-const woundOptions = [
-  {
-    value: '0',
-    desc: __(
-      'No ulcer or gangrene (ischemic pain at rest)',
-      'endoplanner'
-    ),
-  },
-  {
-    value: '1',
-    desc: __(
+const wifiDescriptions = {
+  wound: {
+    0: __( 'No ulcer or gangrene (ischemic pain at rest)', 'endoplanner' ),
+    1: __(
       'Small or superficial ulcer on leg or foot, without gangrene (SDA or SC)',
       'endoplanner'
     ),
-  },
-  {
-    value: '2',
-    desc: __(
+    2: __(
       'Deep ulcer with exposed bone, joint, or tendon ± gangrene limited to digits (MAD or standard TMA ± SC)',
       'endoplanner'
     ),
-  },
-  {
-    value: '3',
-    desc: __(
+    3: __(
       'Deep, extensive ulcer involving forefoot and/or midfoot ± calcaneal involvement ± extensive gangrene (CR of the foot or nontraditional TMA)',
       'endoplanner'
     ),
   },
-];
-
-const ischemiaOptions = [
-  {
-    value: '0',
-    desc: __(
+  ischemia: {
+    0: __(
       'ABI ≥ 0.80; Ankle SBP > 100 mmHg; TP/TcPO₂ ≥ 60 mmHg',
       'endoplanner'
     ),
-  },
-  {
-    value: '1',
-    desc: __(
+    1: __(
       'ABI 0.60–0.79; Ankle SBP 70–100 mmHg; TP/TcPO₂ 40–59 mmHg',
       'endoplanner'
     ),
-  },
-  {
-    value: '2',
-    desc: __(
+    2: __(
       'ABI 0.40–0.59; Ankle SBP 50–70 mmHg; TP/TcPO₂ 30–39 mmHg',
       'endoplanner'
     ),
-  },
-  {
-    value: '3',
-    desc: __(
+    3: __(
       'ABI ≤ 0.39; Ankle SBP < 50 mmHg; TP/TcPO₂ < 30 mmHg',
       'endoplanner'
     ),
   },
-];
-
-const infectionOptions = [
-  { value: '0', desc: __( 'Uninfected', 'endoplanner' ) },
-  {
-    value: '1',
-    desc: __(
+  infection: {
+    0: __( 'Uninfected', 'endoplanner' ),
+    1: __(
       'Mild local infection, involving only the skin and subcutaneous tissue, erythema > 0.5 to ≤ 2 cm',
       'endoplanner'
     ),
-  },
-  {
-    value: '2',
-    desc: __(
+    2: __(
       'Moderate local infection, with erythema > 2 cm or involving deeper structures',
       'endoplanner'
     ),
+    3: __( 'Severe local infection with signs of SIRS', 'endoplanner' ),
   },
-  {
-    value: '3',
-    desc: __( 'Severe local infection with signs of SIRS', 'endoplanner' ),
-  },
-];
+};
 
 export default function Step1({ data, setData }) {
   const blockProps = useBlockProps({ className: 'clinical-center' });
-  const [hoverStage, setHoverStage] = useState(null);
+  const clinical = data.clinical || {};
+  const setClinical = (vals) => setData({ ...data, clinical: vals });
 
   return (
     <div {...blockProps}>
       <h3>Stage</h3>
-      <small className="subtitle">Stage I – IV based on Fontaine classification</small>
+      <p className="subtitle">Stage I–IV based on Fontaine classification</p>
       <div className="option-buttons">
         {stageOptions.map((opt) => (
           <button
             key={opt.value}
             type="button"
             className={data.stage === opt.value ? 'active' : ''}
-            onMouseEnter={() => setHoverStage(opt.tooltip)}
-            onMouseLeave={() => setHoverStage(null)}
             onClick={() => setData({ ...data, stage: opt.value })}
           >
             {opt.label}
           </button>
         ))}
       </div>
-      {hoverStage && <small className="tooltip-caption">{hoverStage}</small>}
 
       <h4>{__('Wound (W)', 'endoplanner')}</h4>
-      <div className="option-buttons">
-        {woundOptions.map((opt) => (
-          <label key={opt.value} title={opt.desc} className="wifi-button">
-            <input
-              type="radio"
-              name="wound"
-              value={opt.value}
-              checked={data.wound === opt.value}
-              onChange={() =>
-                setData({ ...data, wound: opt.value })
-              }
-            />
-            <span>{opt.value}</span>
-          </label>
+      <div className="clinical-options">
+        {[0, 1, 2, 3].map((grade) => (
+          <button
+            key={grade}
+            className={clinical.wound === String(grade) ? 'selected' : ''}
+            onClick={() => setClinical({ ...clinical, wound: String(grade) })}
+            title={wifiDescriptions.wound[grade]}
+          >
+            {grade}
+          </button>
         ))}
       </div>
 
       <h4>{__('Ischemia (I)', 'endoplanner')}</h4>
-      <div className="option-buttons">
-        {ischemiaOptions.map((opt) => (
-          <label key={opt.value} title={opt.desc} className="wifi-button">
-            <input
-              type="radio"
-              name="ischemia"
-              value={opt.value}
-              checked={data.ischemia === opt.value}
-              onChange={() =>
-                setData({ ...data, ischemia: opt.value })
-              }
-            />
-            <span>{opt.value}</span>
-          </label>
+      <div className="clinical-options">
+        {[0, 1, 2, 3].map((grade) => (
+          <button
+            key={grade}
+            className={clinical.ischemia === String(grade) ? 'selected' : ''}
+            onClick={() => setClinical({ ...clinical, ischemia: String(grade) })}
+            title={wifiDescriptions.ischemia[grade]}
+          >
+            {grade}
+          </button>
         ))}
       </div>
 
       <h4>{__('Foot Infection (fI)', 'endoplanner')}</h4>
-      <div className="option-buttons">
-        {infectionOptions.map((opt) => (
-          <label key={opt.value} title={opt.desc} className="wifi-button">
-            <input
-              type="radio"
-              name="infection"
-              value={opt.value}
-              checked={data.infection === opt.value}
-              onChange={() =>
-                setData({ ...data, infection: opt.value })
-              }
-            />
-            <span>{opt.value}</span>
-          </label>
+      <div className="clinical-options">
+        {[0, 1, 2, 3].map((grade) => (
+          <button
+            key={grade}
+            className={clinical.infection === String(grade) ? 'selected' : ''}
+            onClick={() => setClinical({ ...clinical, infection: String(grade) })}
+            title={wifiDescriptions.infection[grade]}
+          >
+            {grade}
+          </button>
         ))}
       </div>
 
