@@ -140,3 +140,24 @@ svg path:hover {
 .svg-wrapper path.selected {
     fill: orange;
 }
+
+.wifi-section {
+    margin: 2rem 0;
+}
+.wifi-label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+.wifi-desc {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+.wifi-slider {
+    width: 100%;
+    margin-bottom: 0.25rem;
+}
+.section-spacer {
+    height: 2rem;
+}
