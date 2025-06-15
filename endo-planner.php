@@ -2,7 +2,7 @@
 /**
  * Plugin Name: EndoPlanner 2.0
  * Description: A Gutenberg‐based wizard for clinical indication, patency mapping, case summary, intervention planning, and PDF export.
- * Version:     1.6.22
+ * Version:     1.6.23
  * Author:      hpebben
  * License:     GPL2+
  *
@@ -27,26 +27,26 @@ add_action( 'init', 'endoplanner_load_textdomain' );
 $asset_file = include( plugin_dir_path( __FILE__ ) . 'build/index.asset.php' );
 
 /**
- * Register block JavaScript and CSS for the editor.
+ * Register block JavaScript and CSS for both the editor and the front‑end.
  */
 wp_register_script(
-    'endo-planner-editor-script',                       // Script handle.
-    plugins_url( 'build/index.js', __FILE__ ),          // Path to built JS file.
-    $asset_file['dependencies'],                        // WP-provided dependencies.
-    $asset_file['version']                              // Version (auto–file‐hash).
+    'endoplanner-block-js',
+    plugins_url( 'build/index.js', __FILE__ ),
+    $asset_file['dependencies'],
+    $asset_file['version']
 );
 
-wp_set_script_translations( 'endo-planner-editor-script', 'endoplanner', plugin_dir_path( __FILE__ ) . 'languages' );
+wp_set_script_translations( 'endoplanner-block-js', 'endoplanner', plugin_dir_path( __FILE__ ) . 'languages' );
 
 wp_register_style(
-    'endo-planner-editor-style',                        // Editor style handle.
+    'endoplanner-editor-css',
     plugins_url( 'build/index.css', __FILE__ ),
     [],
     filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
 );
 
 wp_register_style(
-    'endo-planner-frontend-style',                      // Front-end style handle.
+    'endoplanner-front-css',
     plugins_url( 'build/style-index.css', __FILE__ ),
     [],
     filemtime( plugin_dir_path( __FILE__ ) . 'build/style-index.css' )
@@ -57,12 +57,18 @@ wp_register_style(
  * We pass custom 'editor_script' and 'editor_style' handles so WP knows
  * which scripts/styles to enqueue in Gutenberg.  Likewise for front-end.
  */
+function endoplanner_render_callback( $attributes ) {
+    return '<div class="endoplanner-root"></div>';
+}
+
 register_block_type(
     __DIR__ . '/block.json',
     array(
-        'editor_script' => 'endo-planner-editor-script',
-        'editor_style'  => 'endo-planner-editor-style',
-        'style'         => 'endo-planner-frontend-style',
+        'editor_script'   => 'endoplanner-block-js',
+        'editor_style'    => 'endoplanner-editor-css',
+        'script'          => 'endoplanner-block-js',
+        'style'           => 'endoplanner-front-css',
+        'render_callback' => 'endoplanner_render_callback',
     )
 );
 
