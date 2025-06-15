@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import { useBlockProps } from '@wordpress/block-editor';
@@ -13,7 +13,7 @@ const stageOptions = [
 
 const wifiDescriptions = {
   wound: {
-    0: 'No ulcer or gangrene (ischemic pain at rest)',
+    0: 'No ulcer or gangrene',
     1: 'Small/superficial ulcer, no gangrene',
     2: 'Deep ulcer with exposed bone/joint ± digit gangrene',
     3: 'Extensive ulcer ± calcaneal involvement ± extensive gangrene',
@@ -34,13 +34,14 @@ const wifiDescriptions = {
 
 export default function Step1({ data, setData }) {
   const blockProps = useBlockProps({ className: 'clinical-center' });
-  const values = {
-    wound: Number(data.clinical?.wound ?? 0),
-    ischemia: Number(data.clinical?.ischemia ?? 0),
-    infection: Number(data.clinical?.infection ?? 0),
-  };
+  const [wound, setWound] = useState(0);
+  const [ischemia, setIschemia] = useState(0);
+  const [infection, setInfection] = useState(0);
 
   const onChangeSection = (key, newVal) => {
+    if (key === 'wound') setWound(newVal);
+    if (key === 'ischemia') setIschemia(newVal);
+    if (key === 'infection') setInfection(newVal);
     setData({
       ...data,
       clinical: { ...data.clinical, [key]: newVal },
@@ -69,13 +70,13 @@ export default function Step1({ data, setData }) {
       <div className="section-spacer" />
 
       <h2 className="section-title">{__('Wound', 'endoplanner')}</h2>
-      <p className="wifi-desc">{wifiDescriptions.wound[values.wound]}</p>
+      <p className="wifi-desc">{wifiDescriptions.wound[wound]}</p>
       <input
         type="range"
         min={0}
         max={3}
         step={1}
-        value={values.wound}
+        value={wound}
         onChange={(e) => onChangeSection('wound', Number(e.target.value))}
         className="wifi-slider"
       />
@@ -89,13 +90,13 @@ export default function Step1({ data, setData }) {
       <div className="section-spacer" />
 
       <h2 className="section-title">{__('Ischemia', 'endoplanner')}</h2>
-      <p className="wifi-desc">{wifiDescriptions.ischemia[values.ischemia]}</p>
+      <p className="wifi-desc">{wifiDescriptions.ischemia[ischemia]}</p>
       <input
         type="range"
         min={0}
         max={3}
         step={1}
-        value={values.ischemia}
+        value={ischemia}
         onChange={(e) => onChangeSection('ischemia', Number(e.target.value))}
         className="wifi-slider"
       />
@@ -109,13 +110,13 @@ export default function Step1({ data, setData }) {
       <div className="section-spacer" />
 
       <h2 className="section-title">{__('Infection', 'endoplanner')}</h2>
-      <p className="wifi-desc">{wifiDescriptions.infection[values.infection]}</p>
+      <p className="wifi-desc">{wifiDescriptions.infection[infection]}</p>
       <input
         type="range"
         min={0}
         max={3}
         step={1}
-        value={values.infection}
+        value={infection}
         onChange={(e) => onChangeSection('infection', Number(e.target.value))}
         className="wifi-slider"
       />
