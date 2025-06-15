@@ -182,16 +182,15 @@ svg path:hover {
     cursor: pointer;
     margin-top: -5px;
 }
-.slider-markers {
-    display: flex;
-    justify-content: space-between;
+.wp-block-endoplanner-v2-wizard .slider-markers {
+    display: flex !important;
+    justify-content: space-between !important;
     width: 100%;
     margin-top: 0.5rem;
 }
-.slider-marker {
+.wp-block-endoplanner-v2-wizard .slider-marker {
     font-size: 0.875rem;
     line-height: 1;
-    /* any extra styling you like, e.g.: color or font-weight */
 }
 .section-spacer {
     height: 2rem;
