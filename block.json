@@ -9,4 +9,8 @@
     "html": false
   },
   "textdomain": "endoplanner"
+  ,"editor_script": "endoplanner-block-js"
+  ,"script": "endoplanner-block-js"
+  ,"editor_style": "endoplanner-editor-css"
+  ,"style": "endoplanner-front-css"
 }
