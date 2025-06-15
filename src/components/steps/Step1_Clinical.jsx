@@ -19,10 +19,10 @@ const wifiDescriptions = {
     3: 'Extensive ulcer ± calcaneal involvement ± extensive gangrene',
   },
   ischemia: {
-    0: 'ABI ≥0.8; SBP >100 mmHg; TP ≥60 mmHg',
-    1: 'ABI 0.6–0.79; SBP 70–100 mmHg; TP 40–59 mmHg',
-    2: 'ABI 0.4–0.59; SBP 50–70 mmHg; TP 30–39 mmHg',
-    3: 'ABI ≤0.39; SBP <50 mmHg; TP <30 mmHg',
+    0: 'ABI ≥ 0.80; TP ≥ 60 mmHg',
+    1: 'ABI 0.6–0.79; TP 40–59 mmHg',
+    2: 'ABI 0.4–0.59; TP 30–39 mmHg',
+    3: 'ABI ≤ 0.39; TP < 30 mmHg',
   },
   infection: {
     0: 'Uninfected',
