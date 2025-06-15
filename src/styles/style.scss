@@ -195,3 +195,52 @@ svg path:hover {
 .section-spacer {
     height: 2rem;
 }
+
+.wp-block-endoplanner-v2-wizard {
+  /* Clinical “slider” sections */
+  .clinical-section {
+    margin-bottom: 2rem;
+    h3 { margin-bottom: 0.5rem; font-size: 1.25rem; }
+  }
+  .slider-container {
+    position: relative;
+    margin: 1rem 0 2rem;
+  }
+  .slider-markers {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    li { list-style: none; text-align: center; width: 1rem; }
+  }
+  /* Button-style radios */
+  .clinical-buttons {
+    display: flex;
+    gap: 0.5rem;
+    button {
+      padding: 0.5rem 1rem;
+      border: 2px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+      &:hover { border-color: #888; }
+      &.selected { border-color: #007cba; background: #e6f4ff; }
+    }
+  }
+  /* Patency map summary panel & hover labels */
+  .vessel-map-wrapper { position: relative; }
+  .vessel-summary { position: absolute; top: 0; right: 0; width: 200px; background: rgba(255,255,255,0.9); padding: 1rem; border: 1px solid #ddd; }
+  svg path {
+    cursor: pointer;
+    &:hover { opacity: 0.8; }
+    &.selected { stroke: #007cba; stroke-width: 3; }
+  }
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #333;
+    color: #fff;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 3px;
+    transform: translate(-50%, -1.5rem);
+  }
+}

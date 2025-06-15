@@ -30,19 +30,26 @@ $asset_file = include( plugin_dir_path( __FILE__ ) . 'build/index.asset.php' );
  * Register block JavaScript and CSS for the editor.
  */
 wp_register_script(
-    'endo-planner-block',                                // Script handle.
-    plugins_url( 'build/index.js', __FILE__ ),           // Path to built JS file.
-    $asset_file['dependencies'],                         // WP-provided dependencies.
-    $asset_file['version']                               // Version (auto–file‐hash).
+    'endo-planner-editor-script',                       // Script handle.
+    plugins_url( 'build/index.js', __FILE__ ),          // Path to built JS file.
+    $asset_file['dependencies'],                        // WP-provided dependencies.
+    $asset_file['version']                              // Version (auto–file‐hash).
 );
 
-wp_set_script_translations( 'endo-planner-block', 'endoplanner', plugin_dir_path( __FILE__ ) . 'languages' );
+wp_set_script_translations( 'endo-planner-editor-script', 'endoplanner', plugin_dir_path( __FILE__ ) . 'languages' );
 
 wp_register_style(
-    'endo-planner-editor',                               // Style handle.
-    plugins_url( 'build/index.css', __FILE__ ),          // Path to built editor CSS.
-    array(),                                             // No dependencies.
+    'endo-planner-editor-style',                        // Editor style handle.
+    plugins_url( 'build/index.css', __FILE__ ),
+    [],
     filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
+);
+
+wp_register_style(
+    'endo-planner-frontend-style',                      // Front-end style handle.
+    plugins_url( 'build/style-index.css', __FILE__ ),
+    [],
+    filemtime( plugin_dir_path( __FILE__ ) . 'build/style-index.css' )
 );
 
 /**
@@ -51,12 +58,11 @@ wp_register_style(
  * which scripts/styles to enqueue in Gutenberg.  Likewise for front-end.
  */
 register_block_type(
-    plugin_dir_path( __FILE__ ) . 'block.json',
+    __DIR__ . '/block.json',
     array(
-        'editor_script' => 'endo-planner-block',
-        'editor_style'  => 'endo-planner-editor',
-        'script'        => 'endo-planner-block',
-        'style'         => 'endo-planner-editor',
+        'editor_script' => 'endo-planner-editor-script',
+        'editor_style'  => 'endo-planner-editor-style',
+        'style'         => 'endo-planner-frontend-style',
     )
 );
 
