@@ -49,6 +49,14 @@
     background: #e6f0ff;
 }
 
+.stage-button {
+  margin: 0.5em;
+  border-color: #ccc;
+  &:is(.is-pressed, &:hover) {
+    border-color: #007cba;
+  }
+}
+
 .tooltip-caption {
     font-size: 0.75rem;
     font-style: italic;
@@ -187,6 +195,13 @@ svg path:hover {
     justify-content: space-between !important;
     width: 100%;
     margin-top: 0.5rem;
+}
+.wifimarkers {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 1em;
+  font-size: 0.9em;
+  color: #666;
 }
 .wp-block-endoplanner-v2-wizard .slider-marker {
     font-size: 0.875rem;

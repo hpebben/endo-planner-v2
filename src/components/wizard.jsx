@@ -54,7 +54,7 @@ export default function Wizard() {
       <div className="wizard-nav">
         { current > 0 && <Button onClick={prev}>{ __( 'Back', 'endoplanner' ) }</Button> }
         { current < steps.length - 1
-            ? <Button isPrimary onClick={next}>{ __( 'Next', 'endoplanner' ) }</Button>
+            ? <Button isSecondary className="stage-button" onClick={next}>{ __( 'Next', 'endoplanner' ) }</Button>
             : <Button isPrimary onClick={() => {/* handle final submit */}}>{ __( 'Finish', 'endoplanner' ) }</Button>
         }
       </div>
