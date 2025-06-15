@@ -32,8 +32,9 @@
 
 .stage-buttons {
     display: flex;
-    gap: 0.5rem;
+    justify-content: center;
     flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .stage-btn {
@@ -56,6 +57,9 @@
     border-color: #007cba;
   }
 }
+.next-button {
+  margin-top: 1.5rem;
+}
 
 .tooltip-caption {
     font-size: 0.75rem;
@@ -75,14 +79,13 @@
 
 
 .tooltip {
-    position: fixed;
-    pointer-events: none;
+    position: absolute;
     background: #333;
-    color: #fff;
+    color: white;
     padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-    border-radius: 3px;
-    z-index: 1000;
+    border-radius: 0.25rem;
+    pointer-events: none;
+    transform: translate(-50%, -120%);
 }
 
 .clinical-options {
@@ -258,4 +261,27 @@ svg path:hover {
     border-radius: 3px;
     transform: translate(-50%, -1.5rem);
   }
+}
+
+.tooltip {
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  pointer-events: none;
+  transform: translate(-50%, -120%);
+}
+
+.summary-box {
+  margin-left: 2rem;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  min-width: 8rem;
+}
+
+.segment.selected {
+  fill: blue;
+  opacity: 0.6;
 }

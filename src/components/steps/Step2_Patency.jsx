@@ -1,9 +1,7 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import VesselMap from '../VesselMap';
-import SliderModal from '../UI/SliderModal';
-import { Button } from '@wordpress/components';
 import { useBlockProps } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
 
@@ -43,138 +41,49 @@ const vesselSegments = [
   { id: 'pedal_Afbeelding', name: 'Pedal Vessel' },
 ];
 
+
+export { vesselSegments };
+
 export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
-  const [tooltip, setTooltip] = useState(null);
-  const [activeSeg, setActiveSeg] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const segments = data.patencySegments || {};
+  const [hoverLabel, setHoverLabel] = useState('');
+  const selectedSegments = Object.keys(data.patencySegments || {});
 
-  const segmentColors = vesselSegments.reduce((acc, seg) => {
-    acc[seg.id] = segments[seg.id] ? '#ff9800' : '#ccc';
-    return acc;
-  }, {});
-
-  useEffect(() => {
-    vesselSegments.forEach((seg) => {
-      document.querySelectorAll(`#${seg.id} path`).forEach((el) => {
-        if (!el.querySelector('title')) {
-          const t = document.createElement('title');
-          t.textContent = seg.name;
-          el.prepend(t);
-        }
-        el.setAttribute('fill', 'none');
-        el.setAttribute('stroke', segmentColors[seg.id] || '#ccc');
-        el.setAttribute('stroke-width', '4');
-        if (segments[seg.id]) {
-          el.classList.add('selected');
-        } else {
-          el.classList.remove('selected');
-        }
-        el.onclick = () => handleSegmentClick(seg.id);
-        el.onmouseenter = (event) =>
-          setTooltip({ x: event.clientX, y: event.clientY, name: seg.name });
-        el.onmouseleave = () => setTooltip(null);
-      });
-    });
-  }, [segmentColors, segments]);
-
-  const handleSegmentClick = (id) => {
-    const segs = data.patencySegments || {};
-    if (!segs[id]) {
-      setData((prev) => ({
+  const toggleSegment = (id) => {
+    setData((prev) => {
+      const segs = prev.patencySegments || {};
+      if (segs[id]) {
+        const updated = { ...segs };
+        delete updated[id];
+        return { ...prev, patencySegments: updated };
+      }
+      return {
         ...prev,
         patencySegments: {
           ...segs,
           [id]: { severity: 0, length: 0, calcium: 'none' },
         },
-      }));
-    }
-    setActiveSeg(id);
-    setModalOpen(true);
-  };
-
-  const removeSegment = (id) => {
-    setData((prev) => {
-      const segs = prev.patencySegments || {};
-      const updated = { ...segs };
-      delete updated[id];
-      return { ...prev, patencySegments: updated };
+      };
     });
   };
-
-  const handleSave = (values) => {
-    setData((prev) => ({
-      ...prev,
-      patencySegments: {
-        ...(prev.patencySegments || {}),
-        [activeSeg]: values,
-      },
-    }));
-    setModalOpen(false);
-    setActiveSeg(null);
-  };
-
-  // tooltip is handled via DOM event handlers above
 
   return (
     <div {...blockProps} className="step2-patency">
       <div className="patency-container">
         <div className="svg-wrapper patency-svg">
-          <VesselMap segmentColors={segmentColors} />
-          {tooltip && (
-            <div className="tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
-              {tooltip.name}
-            </div>
-          )}
+          <VesselMap
+            selectedSegments={selectedSegments}
+            toggleSegment={toggleSegment}
+            setHoverLabel={setHoverLabel}
+          />
+          {hoverLabel && <div className="tooltip">{hoverLabel}</div>}
         </div>
-        <aside className="patency-summary-sidebar">
-          <h4>{__('Selected Segments', 'endoplanner')}</h4>
-          <ul>
-            {Object.keys(segments).length ? (
-              Object.keys(segments).map((id) => (
-                <li key={id}>
-                  <strong>
-                    {vesselSegments.find((s) => s.id === id)?.name || id}
-                  </strong>
-                  : {segments[id].severity}% stenosis, {segments[id].length} cm,{' '}
-                  {segments[id].calcium}
-                  <Button
-                    isSecondary
-                    onClick={() => {
-                      setActiveSeg(id);
-                      setModalOpen(true);
-                    }}
-                    style={{ marginRight: '0.5em' }}
-                  >
-                    {__('Edit', 'endoplanner')}
-                  </Button>
-                  <Button
-                    isSecondary
-                    onClick={() => removeSegment(id)}
-                  >
-                    {__('Remove', 'endoplanner')}
-                  </Button>
-                </li>
-              ))
-            ) : (
-              <li>{__('No segments selected.', 'endoplanner')}</li>
-            )}
-          </ul>
-        </aside>
+        <div className="summary-box">
+          {selectedSegments.length
+            ? selectedSegments.join(', ')
+            : __('No segments selected.', 'endoplanner')}
+        </div>
       </div>
-      <SliderModal
-        isOpen={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setActiveSeg(null);
-        }}
-        segment={vesselSegments.find((s) => s.id === activeSeg)?.name || activeSeg}
-        values={segments[activeSeg] || {}}
-        onSave={handleSave}
-      />
     </div>
   );
 }
-
-export { vesselSegments };
