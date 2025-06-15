@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { ReactComponent as MapSvg } from '../assets/vessel-map.svg';
 import { vesselSegments } from './steps/Step2_Patency';
 
-export default function VesselMap() {
-  const [hoverSegment, setHoverSegment] = useState('');
-  const [selectedSegments, setSelectedSegments] = useState([]);
+export default function VesselMap({
+  selectedSegments = [],
+  toggleSegment = () => {},
+  setHoverLabel = () => {},
+}) {
 
   useEffect(() => {
     const handlers = [];
@@ -13,20 +15,20 @@ export default function VesselMap() {
       if (!group) return;
       group.querySelectorAll('path').forEach((el) => {
         el.classList.add('segment');
-        el.classList.toggle('selected', selectedSegments.includes(name));
+        el.classList.toggle('selected', selectedSegments.includes(id));
 
         const title = el.querySelector('title');
-        if (title) title.remove();
+        if (title) {
+          title.textContent = name;
+        } else {
+          const t = document.createElement('title');
+          t.textContent = name;
+          el.appendChild(t);
+        }
 
-        const clickHandler = () => {
-          setSelectedSegments((prev) =>
-            prev.includes(name)
-              ? prev.filter((n) => n !== name)
-              : [...prev, name]
-          );
-        };
-        const enterHandler = () => setHoverSegment(name);
-        const leaveHandler = () => setHoverSegment('');
+        const clickHandler = () => toggleSegment(id);
+        const enterHandler = () => setHoverLabel(name);
+        const leaveHandler = () => setHoverLabel('');
 
         el.addEventListener('click', clickHandler);
         el.addEventListener('mouseenter', enterHandler);
@@ -42,17 +44,7 @@ export default function VesselMap() {
         el.removeEventListener('mouseleave', leaveHandler);
       });
     };
-  }, [selectedSegments]);
+  }, [selectedSegments, toggleSegment, setHoverLabel]);
 
-  return (
-    <div className="vessel-container">
-      {hoverSegment && <div className="vessel-tooltip">{hoverSegment}</div>}
-      <MapSvg />
-      <div className="summary-box">
-        {selectedSegments.length > 0
-          ? selectedSegments.join(', ')
-          : 'No segments selected.'}
-      </div>
-    </div>
-  );
+  return <MapSvg />;
 }
