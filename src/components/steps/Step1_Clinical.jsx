@@ -4,11 +4,11 @@ import { __ } from '@wordpress/i18n';
 import { useBlockProps } from '@wordpress/block-editor';
 
 const stageOptions = [
-  { label: __( 'I Asymptomatic (0)', 'endoplanner' ), value: 'i' },
-  { label: __( 'IIa <100 m (1)', 'endoplanner' ), value: 'iia' },
-  { label: __( 'IIb >100 m (2)', 'endoplanner' ), value: 'iib' },
-  { label: __( 'III Rest Pain (3)', 'endoplanner' ), value: 'iii' },
-  { label: __( 'IV Ulcer/Gangrene (4)', 'endoplanner' ), value: 'iv' },
+  { label: __( 'I Asymptomatic', 'endoplanner' ), value: 'i' },
+  { label: __( 'IIa < 100 m', 'endoplanner' ), value: 'iia' },
+  { label: __( 'IIb > 100 m', 'endoplanner' ), value: 'iib' },
+  { label: __( 'III Rest Pain', 'endoplanner' ), value: 'iii' },
+  { label: __( 'IV Ulcer/Gangrene', 'endoplanner' ), value: 'iv' },
 ];
 
 const wifiDescriptions = {
@@ -79,10 +79,11 @@ export default function Step1({ data, setData }) {
         onChange={(e) => onChangeSection('wound', Number(e.target.value))}
         className="wifi-slider"
       />
-      <div className="slider-markers">
-        {[0, 1, 2, 3].map((n) => (
-          <span key={n} className="slider-marker">{n}</span>
-        ))}
+      <div className="wifimarkers">
+        <span>0</span>
+        <span>1</span>
+        <span>2</span>
+        <span>3</span>
       </div>
 
       <div className="section-spacer" />
@@ -98,10 +99,11 @@ export default function Step1({ data, setData }) {
         onChange={(e) => onChangeSection('ischemia', Number(e.target.value))}
         className="wifi-slider"
       />
-      <div className="slider-markers">
-        {[0, 1, 2, 3].map((n) => (
-          <span key={n} className="slider-marker">{n}</span>
-        ))}
+      <div className="wifimarkers">
+        <span>0</span>
+        <span>1</span>
+        <span>2</span>
+        <span>3</span>
       </div>
 
       <div className="section-spacer" />
@@ -117,10 +119,11 @@ export default function Step1({ data, setData }) {
         onChange={(e) => onChangeSection('infection', Number(e.target.value))}
         className="wifi-slider"
       />
-      <div className="slider-markers">
-        {[0, 1, 2, 3].map((n) => (
-          <span key={n} className="slider-marker">{n}</span>
-        ))}
+      <div className="wifimarkers">
+        <span>0</span>
+        <span>1</span>
+        <span>2</span>
+        <span>3</span>
       </div>
 
       <div className="section-spacer" />
