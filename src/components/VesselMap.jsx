@@ -1,51 +1,67 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ReactComponent as MapSvg } from '../assets/vessel-map.svg';
 import { vesselSegments } from './steps/Step2_Patency';
 
 export default function VesselMap() {
   const [hoverSegment, setHoverSegment] = useState('');
   const [selectedSegments, setSelectedSegments] = useState([]);
+  const containerRef = useRef(null);
+
+  const idToName = useRef(
+    vesselSegments.reduce((acc, { id, name }) => {
+      acc[id] = name;
+      return acc;
+    }, {})
+  ).current;
+
+  const handleMouseOver = (e) => {
+    const g = e.target.closest('g');
+    if (!g || !idToName[g.id]) return;
+    setHoverSegment(idToName[g.id]);
+  };
+
+  const handleMouseOut = (e) => {
+    if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) return;
+    setHoverSegment('');
+  };
+
+  const handleClick = (e) => {
+    const g = e.target.closest('g');
+    if (!g || !idToName[g.id]) return;
+    const name = idToName[g.id];
+    setSelectedSegments((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
 
   useEffect(() => {
-    const handlers = [];
+    const container = containerRef.current;
+    if (!container) return;
+    container.querySelectorAll('title').forEach((t) => t.remove());
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
     vesselSegments.forEach(({ id, name }) => {
-      const group = document.getElementById(id);
+      const group = container.querySelector(`#${id}`);
       if (!group) return;
+      const selected = selectedSegments.includes(name);
       group.querySelectorAll('path').forEach((el) => {
         el.classList.add('segment');
-        el.classList.toggle('selected', selectedSegments.includes(name));
-
-        const title = el.querySelector('title');
-        if (title) title.remove();
-
-        const clickHandler = () => {
-          setSelectedSegments((prev) =>
-            prev.includes(name)
-              ? prev.filter((n) => n !== name)
-              : [...prev, name]
-          );
-        };
-        const enterHandler = () => setHoverSegment(name);
-        const leaveHandler = () => setHoverSegment('');
-
-        el.addEventListener('click', clickHandler);
-        el.addEventListener('mouseenter', enterHandler);
-        el.addEventListener('mouseleave', leaveHandler);
-
-        handlers.push({ el, clickHandler, enterHandler, leaveHandler });
+        el.classList.toggle('selected', selected);
       });
     });
-    return () => {
-      handlers.forEach(({ el, clickHandler, enterHandler, leaveHandler }) => {
-        el.removeEventListener('click', clickHandler);
-        el.removeEventListener('mouseenter', enterHandler);
-        el.removeEventListener('mouseleave', leaveHandler);
-      });
-    };
   }, [selectedSegments]);
 
   return (
-    <div className="vessel-container">
+    <div
+      ref={containerRef}
+      className="vessel-container"
+      onMouseOver={handleMouseOver}
+      onMouseOut={handleMouseOut}
+      onClick={handleClick}
+    >
       {hoverSegment && <div className="vessel-tooltip">{hoverSegment}</div>}
       <MapSvg />
       <div className="summary-box">
