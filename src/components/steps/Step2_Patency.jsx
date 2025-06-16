@@ -12,7 +12,8 @@ const vesselSegments = [
   { id: 'Left_common_iliac_Afbeelding', name: 'Left Common Iliac' },
   { id: 'Right_common_iliac_Afbeelding', name: 'Right Common Iliac' },
   { id: 'Left_external_iliac_Afbeelding', name: 'Left External Iliac' },
-  { id: 'Right_external_iliac_Afbeelding', name: 'Right External Iliac' },
+  // Note: there is a typo in the SVG id ("extrnal"), match it exactly
+  { id: 'Right_extrnal_iliac_Afbeelding', name: 'Right External Iliac' },
   { id: 'Left_internal_iliac_Afbeelding', name: 'Left Internal Iliac' },
   { id: 'Right_internal_iliac_Afbeelding', name: 'Right Internal Iliac' },
   { id: 'Left_common_femoral_Afbeelding', name: 'Left Common Femoral' },
@@ -46,8 +47,11 @@ export { vesselSegments };
 
 export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
-  const [hoverLabel, setHoverLabel] = useState('');
+  const [tooltip, setTooltip] = useState(null);
   const selectedSegments = Object.keys(data.patencySegments || {});
+  const selectedNames = selectedSegments.map(
+    (id) => vesselSegments.find((s) => s.id === id)?.name || id
+  );
 
   const toggleSegment = (id) => {
     setData((prev) => {
@@ -70,18 +74,31 @@ export default function Step2_Patency({ data, setData }) {
   return (
     <div {...blockProps} className="step2-patency">
       <div className="patency-container">
-        <div className="svg-wrapper patency-svg">
+        <div className="svg-wrapper patency-svg vessel-map-wrapper">
           <VesselMap
             selectedSegments={selectedSegments}
             toggleSegment={toggleSegment}
-            setHoverLabel={setHoverLabel}
+            setTooltip={setTooltip}
           />
-          {hoverLabel && <div className="tooltip">{hoverLabel}</div>}
+          {tooltip && (
+            <div
+              className="vessel-tooltip"
+              style={{ left: tooltip.x, top: tooltip.y }}
+            >
+              {tooltip.name}
+            </div>
+          )}
         </div>
         <div className="summary-box">
-          {selectedSegments.length
-            ? selectedSegments.join(', ')
-            : __('No segments selected.', 'endoplanner')}
+          {selectedNames.length ? (
+            <ul>
+              {selectedNames.map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+            </ul>
+          ) : (
+            __('No segments selected.', 'endoplanner')
+          )}
         </div>
       </div>
     </div>

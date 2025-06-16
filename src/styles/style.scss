@@ -277,16 +277,15 @@ svg path:hover {
   position: relative;
 }
 .vessel-tooltip {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -1.5rem);
+  position: fixed;
+  transform: translate(-50%, -1.25rem);
   background: rgba(0, 0, 0, 0.75);
   color: #fff;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   pointer-events: none;
   white-space: nowrap;
+  z-index: 1000;
 }
 .segment {
   cursor: pointer;
