@@ -13,11 +13,12 @@ export default function VesselMap({
 
   useEffect(() => {
     const handlers = [];
+    let found = 0,
+      missing = [];
     vesselSegments.forEach(({ id, name }) => {
       const group = document.getElementById(id);
-      if (group) {
-        console.log(`Found SVG element: ${id}`);
-      }
+      if (group) found++;
+      else missing.push(id);
       if (!group) return;
       group.querySelectorAll('path').forEach((el) => {
         el.classList.add('segment');
@@ -59,6 +60,8 @@ export default function VesselMap({
         handlers.push({ el, clickHandler, enterHandler, moveHandler, leaveHandler });
       });
     });
+    console.warn(`🔍 Found ${found}/${vesselSegments.length} segments.`);
+    if (missing.length) console.warn('❌ Missing SVG IDs:', missing);
     return () => {
       handlers.forEach(({ el, clickHandler, enterHandler, moveHandler, leaveHandler }) => {
         el.removeEventListener('click', clickHandler);
