@@ -5,7 +5,7 @@ import { vesselSegments } from './steps/Step2_Patency';
 export default function VesselMap({
   selectedSegments = [],
   toggleSegment = () => {},
-  setHoverLabel = () => {},
+  setTooltip = () => {},
 }) {
 
   useEffect(() => {
@@ -27,24 +27,28 @@ export default function VesselMap({
         }
 
         const clickHandler = () => toggleSegment(id);
-        const enterHandler = () => setHoverLabel(name);
-        const leaveHandler = () => setHoverLabel('');
+        const enterHandler = (e) =>
+          setTooltip({ name, x: e.clientX, y: e.clientY });
+        const moveHandler = (e) =>
+          setTooltip({ name, x: e.clientX, y: e.clientY });
+        const leaveHandler = () => setTooltip(null);
 
         el.addEventListener('click', clickHandler);
         el.addEventListener('mouseenter', enterHandler);
+        el.addEventListener('mousemove', moveHandler);
         el.addEventListener('mouseleave', leaveHandler);
-
-        handlers.push({ el, clickHandler, enterHandler, leaveHandler });
+        handlers.push({ el, clickHandler, enterHandler, moveHandler, leaveHandler });
       });
     });
     return () => {
-      handlers.forEach(({ el, clickHandler, enterHandler, leaveHandler }) => {
+      handlers.forEach(({ el, clickHandler, enterHandler, moveHandler, leaveHandler }) => {
         el.removeEventListener('click', clickHandler);
         el.removeEventListener('mouseenter', enterHandler);
+        el.removeEventListener('mousemove', moveHandler);
         el.removeEventListener('mouseleave', leaveHandler);
       });
     };
-  }, [selectedSegments, toggleSegment, setHoverLabel]);
+  }, [selectedSegments, toggleSegment, setTooltip]);
 
   return <MapSvg />;
 }
