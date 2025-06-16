@@ -15,6 +15,13 @@ export default function VesselMap({
     const handlers = [];
     let found = 0,
       missing = [];
+    const svgRoot = document.querySelector('.vessel-map-wrapper svg');
+    if (svgRoot) {
+      console.log(
+        '🔍 SVG IDs:',
+        Array.from(svgRoot.querySelectorAll('[id]')).map((el) => el.id)
+      );
+    }
     vesselSegments.forEach(({ id, name }) => {
       const group = document.getElementById(id);
       if (group) found++;
@@ -37,11 +44,11 @@ export default function VesselMap({
           const newSelected = selectedSegments.includes(id)
             ? selectedSegments.filter((s) => s !== id)
             : [...selectedSegments, id];
-          console.log('clicked: ' + id, newSelected);
+          console.log('🖱️ click:', id);
           toggleSegment(id);
         };
         const enterHandler = (e) => {
-          console.log('hover start: ' + id, e.clientX, e.clientY);
+          console.log('🐭 hover:', id);
           setHoverSegment(id);
           setTooltip({ name, x: e.clientX, y: e.clientY });
         };
