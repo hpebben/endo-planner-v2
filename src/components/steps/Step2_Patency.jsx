@@ -99,6 +99,7 @@ export default function Step2_Patency({ data, setData }) {
           ) : (
             __('No segments selected.', 'endoplanner')
           )}
+          <pre>{JSON.stringify(selectedSegments, null, 2)}</pre>
         </div>
       </div>
     </div>
