@@ -1,6 +1,6 @@
 {
   "name": "endo-planner-v2",
-  "version": "1.6.31",
+  "version": "1.6.32",
   "main": "index.js",
   "license": "GPL-2.0-or-later",
   "scripts": {
