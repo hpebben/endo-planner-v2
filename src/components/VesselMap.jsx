@@ -9,8 +9,6 @@ export default function VesselMap({
 }) {
   const [hoverSegment, setHoverSegment] = useState(null);
 
-  console.log('🐭 hover:', hoverSegment, '🖱️ selected:', selectedSegments);
-
   useEffect(() => {
     const svgRoot = document.querySelector('.vessel-map-wrapper svg');
 
@@ -30,9 +28,9 @@ export default function VesselMap({
       `;
     }
 
-    const rawEls = svgRoot.querySelectorAll('[id$="_Afbeelding"]');
-    const segments = Array.from(rawEls).map((el) => ({ id: el.id.split('__').pop(), el }));
-    console.log('🔍 Found IDs:', segments.map((s) => s.id));
+    const allEls = svgRoot.querySelectorAll('[id$="_Afbeelding"]');
+    const leafEls = Array.from(allEls).filter((el) => el.children.length === 0);
+    const segments = leafEls.map((el) => ({ id: el.id.split('__').pop(), el }));
 
     const handlers = [];
 
@@ -55,11 +53,13 @@ export default function VesselMap({
         el.classList.toggle('selected');
       };
       const enterHandler = (e) => {
+        el.classList.add('hovered');
         setHoverSegment(id);
         setTooltip({ name, x: e.clientX, y: e.clientY });
       };
       const moveHandler = (e) => setTooltip({ name, x: e.clientX, y: e.clientY });
       const leaveHandler = () => {
+        el.classList.remove('hovered');
         setHoverSegment(null);
         setTooltip(null);
       };
