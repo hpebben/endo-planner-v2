@@ -241,74 +241,56 @@ svg path:hover {
     }
   }
   /* Patency map summary panel & hover labels */
-  .vessel-map-wrapper { position: relative; }
-  .vessel-summary { position: absolute; top: 0; right: 0; width: 200px; background: rgba(255,255,255,0.9); padding: 1rem; border: 1px solid #ddd; }
-  svg path {
-    cursor: pointer;
-    &:hover { opacity: 0.8; }
-    &.selected { stroke: #007cba; stroke-width: 3; }
-  }
-  .tooltip {
-    position: absolute;
+  .vessel-map-wrapper {
+    position: relative;
+    background-image: repeating-linear-gradient(45deg, #007cba22 0, #007cba22 2px, transparent 2px, transparent 4px);
+    background-size: 16px 16px;
     pointer-events: none;
-    background: #333;
-    color: #fff;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    border-radius: 3px;
-    transform: translate(-50%, -1.5rem);
-  }
-}
 
-.tooltip {
-  position: absolute;
-  background: #333;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  pointer-events: none;
-  transform: translate(-50%, -120%);
-}
+    svg {
+      position: relative;
+      z-index: 1;
+      pointer-events: all;
+    }
 
-.vessel-container {
-  position: relative;
-}
-.vessel-map-wrapper svg path.hovered {
-  stroke: #007cba !important;
-  stroke-width: 4 !important;
-}
-.vessel-map-wrapper svg path.selected {
-  stroke: #cc0000 !important;
-  stroke-width: 4 !important;
-  fill: none !important;
-}
-.vessel-tooltip {
-  position: fixed;
-  transform: translate(-50%, -1.25rem);
-  background: rgba(0, 0, 0, 0.75);
-  color: #fff;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 1000;
-}
-.segment {
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-.summary-box {
-  margin-left: 2rem;
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 0.25rem;
-  min-width: 12rem;
-}
+    svg path.hovered {
+      stroke: #007cba !important;
+      stroke-width: 4 !important;
+    }
 
-ul.vessel-summary {
-  list-style: disc inside;
-  padding: 0.5em;
-  li {
-    margin: 0.3em 0;
+    svg path.selected {
+      stroke: #cc0000 !important;
+      stroke-width: 4 !important;
+      fill: none !important;
+    }
+
+    .vessel-summary {
+      position: absolute;
+      top: 0;
+      right: 0;
+      margin: 1em;
+      padding: 1em;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      pointer-events: auto;
+
+      ul {
+        list-style: disc inside;
+        margin: 0;
+        padding: 0;
+
+        li {
+          margin: 0.3em 0;
+          font-size: 0.95em;
+        }
+      }
+
+      p {
+        margin: 0;
+        font-style: italic;
+        color: #666;
+      }
+    }
   }
 }
