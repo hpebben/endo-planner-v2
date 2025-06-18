@@ -65,55 +65,53 @@ export default function VesselMap() {
     const svg = wrapper.querySelector('svg');
     if (!svg) return;
 
+    const groups = Array.from(svg.querySelectorAll('g'));
+    console.log('🔍 SVG group IDs:', groups.map((g) => g.id));
+
     const wired = [];
+    let wiredCount = 0;
 
-    vesselList.forEach((seg) => {
-      const groupEls = Array.from(
-        document.querySelectorAll(`g[id$="${seg.id}"]`)
-      );
-      console.debug(`🔍 Found ${groupEls.length} <g> for “${seg.id}”`);
+    vesselList.forEach(({ id: segId }) => {
+      const matched = groups.filter((g) => g.id && g.id.endsWith(segId));
+      if (matched.length) {
+        wiredCount++;
+      }
 
-      const shapes = groupEls.flatMap((g) =>
-        Array.from(g.querySelectorAll('path, polyline, polygon'))
-      );
-      console.debug(`📈 Found ${shapes.length} shapes for “${seg.id}”`);
+      matched.forEach((group) => {
+        const shapes = Array.from(
+          group.querySelectorAll('path, polyline, polygon')
+        );
 
-      const color = selectedSegments.includes(seg.id) ? 'red' : 'green';
+        shapes.forEach((shape) => {
+          shape.style.cursor = 'pointer';
 
-      shapes.forEach((shape) => {
-        shape.setAttribute('fill', color);
-        shape.style.cursor = 'pointer';
+          const enter = () => {
+            setHoverSegment(segId);
+          };
+          const leave = () => {
+            setHoverSegment(null);
+          };
+          const click = () => {
+            setSelectedSegments((prev) =>
+              prev.includes(segId)
+                ? prev.filter((x) => x !== segId)
+                : [...prev, segId]
+            );
+          };
 
-        const enter = () => {
-          console.debug(`👀 hover on ${seg.id}`);
-          setHoverSegment(seg.id);
-        };
-        const leave = () => {
-          console.debug(`👋 leave ${seg.id}`);
-          setHoverSegment(null);
-        };
-        const click = () => {
-          console.debug(`🔴 click on ${seg.id}`);
-          setSelectedSegments((prev) => {
-            const hasIt = prev.includes(seg.id);
-            return hasIt ? prev.filter((x) => x !== seg.id) : [...prev, seg.id];
-          });
-        };
+          shape.addEventListener('mouseenter', enter);
+          shape.addEventListener('mouseleave', leave);
+          shape.addEventListener('click', click);
 
-        shape.addEventListener('mouseenter', enter);
-        shape.addEventListener('mouseleave', leave);
-        shape.addEventListener('click', click);
+          shape.__handlers = { enter, leave, click };
 
-        shape.__handlers = { enter, leave, click };
-
-        wired.push({ id: seg.id, element: shape });
+          wired.push({ id: segId, element: shape });
+        });
       });
     });
 
     segmentsRef.current = wired;
-    console.debug(
-      `✅ Wiring complete: ${selectedSegments.length} pre-selected, hover=${hoverSegment}`
-    );
+    console.log(`🔍 Found ${wiredCount}/${vesselList.length} segments`);
 
     return () => {
       wired.forEach(({ element }) => {
@@ -133,29 +131,9 @@ export default function VesselMap() {
   }, [selectedSegments]);
 
   const hoveredLabel = hoverSegment ? vesselList.find((v) => v.id === hoverSegment)?.label : null;
-  const segmentElements = segmentsRef.current;
 
   return (
     <div className="vessel-map-wrapper" ref={wrapperRef}>
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          right: 0,
-          background: 'rgba(255,255,255,0.9)',
-          padding: '0.5em',
-          fontSize: '0.8em',
-          zIndex: 9999,
-        }}
-      >
-        <strong>DEBUG:</strong>
-        <br />
-        Hover: {hoverSegment ? hoverSegment.label : '—'}
-        <br />
-        Selected: {JSON.stringify(selectedSegments)}
-        <br />
-        Total shapes: {segmentElements.length}
-      </div>
       <VesselSVG />
       {hoverSegment && tooltip && (
         <div className="tooltip vessel-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
