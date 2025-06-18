@@ -273,9 +273,14 @@ svg path:hover {
 .vessel-container {
   position: relative;
 }
+.vessel-map-wrapper svg path.hovered {
+  stroke: #007cba !important;
+  stroke-width: 4 !important;
+}
 .vessel-map-wrapper svg path.selected {
-  fill: url(#stripePattern) !important;
-  transition: fill 0.2s;
+  stroke: #cc0000 !important;
+  stroke-width: 4 !important;
+  fill: none !important;
 }
 .vessel-tooltip {
   position: fixed;
@@ -298,4 +303,12 @@ svg path:hover {
   border: 1px solid #ddd;
   border-radius: 0.25rem;
   min-width: 12rem;
+}
+
+ul.vessel-summary {
+  list-style: disc inside;
+  padding: 0.5em;
+  li {
+    margin: 0.3em 0;
+  }
 }

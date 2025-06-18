@@ -54,9 +54,6 @@ export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
   const [tooltip, setTooltip] = useState(null);
   const selectedSegments = Object.keys(data.patencySegments || {});
-  const selectedNames = selectedSegments.map(
-    (id) => vesselSegments.find((s) => s.id === id)?.name || id
-  );
 
   const toggleSegment = (id) => {
     setData((prev) => {
@@ -95,16 +92,15 @@ export default function Step2_Patency({ data, setData }) {
           )}
         </div>
         <div className="summary-box">
-          {selectedNames.length ? (
-            <ul>
-              {selectedNames.map((n) => (
-                <li key={n}>{n}</li>
+          {selectedSegments.length ? (
+            <ul className="vessel-summary">
+              {selectedSegments.map((id) => (
+                <li key={id}>{id.replace(/_/g, ' ').replace('Afbeelding', '')}</li>
               ))}
             </ul>
           ) : (
             __('No segments selected.', 'endoplanner')
           )}
-          <pre>{JSON.stringify(selectedSegments, null, 2)}</pre>
         </div>
       </div>
     </div>
