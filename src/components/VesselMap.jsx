@@ -65,40 +65,37 @@ export default function VesselMap() {
     const svg = wrapper.querySelector('svg');
     if (!svg) return;
 
-    // Inject stripe pattern if not present
-    const defs =
-      svg.querySelector('defs') ||
-      svg.insertBefore(document.createElementNS('http://www.w3.org/2000/svg', 'defs'), svg.firstChild);
-    if (!svg.querySelector('#stripePattern')) {
-      const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-      pattern.setAttribute('id', 'stripePattern');
-      pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-      pattern.setAttribute('width', '6');
-      pattern.setAttribute('height', '6');
-      pattern.setAttribute('patternTransform', 'rotate(45)');
-      pattern.innerHTML = '<rect width="3" height="6" fill="rgba(255,0,0,0.3)" />';
-      defs.appendChild(pattern);
-    }
-
-    const segmentElements = vesselList.flatMap((segment) => {
-      const paths = Array.from(svg.querySelectorAll(`path[id$="${segment.id}"]`));
-      if (paths.length === 0) {
-        console.warn(`⚠️ No paths found for segment ${segment.id}`);
-      } else {
-        console.log(`✅ ${paths.length} path(s) for ${segment.id}`);
+    // Collect all shapes within <g> elements matching segment ids
+    const allSegmentShapes = vesselList.flatMap(({ id, label }) => {
+      const groupEls = Array.from(document.querySelectorAll(`g[id$="${id}"]`));
+      if (groupEls.length === 0) {
+        console.warn(`⚠️ No <g> found for segment ${id}`);
+        return [];
       }
-      return paths.map((pathEl) => ({ id: segment.id, label: segment.label, element: pathEl }));
+      return groupEls.flatMap((groupEl) => {
+        const shapes = Array.from(groupEl.querySelectorAll('path, polyline, polygon'));
+        if (shapes.length === 0) {
+          console.warn(`⚠️ <g id="${groupEl.id}"> has no child shapes`);
+        } else {
+          console.log(`✅ ${shapes.length} shape(s) for segment ${id}`);
+        }
+        return shapes.map((shapeEl) => ({ id, label, element: shapeEl }));
+      });
     });
 
-    segmentElements.forEach(({ id, element }) => {
+    console.log('🔍 Total segment shapes wired:', allSegmentShapes.length);
+
+    const segmentElements = allSegmentShapes;
+    segmentElements.forEach(({ id, label, element }) => {
       element.dataset.segId = id;
+      element.dataset.segLabel = label;
       const mouseenter = (e) => {
-        console.log('🔍 hover on', id);
-        setHoverSegment(id);
+        console.log('🖱 hover →', id, label);
+        setHoverSegment({ id, label });
         setTooltip({ x: e.clientX, y: e.clientY });
       };
       const mouseleave = () => {
-        console.log('🔍 leave', id);
+        console.log('🖱 leave ←', id);
         setHoverSegment(null);
         setTooltip(null);
       };
@@ -106,7 +103,7 @@ export default function VesselMap() {
         setTooltip({ x: e.clientX, y: e.clientY });
       };
       const click = () => {
-        console.log('🖱️ click on', id);
+        console.log('🖱 click ✔', id);
         setSelectedSegments((prev) => {
           const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
           console.log('➡️ selectedSegments now', next);
@@ -148,12 +145,24 @@ export default function VesselMap() {
 
   return (
     <div className="vessel-map-wrapper" ref={wrapperRef}>
-      <div style={{ border: '1px solid red', padding: '0.5em' }}>
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          right: 0,
+          background: 'rgba(255,255,255,0.9)',
+          padding: '0.5em',
+          fontSize: '0.8em',
+          zIndex: 9999,
+        }}
+      >
         <strong>DEBUG:</strong>
         <br />
-        Found {segmentElements.length} path elements.
+        Hover: {hoverSegment ? hoverSegment.label : '—'}
         <br />
-        Selected IDs: {JSON.stringify(selectedSegments)}
+        Selected: {JSON.stringify(selectedSegments)}
+        <br />
+        Total shapes: {segmentElements.length}
       </div>
       <VesselSVG />
       {hoverSegment && tooltip && (

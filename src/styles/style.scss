@@ -5,15 +5,19 @@
     gap: 1rem;
 }
 
-.vessel-map-wrapper path.selected-segment {
-  stroke: red !important;
+.vessel-map-wrapper path.selected-segment,
+.vessel-map-wrapper polyline.selected-segment,
+.vessel-map-wrapper polygon.selected-segment {
+  stroke: #d00000 !important;
   stroke-width: 3 !important;
   fill: url(#stripePattern) !important;
 }
 
-.vessel-map-wrapper path:hover {
+.vessel-map-wrapper path:hover,
+.vessel-map-wrapper polyline:hover,
+.vessel-map-wrapper polygon:hover {
   cursor: pointer;
-  stroke: blue !important;
+  stroke: #005fcc;
   stroke-width: 2 !important;
 }
 
@@ -307,14 +311,18 @@ svg path:hover {
   }
 }
 
-.vessel-map-wrapper path.selected-segment {
-  stroke: red !important;
+.vessel-map-wrapper path.selected-segment,
+.vessel-map-wrapper polyline.selected-segment,
+.vessel-map-wrapper polygon.selected-segment {
+  stroke: #d00000 !important;
   stroke-width: 3 !important;
   fill: url(#stripePattern) !important;
 }
 
-.vessel-map-wrapper path:hover {
+.vessel-map-wrapper path:hover,
+.vessel-map-wrapper polyline:hover,
+.vessel-map-wrapper polygon:hover {
   cursor: pointer;
-  stroke: blue !important;
+  stroke: #005fcc;
   stroke-width: 2 !important;
 }

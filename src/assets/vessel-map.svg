@@ -5,7 +5,10 @@
       .cls-1 {
         fill: none;
       }
-    </style>
+  </style>
+  <pattern id="stripePattern" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+    <rect width="4" height="8" fill="rgba(208,0,0,0.3)" />
+  </pattern>
   </defs>
   <g id="pedal_Afbeelding" data-name="pedal Afbeelding">
     <g>
