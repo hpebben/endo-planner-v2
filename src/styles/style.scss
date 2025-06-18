@@ -5,6 +5,19 @@
     gap: 1rem;
 }
 
+.vessel-map-wrapper path.selected-segment {
+  stroke: red !important;
+  stroke-width: 3 !important;
+  fill: url(#stripePattern) !important;
+}
+
+.vessel-map-wrapper path:hover {
+  cursor: pointer;
+  stroke: blue !important;
+  stroke-width: 2 !important;
+}
+
+
 .endo-wizard {
     margin: 0 auto;
     max-width: 800px;
@@ -252,14 +265,15 @@ svg path:hover {
     }
 
     path:hover {
-      stroke: blue;
-      stroke-width: 2;
+      cursor: pointer;
+      stroke: blue !important;
+      stroke-width: 2 !important;
     }
 
     path.selected-segment {
-      stroke: red;
-      stroke-width: 3;
-      fill: url(#stripePattern);
+      stroke: red !important;
+      stroke-width: 3 !important;
+      fill: url(#stripePattern) !important;
     }
 
     .vessel-summary {
@@ -291,4 +305,16 @@ svg path:hover {
       }
     }
   }
+}
+
+.vessel-map-wrapper path.selected-segment {
+  stroke: red !important;
+  stroke-width: 3 !important;
+  fill: url(#stripePattern) !important;
+}
+
+.vessel-map-wrapper path:hover {
+  cursor: pointer;
+  stroke: blue !important;
+  stroke-width: 2 !important;
 }

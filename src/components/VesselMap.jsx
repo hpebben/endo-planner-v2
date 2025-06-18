@@ -51,6 +51,14 @@ export default function VesselMap() {
   const [selectedSegments, setSelectedSegments] = useState([]);
 
   useEffect(() => {
+    console.log('📦 hoverSegment changed to', hoverSegment);
+  }, [hoverSegment]);
+
+  useEffect(() => {
+    console.log('📦 selectedSegments changed to', selectedSegments);
+  }, [selectedSegments]);
+
+  useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
 
@@ -58,57 +66,73 @@ export default function VesselMap() {
     if (!svg) return;
 
     // Inject stripe pattern if not present
-    const defs = svg.querySelector('defs') || svg.insertBefore(document.createElementNS('http://www.w3.org/2000/svg','defs'), svg.firstChild);
+    const defs =
+      svg.querySelector('defs') ||
+      svg.insertBefore(document.createElementNS('http://www.w3.org/2000/svg', 'defs'), svg.firstChild);
     if (!svg.querySelector('#stripePattern')) {
       const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
       pattern.setAttribute('id', 'stripePattern');
       pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-      pattern.setAttribute('width', '8');
-      pattern.setAttribute('height', '8');
-      pattern.innerHTML = '<path d="M0 0L8 8" stroke="#ccc" stroke-width="2" />';
+      pattern.setAttribute('width', '6');
+      pattern.setAttribute('height', '6');
+      pattern.setAttribute('patternTransform', 'rotate(45)');
+      pattern.innerHTML = '<rect width="3" height="6" fill="rgba(255,0,0,0.3)" />';
       defs.appendChild(pattern);
     }
 
-    const segments = [];
-    vesselList.forEach(({ id }) => {
-      const el = svg.querySelector(`[id$="${id}"]`);
-      if (el) {
-        const path = el.tagName.toLowerCase() === 'path' ? el : el.querySelector('path');
-        if (!path) return;
-        const mouseenter = (e) => {
-          setHoverSegment(id);
-          setTooltip({ x: e.clientX, y: e.clientY });
-        };
-        const mouseleave = () => {
-          setHoverSegment(null);
-          setTooltip(null);
-        };
-        const mousemove = (e) => {
-          setTooltip({ x: e.clientX, y: e.clientY });
-        };
-        const click = () => {
-          setSelectedSegments((prev) =>
-            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-          );
-        };
-        path.addEventListener('mouseenter', mouseenter);
-        path.addEventListener('mouseleave', mouseleave);
-        path.addEventListener('mousemove', mousemove);
-        path.addEventListener('click', click);
-        segments.push({ id, element: path, handlers: { mouseenter, mouseleave, mousemove, click } });
+    const segmentElements = vesselList.flatMap((segment) => {
+      const paths = Array.from(svg.querySelectorAll(`path[id$="${segment.id}"]`));
+      if (paths.length === 0) {
+        console.warn(`⚠️ No paths found for segment ${segment.id}`);
+      } else {
+        console.log(`✅ ${paths.length} path(s) for ${segment.id}`);
       }
+      return paths.map((pathEl) => ({ id: segment.id, label: segment.label, element: pathEl }));
     });
 
-    segmentsRef.current = segments;
-    console.log('\uD83D\uDD0D SVG IDs found:', segments.map((s) => s.id));
-    console.log('\uD83D\uDD0D Missing IDs:', vesselList.map((v) => v.id).filter((id) => !segments.some((s) => s.id === id)));
+    segmentElements.forEach(({ id, element }) => {
+      element.dataset.segId = id;
+      const mouseenter = (e) => {
+        console.log('🔍 hover on', id);
+        setHoverSegment(id);
+        setTooltip({ x: e.clientX, y: e.clientY });
+      };
+      const mouseleave = () => {
+        console.log('🔍 leave', id);
+        setHoverSegment(null);
+        setTooltip(null);
+      };
+      const mousemove = (e) => {
+        setTooltip({ x: e.clientX, y: e.clientY });
+      };
+      const click = () => {
+        console.log('🖱️ click on', id);
+        setSelectedSegments((prev) => {
+          const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+          console.log('➡️ selectedSegments now', next);
+          element.classList.toggle('selected-segment', next.includes(id));
+          return next;
+        });
+      };
+      element.addEventListener('mouseenter', mouseenter);
+      element.addEventListener('mouseleave', mouseleave);
+      element.addEventListener('mousemove', mousemove);
+      element.addEventListener('click', click);
+      // store handlers to clean up later
+      element.__handlers = { mouseenter, mouseleave, mousemove, click };
+    });
+
+    segmentsRef.current = segmentElements;
+    console.log('📈 total paths wired:', segmentElements.length);
 
     return () => {
-      segments.forEach(({ element, handlers }) => {
-        element.removeEventListener('mouseenter', handlers.mouseenter);
-        element.removeEventListener('mouseleave', handlers.mouseleave);
-        element.removeEventListener('mousemove', handlers.mousemove);
-        element.removeEventListener('click', handlers.click);
+      segmentElements.forEach(({ element }) => {
+        const h = element.__handlers;
+        if (!h) return;
+        element.removeEventListener('mouseenter', h.mouseenter);
+        element.removeEventListener('mouseleave', h.mouseleave);
+        element.removeEventListener('mousemove', h.mousemove);
+        element.removeEventListener('click', h.click);
       });
     };
   }, []);
@@ -120,9 +144,17 @@ export default function VesselMap() {
   }, [selectedSegments]);
 
   const hoveredLabel = hoverSegment ? vesselList.find((v) => v.id === hoverSegment)?.label : null;
+  const segmentElements = segmentsRef.current;
 
   return (
     <div className="vessel-map-wrapper" ref={wrapperRef}>
+      <div style={{ border: '1px solid red', padding: '0.5em' }}>
+        <strong>DEBUG:</strong>
+        <br />
+        Found {segmentElements.length} path elements.
+        <br />
+        Selected IDs: {JSON.stringify(selectedSegments)}
+      </div>
       <VesselSVG />
       {hoverSegment && tooltip && (
         <div className="tooltip vessel-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
