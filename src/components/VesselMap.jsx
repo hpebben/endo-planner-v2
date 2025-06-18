@@ -9,7 +9,7 @@ export default function VesselMap({
 }) {
   const [hoverSegment, setHoverSegment] = useState(null);
 
-  console.log('VesselMap state', { hoverSegment, selectedSegments });
+  console.log('🐭 hover:', hoverSegment, '🖱️ selected:', selectedSegments);
 
   useEffect(() => {
     const svgRoot = document.querySelector('.vessel-map-wrapper svg');
@@ -17,74 +17,62 @@ export default function VesselMap({
     if (!svgRoot) return;
 
     // Ensure striped pattern exists
+    const defs = svgRoot.querySelector('defs') || (() => {
+      const d = document.createElementNS(svgRoot.namespaceURI, 'defs');
+      svgRoot.prepend(d);
+      return d;
+    })();
     if (!svgRoot.querySelector('#stripePattern')) {
-      const defs =
-        svgRoot.querySelector('defs') ||
-        svgRoot.insertBefore(document.createElementNS('http://www.w3.org/2000/svg', 'defs'), svgRoot.firstChild);
-      const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-      pattern.setAttribute('id', 'stripePattern');
-      pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-      pattern.setAttribute('width', '6');
-      pattern.setAttribute('height', '6');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', 'M0 0 l6 6 M6 0 l-6 6');
-      path.setAttribute('stroke', '#007cba');
-      path.setAttribute('stroke-width', '1');
-      pattern.appendChild(path);
-      defs.appendChild(pattern);
+      defs.innerHTML += `
+        <pattern id="stripePattern" patternUnits="userSpaceOnUse" width="8" height="8">
+          <path d="M0,0 l8,8 M-2,2 l4,-4 M6,10 l4,-4" stroke="#000" stroke-width="1"/>
+        </pattern>
+      `;
     }
 
-    const allEls = Array.from(svgRoot.querySelectorAll('[id]'));
-    console.log('🔍 All SVG IDs:', allEls.map((e) => e.id));
-
-    const segments = allEls.map((el) => {
-      const raw = el.id.split('__').pop();
-      return { id: raw, el };
-    });
-    console.log('💡 Mapped segments:', segments.map((s) => s.id));
+    const rawEls = svgRoot.querySelectorAll('[id$="_Afbeelding"]');
+    const segments = Array.from(rawEls).map((el) => ({ id: el.id.split('__').pop(), el }));
+    console.log('🔍 Found IDs:', segments.map((s) => s.id));
 
     const handlers = [];
 
     segments.forEach(({ id, el }) => {
-      const pathEl = el.tagName.toLowerCase() === 'path' ? el : el.querySelector('path');
-      if (pathEl) {
-        pathEl.classList.add('segment');
-        pathEl.classList.toggle('highlighted', selectedSegments.includes(id));
-        const nameAttr = el.getAttribute('data-name');
-        const name =
-          vesselSegments.find((s) => s.id === id)?.name ||
-          (nameAttr ? nameAttr.replace(/\u00a0?Afbeelding/, '') : id);
-        const title = pathEl.querySelector('title');
-        if (title) title.textContent = name;
-        else {
-          const t = document.createElement('title');
-          t.textContent = name;
-          pathEl.appendChild(t);
-        }
+      const nameAttr = el.getAttribute('data-name');
+      const name =
+        vesselSegments.find((s) => s.id === id)?.name ||
+        (nameAttr ? nameAttr.replace(/\u00a0?Afbeelding/, '') : id);
 
-        const clickHandler = () => {
-          console.log('🖱️ click:', id);
-          toggleSegment(id);
-        };
-        const enterHandler = (e) => {
-          console.log('🐭 hover:', id);
-          setHoverSegment(id);
-          setTooltip({ name, x: e.clientX, y: e.clientY });
-        };
-        const moveHandler = (e) => setTooltip({ name, x: e.clientX, y: e.clientY });
-        const leaveHandler = () => {
-          setHoverSegment(null);
-          setTooltip(null);
-        };
-
-        el.style.cursor = 'pointer';
-        el.addEventListener('click', clickHandler);
-        el.addEventListener('mouseenter', enterHandler);
-        el.addEventListener('mousemove', moveHandler);
-        el.addEventListener('mouseleave', leaveHandler);
-
-        handlers.push({ el, clickHandler, enterHandler, moveHandler, leaveHandler });
+      const title = el.querySelector('title');
+      if (title) title.textContent = name;
+      else {
+        const t = document.createElement('title');
+        t.textContent = name;
+        el.appendChild(t);
       }
+
+      const clickHandler = () => {
+        toggleSegment(id);
+        el.classList.toggle('selected');
+      };
+      const enterHandler = (e) => {
+        setHoverSegment(id);
+        setTooltip({ name, x: e.clientX, y: e.clientY });
+      };
+      const moveHandler = (e) => setTooltip({ name, x: e.clientX, y: e.clientY });
+      const leaveHandler = () => {
+        setHoverSegment(null);
+        setTooltip(null);
+      };
+
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', clickHandler);
+      el.addEventListener('mouseenter', enterHandler);
+      el.addEventListener('mousemove', moveHandler);
+      el.addEventListener('mouseleave', leaveHandler);
+
+      el.classList.toggle('selected', selectedSegments.includes(id));
+
+      handlers.push({ el, clickHandler, enterHandler, moveHandler, leaveHandler });
     });
 
     return () => {
