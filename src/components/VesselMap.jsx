@@ -1,89 +1,69 @@
-import React, { useEffect, useState } from 'react';
-import { ReactComponent as MapSvg } from '../assets/vessel-map.svg';
-import { vesselSegments } from './steps/Step2_Patency';
+import React, { useEffect, useRef, useState } from 'react';
+import { ReactComponent as VesselSVG } from '../assets/vessel-map.svg';
+import '../styles/style.scss';
 
-export default function VesselMap({
-  selectedSegments = [],
-  toggleSegment = () => {},
-  setTooltip = () => {},
-}) {
+export default function VesselMap() {
+  const wrapperRef = useRef(null);
   const [hoverSegment, setHoverSegment] = useState(null);
+  const [selectedSegments, setSelectedSegments] = useState([]);
 
   useEffect(() => {
-    const svgRoot = document.querySelector('.vessel-map-wrapper svg');
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
 
-    if (!svgRoot) return;
+    const svg = wrapper.querySelector('svg');
+    if (!svg) return;
 
-    // Ensure striped pattern exists
-    const defs = svgRoot.querySelector('defs') || (() => {
-      const d = document.createElementNS(svgRoot.namespaceURI, 'defs');
-      svgRoot.prepend(d);
-      return d;
-    })();
-    if (!svgRoot.querySelector('#stripePattern')) {
-      defs.innerHTML += `
-        <pattern id="stripePattern" patternUnits="userSpaceOnUse" width="8" height="8">
-          <path d="M0,0 l8,8 M-2,2 l4,-4 M6,10 l4,-4" stroke="#000" stroke-width="1"/>
-        </pattern>
-      `;
-    }
+    const allEls = Array.from(svg.querySelectorAll('[id$="_Afbeelding"]'));
+    const leafEls = allEls.filter(el => el.children.length === 0);
 
-    const allEls = svgRoot.querySelectorAll('[id$="_Afbeelding"]');
-    const leafEls = Array.from(allEls).filter((el) => el.children.length === 0);
-    const segments = leafEls.map((el) => ({ id: el.id.split('__').pop(), el }));
+    const normalize = id => id.replace(/^.*__/, '');
 
-    const handlers = [];
-
-    segments.forEach(({ id, el }) => {
-      const nameAttr = el.getAttribute('data-name');
-      const name =
-        vesselSegments.find((s) => s.id === id)?.name ||
-        (nameAttr ? nameAttr.replace(/\u00a0?Afbeelding/, '') : id);
-
-      const title = el.querySelector('title');
-      if (title) title.textContent = name;
-      else {
-        const t = document.createElement('title');
-        t.textContent = name;
-        el.appendChild(t);
-      }
-
-      const clickHandler = () => {
-        toggleSegment(id);
-        el.classList.toggle('selected');
-      };
-      const enterHandler = (e) => {
+    leafEls.forEach(el => {
+      el.style.cursor = 'pointer';
+      el.addEventListener('mouseenter', () => {
         el.classList.add('hovered');
-        setHoverSegment(id);
-        setTooltip({ name, x: e.clientX, y: e.clientY });
-      };
-      const moveHandler = (e) => setTooltip({ name, x: e.clientX, y: e.clientY });
-      const leaveHandler = () => {
+        setHoverSegment(normalize(el.id));
+      });
+      el.addEventListener('mouseleave', () => {
         el.classList.remove('hovered');
         setHoverSegment(null);
-        setTooltip(null);
-      };
-
-      el.style.cursor = 'pointer';
-      el.addEventListener('click', clickHandler);
-      el.addEventListener('mouseenter', enterHandler);
-      el.addEventListener('mousemove', moveHandler);
-      el.addEventListener('mouseleave', leaveHandler);
-
-      el.classList.toggle('selected', selectedSegments.includes(id));
-
-      handlers.push({ el, clickHandler, enterHandler, moveHandler, leaveHandler });
+      });
+      el.addEventListener('click', () => {
+        el.classList.toggle('selected');
+        const key = normalize(el.id);
+        setSelectedSegments(prev =>
+          prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key]
+        );
+      });
     });
 
     return () => {
-      handlers.forEach(({ el, clickHandler, enterHandler, moveHandler, leaveHandler }) => {
-        el.removeEventListener('click', clickHandler);
-        el.removeEventListener('mouseenter', enterHandler);
-        el.removeEventListener('mousemove', moveHandler);
-        el.removeEventListener('mouseleave', leaveHandler);
+      leafEls.forEach(el => {
+        el.replaceWith(el.cloneNode(true));
       });
     };
-  }, [selectedSegments, toggleSegment, setTooltip]);
+  }, [wrapperRef]);
 
-  return <MapSvg />;
+  return (
+    <div className="vessel-map-wrapper" ref={wrapperRef}>
+      <VesselSVG />
+      <div className="vessel-summary">
+        {selectedSegments.length === 0 ? (
+          <p>No vessels selected</p>
+        ) : (
+          <ul>
+            {selectedSegments.map(seg => (
+              <li key={seg}>
+                {seg
+                  .replace(/_/g, ' ')
+                  .replace(/Afbeelding/, '')
+                  .trim()}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
 }
