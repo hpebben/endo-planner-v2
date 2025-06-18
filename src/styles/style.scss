@@ -243,8 +243,6 @@ svg path:hover {
   /* Patency map summary panel & hover labels */
   .vessel-map-wrapper {
     position: relative;
-    background-image: repeating-linear-gradient(45deg, #007cba22 0, #007cba22 2px, transparent 2px, transparent 4px);
-    background-size: 16px 16px;
     pointer-events: none;
 
     svg {
@@ -253,15 +251,15 @@ svg path:hover {
       pointer-events: all;
     }
 
-    svg path.hovered {
-      stroke: #007cba !important;
-      stroke-width: 4 !important;
+    path:hover {
+      stroke: blue;
+      stroke-width: 2;
     }
 
-    svg path.selected {
-      stroke: #cc0000 !important;
-      stroke-width: 4 !important;
-      fill: none !important;
+    path.selected-segment {
+      stroke: red;
+      stroke-width: 3;
+      fill: url(#stripePattern);
     }
 
     .vessel-summary {
