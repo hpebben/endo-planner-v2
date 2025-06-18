@@ -65,70 +65,62 @@ export default function VesselMap() {
     const svg = wrapper.querySelector('svg');
     if (!svg) return;
 
-    // Collect all shapes within <g> elements matching segment ids
-    const allSegmentShapes = vesselList.flatMap(({ id, label }) => {
-      const groupEls = Array.from(document.querySelectorAll(`g[id$="${id}"]`));
-      if (groupEls.length === 0) {
-        console.warn(`⚠️ No <g> found for segment ${id}`);
-        return [];
-      }
-      return groupEls.flatMap((groupEl) => {
-        const shapes = Array.from(groupEl.querySelectorAll('path, polyline, polygon'));
-        if (shapes.length === 0) {
-          console.warn(`⚠️ <g id="${groupEl.id}"> has no child shapes`);
-        } else {
-          console.log(`✅ ${shapes.length} shape(s) for segment ${id}`);
-        }
-        return shapes.map((shapeEl) => ({ id, label, element: shapeEl }));
+    const wired = [];
+
+    vesselList.forEach((seg) => {
+      const groupEls = Array.from(
+        document.querySelectorAll(`g[id$="${seg.id}"]`)
+      );
+      console.debug(`🔍 Found ${groupEls.length} <g> for “${seg.id}”`);
+
+      const shapes = groupEls.flatMap((g) =>
+        Array.from(g.querySelectorAll('path, polyline, polygon'))
+      );
+      console.debug(`📈 Found ${shapes.length} shapes for “${seg.id}”`);
+
+      const color = selectedSegments.includes(seg.id) ? 'red' : 'green';
+
+      shapes.forEach((shape) => {
+        shape.setAttribute('fill', color);
+        shape.style.cursor = 'pointer';
+
+        const enter = () => {
+          console.debug(`👀 hover on ${seg.id}`);
+          setHoverSegment(seg.id);
+        };
+        const leave = () => {
+          console.debug(`👋 leave ${seg.id}`);
+          setHoverSegment(null);
+        };
+        const click = () => {
+          console.debug(`🔴 click on ${seg.id}`);
+          setSelectedSegments((prev) => {
+            const hasIt = prev.includes(seg.id);
+            return hasIt ? prev.filter((x) => x !== seg.id) : [...prev, seg.id];
+          });
+        };
+
+        shape.addEventListener('mouseenter', enter);
+        shape.addEventListener('mouseleave', leave);
+        shape.addEventListener('click', click);
+
+        shape.__handlers = { enter, leave, click };
+
+        wired.push({ id: seg.id, element: shape });
       });
     });
 
-    console.log('🔍 Total segment shapes wired:', allSegmentShapes.length);
-
-    const segmentElements = allSegmentShapes;
-    segmentElements.forEach(({ id, label, element }) => {
-      element.dataset.segId = id;
-      element.dataset.segLabel = label;
-      const mouseenter = (e) => {
-        console.log('🖱 hover →', id, label);
-        setHoverSegment({ id, label });
-        setTooltip({ x: e.clientX, y: e.clientY });
-      };
-      const mouseleave = () => {
-        console.log('🖱 leave ←', id);
-        setHoverSegment(null);
-        setTooltip(null);
-      };
-      const mousemove = (e) => {
-        setTooltip({ x: e.clientX, y: e.clientY });
-      };
-      const click = () => {
-        console.log('🖱 click ✔', id);
-        setSelectedSegments((prev) => {
-          const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-          console.log('➡️ selectedSegments now', next);
-          element.classList.toggle('selected-segment', next.includes(id));
-          return next;
-        });
-      };
-      element.addEventListener('mouseenter', mouseenter);
-      element.addEventListener('mouseleave', mouseleave);
-      element.addEventListener('mousemove', mousemove);
-      element.addEventListener('click', click);
-      // store handlers to clean up later
-      element.__handlers = { mouseenter, mouseleave, mousemove, click };
-    });
-
-    segmentsRef.current = segmentElements;
-    console.log('📈 total paths wired:', segmentElements.length);
+    segmentsRef.current = wired;
+    console.debug(
+      `✅ Wiring complete: ${selectedSegments.length} pre-selected, hover=${hoverSegment}`
+    );
 
     return () => {
-      segmentElements.forEach(({ element }) => {
+      wired.forEach(({ element }) => {
         const h = element.__handlers;
         if (!h) return;
-        element.removeEventListener('mouseenter', h.mouseenter);
-        element.removeEventListener('mouseleave', h.mouseleave);
-        element.removeEventListener('mousemove', h.mousemove);
+        element.removeEventListener('mouseenter', h.enter);
+        element.removeEventListener('mouseleave', h.leave);
         element.removeEventListener('click', h.click);
       });
     };
