@@ -71,32 +71,36 @@ export default function VesselMap() {
 
     const segments = [];
     vesselList.forEach(({ id }) => {
-      const el = svg.querySelector(`[id$="${id}"]`);
-      if (el) {
-        const path = el.tagName.toLowerCase() === 'path' ? el : el.querySelector('path');
-        if (!path) return;
-        const mouseenter = (e) => {
-          setHoverSegment(id);
-          setTooltip({ x: e.clientX, y: e.clientY });
-        };
-        const mouseleave = () => {
-          setHoverSegment(null);
-          setTooltip(null);
-        };
-        const mousemove = (e) => {
-          setTooltip({ x: e.clientX, y: e.clientY });
-        };
-        const click = () => {
-          setSelectedSegments((prev) =>
-            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-          );
-        };
+      const baseEl = svg.querySelector(`[id$="${id}"]`);
+      if (!baseEl) return;
+      const paths =
+        baseEl.tagName.toLowerCase() === 'path'
+          ? [baseEl]
+          : Array.from(baseEl.querySelectorAll('path'));
+      if (paths.length === 0) return;
+      const mouseenter = (e) => {
+        setHoverSegment(id);
+        setTooltip({ x: e.clientX, y: e.clientY });
+      };
+      const mouseleave = () => {
+        setHoverSegment(null);
+        setTooltip(null);
+      };
+      const mousemove = (e) => {
+        setTooltip({ x: e.clientX, y: e.clientY });
+      };
+      const click = () => {
+        setSelectedSegments((prev) =>
+          prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        );
+      };
+      paths.forEach((path) => {
         path.addEventListener('mouseenter', mouseenter);
         path.addEventListener('mouseleave', mouseleave);
         path.addEventListener('mousemove', mousemove);
         path.addEventListener('click', click);
         segments.push({ id, element: path, handlers: { mouseenter, mouseleave, mousemove, click } });
-      }
+      });
     });
 
     segmentsRef.current = segments;
