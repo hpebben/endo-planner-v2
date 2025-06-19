@@ -5,21 +5,32 @@
     gap: 1rem;
 }
 
-.vessel-map-wrapper path.selected,
-.vessel-map-wrapper polyline.selected,
-.vessel-map-wrapper polygon.selected {
-  stroke: #d00000 !important;
-  stroke-width: 3 !important;
-  fill: url(#diagonal-stripe);
+/* Vessel map base layout */
+.vessel-map-wrapper {
+  display: flex;
+  align-items: flex-start;
+}
+.vessel-map {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.vessel-map svg {
+  width: 100%;
+  max-width: 600px;
+}
+.vessel-path:hover {
+  stroke: blue;
+  cursor: pointer;
+}
+.vessel-path.selected {
+  stroke: red;
+  stroke-width: 2;
+}
+.selected-segments {
+  margin-left: 1rem;
 }
 
-.vessel-map-wrapper path.hovered,
-.vessel-map-wrapper polyline.hovered,
-.vessel-map-wrapper polygon.hovered {
-  cursor: pointer;
-  stroke: blue;
-  stroke-width: 2 !important;
-}
 
 /* Vessel map layout tweaks */
 .vessel-map-wrapper {
@@ -27,9 +38,6 @@
   gap: 2rem;
   align-items: flex-start;
   position: relative;
-}
-.selected-segments {
-  width: 200px;
 }
 .vessel-tooltip {
   position: absolute;
@@ -39,15 +47,6 @@
   border-radius: 3px;
   pointer-events: none;
   transform: translate(-50%, -100%);
-}
-svg path.hovered {
-  stroke: blue;
-  stroke-width: 2;
-}
-svg path.selected {
-  stroke: red;
-  stroke-width: 2;
-  fill: url(#diagonal-stripe);
 }
 
 
@@ -297,33 +296,5 @@ svg path:hover {
       pointer-events: all;
     }
 
-    path.hovered {
-      cursor: pointer;
-      stroke: blue !important;
-      stroke-width: 2 !important;
-    }
-
-    path.selected {
-      stroke: red !important;
-      stroke-width: 3 !important;
-      fill: url(#diagonal-stripe);
-    }
-
   }
-}
-
-.vessel-map-wrapper path.selected,
-.vessel-map-wrapper polyline.selected,
-.vessel-map-wrapper polygon.selected {
-  stroke: #d00000 !important;
-  stroke-width: 3 !important;
-  fill: url(#diagonal-stripe);
-}
-
-.vessel-map-wrapper path.hovered,
-.vessel-map-wrapper polyline.hovered,
-.vessel-map-wrapper polygon.hovered {
-  cursor: pointer;
-  stroke: blue;
-  stroke-width: 2 !important;
 }

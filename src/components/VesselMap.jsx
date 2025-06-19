@@ -45,9 +45,9 @@ const vesselList = [
 export default function VesselMap() {
   const wrapperRef = useRef(null);
   const segmentsRef = useRef([]);
-  const [hoverSegment, setHoverSegment] = useState(null);
+  const [hoverSegment, setHoverSegment] = useState(null); // {id, name}
   const [tooltip, setTooltip] = useState(null);
-  const [selectedSegments, setSelectedSegments] = useState([]);
+  const [selectedSegments, setSelectedSegments] = useState([]); // array of ids
 
   useEffect(() => {
     console.log('📦 hoverSegment changed to', hoverSegment);
@@ -80,7 +80,14 @@ export default function VesselMap() {
         group.querySelectorAll('path, polyline, polygon')
       );
 
-      shapes.forEach((shape) => {
+      shapes.forEach((shape, index) => {
+        shape.classList.add('vessel-path');
+        const subId = shape.getAttribute('id') || `${segId}-${index}`;
+        const subName =
+          shape.getAttribute('data-name') ||
+          group.getAttribute('data-name') ||
+          segId;
+
         shape.style.cursor = 'pointer';
 
         const enter = (e) => {
@@ -90,7 +97,7 @@ export default function VesselMap() {
             x: rect.left + rect.width / 2 + window.scrollX,
             y: rect.top + window.scrollY - 8,
           });
-          setHoverSegment(segId);
+          setHoverSegment({ id: subId, name: subName });
           target.classList.add('hovered');
         };
         const leave = (e) => {
@@ -100,9 +107,9 @@ export default function VesselMap() {
         };
         const click = () => {
           setSelectedSegments((prev) =>
-            prev.includes(segId)
-              ? prev.filter((x) => x !== segId)
-              : [...prev, segId]
+            prev.includes(subId)
+              ? prev.filter((x) => x !== subId)
+              : [...prev, subId]
           );
         };
 
@@ -112,7 +119,7 @@ export default function VesselMap() {
 
         shape.__handlers = { enter, leave, click };
 
-        wired.push({ id: segId, element: shape });
+        wired.push({ id: subId, name: subName, element: shape });
       });
     });
 
@@ -136,24 +143,27 @@ export default function VesselMap() {
     });
   }, [selectedSegments]);
 
-  const hoveredLabel = hoverSegment ? vesselList.find((v) => v.id === hoverSegment)?.label : null;
+  const hoveredLabel = hoverSegment ? hoverSegment.name : null;
 
   return (
     <div className="vessel-map-wrapper" ref={wrapperRef}>
-      <VesselSVG />
+      <div className="vessel-map">
+        <VesselSVG />
+      </div>
       {hoverSegment && tooltip && (
         <div className="tooltip vessel-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
           {hoveredLabel}
         </div>
       )}
       <div className="selected-segments">
+        <h3>Selected segments</h3>
         {selectedSegments.length === 0 ? (
-          <p>No vessels selected</p>
+          <p>No segments selected.</p>
         ) : (
           <ul>
             {selectedSegments.map((id) => {
-              const seg = vesselList.find((v) => v.id === id);
-              return <li key={id}>{seg ? seg.label : id}</li>;
+              const seg = segmentsRef.current.find((s) => s.id === id);
+              return <li key={id}>{seg ? seg.name : id}</li>;
             })}
           </ul>
         )}
