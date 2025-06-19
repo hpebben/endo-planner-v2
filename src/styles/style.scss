@@ -4,6 +4,27 @@
     flex-wrap: wrap;
     gap: 1rem;
 }
+.vessel-map-wrapper {
+  display: flex;
+  align-items: flex-start;
+}
+.vessel-map-wrapper svg {
+  flex: 1;
+  max-width: 600px;
+  width: 100%;
+}
+.vessel-path:hover {
+  stroke: blue !important;
+  cursor: pointer;
+}
+.vessel-path.selected {
+  stroke: red !important;
+  stroke-width: 2 !important;
+}
+.selected-segments {
+  margin-left: 1rem;
+  min-width: 200px;
+}
 
 /* Vessel map base layout */
 .vessel-map-wrapper {

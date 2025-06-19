@@ -2,52 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ReactComponent as VesselSVG } from '../assets/vessel-map.svg';
 import '../styles/style.scss';
 
-// List every segment id exactly as it appears in the SVG
-const vesselList = [
-  { id: 'Aorta_Afbeelding', label: 'Aorta' },
-  { id: 'Left_common_iliac_Afbeelding', label: 'Left Common Iliac' },
-  { id: 'Right_common_iliac_Afbeelding', label: 'Right Common Iliac' },
-  { id: 'Left_external_iliac_Afbeelding', label: 'Left External Iliac' },
-  { id: 'Right_extrnal_iliac_Afbeelding', label: 'Right External Iliac' },
-  { id: 'Left_internal_iliac_Afbeelding', label: 'Left Internal Iliac' },
-  { id: 'Right_internal_iliac_Afbeelding', label: 'Right Internal Iliac' },
-  { id: 'Left_common_femoral_Afbeelding', label: 'Left Common Femoral' },
-  { id: 'Right_common_femoral_Afbeelding', label: 'Right Common Femoral' },
-  { id: 'Left_superficial_femoral_Afbeelding', label: 'Left Superficial Femoral' },
-  { id: 'Right_superficial_femoral_Afbeelding', label: 'Right Superficial Femoral' },
-  { id: 'Left_profunda_Afbeelding', label: 'Left Profunda' },
-  { id: 'Right_profunda_Afbeelding', label: 'Right Profunda' },
-  { id: 'Left_popliteal_artery_Afbeelding', label: 'Left Popliteal' },
-  { id: 'Right_popliteal_artery_Afbeelding', label: 'Right Popliteal' },
-  { id: 'Left_anterior_tibial_Afbeelding', label: 'Left Anterior Tibial Artery' },
-  { id: 'Right_anterior_tibital_Afbeelding', label: 'Right Anterior Tibial Artery' },
-  { id: 'Left_peroneal_Afbeelding', label: 'Left Peroneal Artery' },
-  { id: 'Right_peroneal_Afbeelding', label: 'Right Peroneal Artery' },
-  { id: 'Left_posterior_tibial2_Afbeelding', label: 'Left Posterior Tibial Artery' },
-  { id: 'Right_posterior_tibial_Afbeelding', label: 'Right Posterior Tibial Artery' },
-  { id: 'Left_tibioperoneal_trunk_Afbeelding', label: 'Left Tibioperoneal Trunk' },
-  { id: 'Right_tibioperoneal_trunk_Afbeelding', label: 'Right Tibioperoneal Trunk' },
-  { id: 'crural_Afbeelding', label: 'Crural Trunk' },
-  { id: 'Left_dorsal_pedal_Afbeelding', label: 'Left Dorsal Pedal Artery' },
-  { id: 'Right_dorsal_pedal_Afbeelding', label: 'Right Dorsal Pedal Artery' },
-  { id: 'Left_medial_plantar_Afbeelding', label: 'Left Medial Plantar Artery' },
-  { id: 'Left_lateral_plantar_Afbeelding', label: 'Left Lateral Plantar Artery' },
-  { id: 'Right_medial_plantar_Afbeelding', label: 'Right Medial Plantar Artery' },
-  { id: 'Right_lateral_plantar_Afbeelding', label: 'Right Lateral Plantar Artery' },
-  { id: 'Left_plantar_arch_Afbeelding', label: 'Left Plantar Arch' },
-  { id: 'Right_plantar_arch_Afbeelding', label: 'Right Plantar Arch' },
-  { id: 'Left_metatarsal_Afbeelding', label: 'Left Metatarsal Arteries' },
-  { id: 'Right_metatarsal_Afbeelding', label: 'Right Metatarsal Arteries' },
-  { id: 'pedal_Afbeelding', label: 'Pedal Vessel' },
-  { id: 'fem-pop_Afbeelding', label: 'Fem-Pop' },
-];
-
 export default function VesselMap() {
-  const wrapperRef = useRef(null);
+  const svgRef = useRef(null);
   const segmentsRef = useRef([]);
-  const [hoverSegment, setHoverSegment] = useState(null); // {id, name}
-  const [tooltip, setTooltip] = useState(null);
-  const [selectedSegments, setSelectedSegments] = useState([]); // array of ids
+  const [hoverSegment, setHoverSegment] = useState(null);
+  const [selectedSegments, setSelectedSegments] = useState([]);
 
   useEffect(() => {
     console.log('📦 hoverSegment changed to', hoverSegment);
@@ -58,114 +17,82 @@ export default function VesselMap() {
   }, [selectedSegments]);
 
   useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
 
-    const svg = wrapper.querySelector('svg');
-    if (!svg) return;
-
-    const groups = Array.from(svg.querySelectorAll('g[id]'));
-    const segmentIds = groups.map((g) => g.id);
-    console.log('🔍 SVG group IDs:', segmentIds);
-
-    const wired = [];
-    let wiredCount = 0;
-
-    vesselList.forEach(({ id: segId }) => {
-      const group = svg.getElementById(segId);
-      if (!group) return;
-      wiredCount++;
-
+    const groups = Array.from(
+      svgEl.querySelectorAll('g[id$="_Afbeelding"]')
+    );
+    console.log(`\u{1F50D} SVG groups found: ${groups.length}`, groups);
+    groups.forEach((group) => {
+      console.group(`Group ID: ${group.id}`);
       const shapes = Array.from(
         group.querySelectorAll('path, polyline, polygon')
       );
+      console.log(`  \u2014 ${shapes.length} shapes in this group`);
+      shapes.forEach((shape) => {
+        console.log(`    \u2022 ${shape.tagName}#${shape.id}`, shape);
+      });
+      console.groupEnd();
+    });
 
-      shapes.forEach((shape, index) => {
+    segmentsRef.current = [];
+
+    groups.forEach((group) => {
+      const shapes = Array.from(
+        group.querySelectorAll('path, polyline, polygon')
+      );
+      shapes.forEach((shape) => {
         shape.classList.add('vessel-path');
-        const subId = shape.getAttribute('id') || `${segId}-${index}`;
-        const subName =
-          shape.getAttribute('data-name') ||
-          group.getAttribute('data-name') ||
-          segId;
-
-        shape.style.cursor = 'pointer';
-
-        const enter = (e) => {
-          const target = e.currentTarget;
-          const rect = target.getBoundingClientRect();
-          setTooltip({
-            x: rect.left + rect.width / 2 + window.scrollX,
-            y: rect.top + window.scrollY - 8,
-          });
-          setHoverSegment({ id: subId, name: subName });
-          target.classList.add('hovered');
-        };
-        const leave = (e) => {
-          setHoverSegment(null);
-          setTooltip(null);
-          e.currentTarget.classList.remove('hovered');
-        };
+        const enter = () => setHoverSegment(group.id);
+        const leave = () => setHoverSegment(null);
         const click = () => {
-          setSelectedSegments((prev) =>
-            prev.includes(subId)
-              ? prev.filter((x) => x !== subId)
-              : [...prev, subId]
-          );
+          setSelectedSegments((prev) => {
+            const exists = prev.includes(group.id);
+            return exists
+              ? prev.filter((id) => id !== group.id)
+              : [...prev, group.id];
+          });
         };
-
         shape.addEventListener('mouseenter', enter);
         shape.addEventListener('mouseleave', leave);
         shape.addEventListener('click', click);
-
         shape.__handlers = { enter, leave, click };
-
-        wired.push({ id: subId, name: subName, element: shape });
       });
+      segmentsRef.current.push({ id: group.id, shapes });
     });
 
-    segmentsRef.current = wired;
-    console.log(`🔍 Found ${wiredCount}/${vesselList.length} segments`);
-
     return () => {
-      wired.forEach(({ element }) => {
-        const h = element.__handlers;
-        if (!h) return;
-        element.removeEventListener('mouseenter', h.enter);
-        element.removeEventListener('mouseleave', h.leave);
-        element.removeEventListener('click', h.click);
+      segmentsRef.current.forEach(({ shapes }) => {
+        shapes.forEach((shape) => {
+          const h = shape.__handlers;
+          if (!h) return;
+          shape.removeEventListener('mouseenter', h.enter);
+          shape.removeEventListener('mouseleave', h.leave);
+          shape.removeEventListener('click', h.click);
+        });
       });
+      segmentsRef.current = [];
     };
   }, []);
 
   useEffect(() => {
-    segmentsRef.current.forEach(({ id, element }) => {
-      element.classList.toggle('selected', selectedSegments.includes(id));
+    segmentsRef.current.forEach(({ id, shapes }) => {
+      shapes.forEach((shape) => {
+        shape.classList.toggle('selected', selectedSegments.includes(id));
+      });
     });
   }, [selectedSegments]);
 
-  const hoveredLabel = hoverSegment ? hoverSegment.name : null;
-
   return (
-    <div className="vessel-map-wrapper" ref={wrapperRef}>
-      <div className="vessel-map">
-        <VesselSVG />
-      </div>
-      {hoverSegment && tooltip && (
-        <div className="tooltip vessel-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
-          {hoveredLabel}
-        </div>
-      )}
+    <div className="vessel-map-wrapper">
+      <VesselSVG ref={svgRef} />
       <div className="selected-segments">
-        <h3>Selected segments</h3>
-        {selectedSegments.length === 0 ? (
-          <p>No segments selected.</p>
+        <h4>Selected segments</h4>
+        {selectedSegments.length ? (
+          selectedSegments.map((id) => <div key={id}>{id}</div>)
         ) : (
-          <ul>
-            {selectedSegments.map((id) => {
-              const seg = segmentsRef.current.find((s) => s.id === id);
-              return <li key={id}>{seg ? seg.name : id}</li>;
-            })}
-          </ul>
+          <div>No segments selected.</div>
         )}
       </div>
     </div>
