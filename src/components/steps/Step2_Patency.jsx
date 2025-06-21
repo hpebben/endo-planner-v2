@@ -1,6 +1,6 @@
 // src/components/steps/Step2_Patency.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import VesselMap from '../VesselMap';
 import { useBlockProps } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
@@ -54,6 +54,14 @@ export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
   const [tooltip, setTooltip] = useState(null);
   const selectedSegments = Object.keys(data.patencySegments || {});
+
+  useEffect(() => {
+    if (tooltip) {
+      console.log('Render tooltip for', tooltip.name, tooltip);
+    } else {
+      console.log('Tooltip cleared');
+    }
+  }, [tooltip]);
 
   const toggleSegment = (id) => {
     setData((prev) => {

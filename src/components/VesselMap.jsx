@@ -13,7 +13,9 @@ export default function VesselMap({
 
   useEffect(() => {
     if (hoverSegment) {
-      console.log('hover', hoverSegment);
+      console.log('Hovering segment:', hoverSegment);
+    } else {
+      console.log('Hover cleared');
     }
   }, [hoverSegment]);
 
@@ -29,17 +31,18 @@ export default function VesselMap({
         .replace(/\u00A0?Afbeelding/, '')
         .replace(/_/g, ' ')
         .trim();
+
       const shapes = Array.from(
         group.querySelectorAll('path, polyline, polygon')
       );
 
       const enter = (e) => {
+        console.log('hover event for', id, name);
         setHoverSegment(id);
         if (setTooltip) {
           const rect = e.target.getBoundingClientRect();
           setTooltip({ name, x: e.clientX, y: rect.top + window.scrollY });
         }
-        console.log('hover', id, name);
       };
 
       const leave = () => {
@@ -48,27 +51,27 @@ export default function VesselMap({
       };
 
       const click = () => {
+        console.log('click event for', id, name);
         toggleSegment(id);
-        console.log('click', id, name);
       };
+
+      console.log('Attaching handlers to', id);
+      group.addEventListener('mouseover', enter);
+      group.addEventListener('mouseout', leave);
+      group.addEventListener('click', click);
 
       shapes.forEach((shape) => {
         shape.classList.add('vessel-path');
-        shape.addEventListener('mouseenter', enter);
-        shape.addEventListener('mouseleave', leave);
-        shape.addEventListener('click', click);
       });
 
-      return { id, name, shapes, handlers: { enter, leave, click } };
+      return { id, name, shapes, el: group, handlers: { enter, leave, click } };
     });
 
     return () => {
-      segmentsRef.current.forEach(({ shapes, handlers }) => {
-        shapes.forEach((shape) => {
-          shape.removeEventListener('mouseenter', handlers.enter);
-          shape.removeEventListener('mouseleave', handlers.leave);
-          shape.removeEventListener('click', handlers.click);
-        });
+      segmentsRef.current.forEach(({ el, handlers }) => {
+        el.removeEventListener('mouseover', handlers.enter);
+        el.removeEventListener('mouseout', handlers.leave);
+        el.removeEventListener('click', handlers.click);
       });
       segmentsRef.current = [];
     };
@@ -81,6 +84,11 @@ export default function VesselMap({
       shapes.forEach((shape) => {
         shape.classList.toggle('selected', isSelected);
         shape.classList.toggle('hovered', isHover);
+        console.log(
+          'Apply classes for',
+          id,
+          shape.getAttribute('class')
+        );
       });
     });
   }, [selectedSegments, hoverSegment]);
