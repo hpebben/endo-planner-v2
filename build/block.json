@@ -1,0 +1,10 @@
+{
+  "apiVersion": 2,
+  "name": "endoplanner/v2-wizard",
+  "title": "EndoPlanner Wizard",
+  "category": "widgets",
+  "icon": "smiley",
+  "editorScript": "file:./index.js",
+  "editorStyle":  "file:./index.css",
+  "style":        "file:./style-index.css"
+}
