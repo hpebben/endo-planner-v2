@@ -19,6 +19,7 @@
 .vessel-path {
   cursor: pointer;
   transition: stroke 0.2s;
+  fill: none; // ensure paths don't default to black fill
 }
 .vessel-path.hovered {
   stroke: #0073e6 !important;
@@ -315,4 +316,8 @@ svg path:hover {
     }
 
   }
+
+.pedal-section, .pedal-section * {
+    background: transparent !important;
+    fill: none !important;
 }
