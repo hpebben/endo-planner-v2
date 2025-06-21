@@ -9,5 +9,6 @@
 
 // Let WP auto-register everything based on block.json + build/ assets:
 add_action( 'init', function() {
+    // block.json now resides in the build directory
     register_block_type( __DIR__ . '/build' );
 } );
