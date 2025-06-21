@@ -3,14 +3,8 @@
   "name": "endoplanner/v2-wizard",
   "title": "EndoPlanner Wizard",
   "category": "widgets",
-  "icon": "admin-tools",
-  "description": "A multi-step wizard for clinical indication, patency mapping, case summary and more.",
-  "supports": {
-    "html": false
-  },
-  "textdomain": "endoplanner"
-  ,"editor_script": "endoplanner-block-js"
-  ,"script": "endoplanner-block-js"
-  ,"editor_style": "endoplanner-editor-css"
-  ,"style": "endoplanner-front-css"
+  "icon": "smiley",
+  "editorScript": "file:./index.js",
+  "editorStyle":  "file:./index.css",
+  "style":        "file:./style-index.css"
 }
