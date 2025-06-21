@@ -24,7 +24,7 @@
 .vessel-path {
   cursor: pointer;
   transition: stroke 0.2s;
-  fill: #555;
+  fill: #000;
   stroke: none;
 }
 
@@ -216,11 +216,11 @@
 svg .vessel-path {
     cursor: pointer;
     transition: fill 0.2s, stroke 0.2s;
-    fill: #555;
+    fill: #000;
     stroke: none;
 }
 svg .vessel-path:hover {
-    stroke: #0073aa;
+    stroke: #0073e6;
     stroke-width: 3;
 }
 
