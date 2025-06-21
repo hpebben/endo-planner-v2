@@ -38,6 +38,30 @@
   stroke: red;
   stroke-width: 3;
 }
+
+.vessel-segment {
+  cursor: pointer;
+  transition: stroke 0.2s;
+  fill: #000;
+  stroke: none;
+}
+
+.vessel-segment:hover {
+  stroke: #0073e6;
+  stroke-width: 3;
+}
+
+.vessel-segment.selected {
+  stroke: red;
+  stroke-width: 3;
+}
+
+.vessel-segment.selected {
+  stroke: red;
+  stroke-width: 3;
+}
+
+}
 .selected-segments {
   margin-left: 1rem;
   min-width: 200px;
