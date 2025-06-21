@@ -19,16 +19,19 @@
 .vessel-path {
   cursor: pointer;
   transition: stroke 0.2s;
-  fill: none; // ensure paths don't default to black fill
+  fill: black;
+  stroke: none;
 }
-.vessel-path.hovered {
-  stroke: #0073e6 !important;
-  filter: drop-shadow(0 0 2px #0073e6);
+
+.vessel-path.hovered,
+.vessel-path:hover {
+  stroke: #0073e6;
+  stroke-width: 3;
 }
+
 .vessel-path.selected {
-  stroke: red !important;
-  stroke-width: 2 !important;
-  filter: drop-shadow(0 0 2px red);
+  stroke: red;
+  stroke-width: 3;
 }
 .selected-segments {
   margin-left: 1rem;
@@ -205,13 +208,13 @@
     flex: 1;
 }
 
-svg path {
+svg .vessel-path {
     cursor: pointer;
     transition: fill 0.2s, stroke 0.2s;
 }
-svg path:hover {
+svg .vessel-path:hover {
     stroke: #0073aa;
-    stroke-width: 2;
+    stroke-width: 3;
 }
 
 .section-title {
@@ -319,7 +322,3 @@ svg path:hover {
 
 }
 
-.pedal-section, .pedal-section * {
-    background: transparent !important;
-    fill: none !important;
-}
