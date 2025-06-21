@@ -40,7 +40,7 @@ export default function VesselMap({
               {seg.paths.map((p, i) => {
                 const classes = [
                   p.attrs.class,
-                  'vessel-path',
+                  'vessel-segment',
                   isSelected ? 'selected' : '',
                   isHover ? 'hovered' : '',
                 ]
