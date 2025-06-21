@@ -31,7 +31,7 @@ export default function VesselMap({
 
   return (
     <div className="vessel-map-wrapper">
-      <svg {...vesselData.root}>
+      <svg {...vesselData.root} className="vessel-svg">
         {vesselData.segments.map((seg) => {
           const isSelected = selectedSegments.includes(seg.id);
           const isHover = hoverSegment === seg.id;
