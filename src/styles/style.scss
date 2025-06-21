@@ -13,13 +13,18 @@
   max-width: 600px;
   width: 100%;
 }
-.vessel-path:hover {
-  stroke: blue !important;
+.vessel-path {
   cursor: pointer;
+  transition: stroke 0.2s;
+}
+.vessel-path.hovered {
+  stroke: #0073e6 !important;
+  filter: drop-shadow(0 0 2px #0073e6);
 }
 .vessel-path.selected {
   stroke: red !important;
   stroke-width: 2 !important;
+  filter: drop-shadow(0 0 2px red);
 }
 .selected-segments {
   margin-left: 1rem;
@@ -39,17 +44,6 @@
 .vessel-map svg {
   width: 100%;
   max-width: 600px;
-}
-.vessel-path:hover {
-  stroke: blue;
-  cursor: pointer;
-}
-.vessel-path.selected {
-  stroke: red;
-  stroke-width: 2;
-}
-.selected-segments {
-  margin-left: 1rem;
 }
 
 
