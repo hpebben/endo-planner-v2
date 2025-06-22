@@ -74,7 +74,7 @@ export default function Step2_Patency({ data, setData }) {
         <div className="summary-box selected-segments">
           <h4>{__('Selected segments', 'endoplanner')}</h4>
           {selectedSegments.length ? (
-            <ul className="vessel-summary">
+            <ul className="vessel-summary arrow-list">
               {selectedSegments.map((id) => {
                 const seg = vesselSegments.find((s) => s.id === id);
                 const name = seg ? seg.name : id;

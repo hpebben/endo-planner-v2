@@ -23,24 +23,26 @@ export default function VesselMap({
 }) {
   const [hoverSegment, setHoverSegment] = useState(null);
 
-  const handleEnter = (id, name) => (e) => {
-    console.log('hover event for', id, name);
+  const handleEnter = (id, name) => () => {
     setHoverSegment(id);
-    if (setTooltip) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      setTooltip({ name, x: e.clientX, y: rect.top + window.scrollY });
-    }
   };
 
   const handleLeave = (id) => () => {
-    console.log('leave event for', id);
     setHoverSegment((cur) => (cur === id ? null : cur));
-    if (setTooltip) setTooltip(null);
   };
 
-  const handleClick = (id, name) => () => {
-    console.log('click event for', id, name);
+  const handleClick = (id, name) => (e) => {
     toggleSegment(id);
+    if (setTooltip) {
+      const elRect = e.currentTarget.getBoundingClientRect();
+      const wrapper = e.currentTarget.closest('.vessel-map-wrapper');
+      const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : { left: 0, top: 0 };
+      setTooltip({
+        name,
+        x: elRect.left - wrapperRect.left + elRect.width / 2,
+        y: elRect.top - wrapperRect.top,
+      });
+    }
   };
 
   if (!Array.isArray(vesselSegments)) {

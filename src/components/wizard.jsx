@@ -52,19 +52,28 @@ export default function Wizard() {
       <h2>{ steps[current].title }</h2>
       <StepComponent data={data} setData={setData} />
       <div className="wizard-nav">
-        { current > 0 && <Button onClick={prev}>{ __( 'Back', 'endoplanner' ) }</Button> }
-        { current < steps.length - 1
-            ? (
-                <Button
-                  isSecondary={ false }
-                  className="stage-button next-button"
-                  onClick={ next }
-                >
-                  { __( 'Next', 'endoplanner' ) }
-                </Button>
-              )
-            : <Button isPrimary onClick={() => {/* handle final submit */}}>{ __( 'Finish', 'endoplanner' ) }</Button>
-        }
+        { current > 0 && (
+          <button type="button" className="stage-btn wizard-back" onClick={prev}>
+            { __( 'Back', 'endoplanner' ) }
+          </button>
+        ) }
+        { current < steps.length - 1 ? (
+          <button
+            type="button"
+            className="stage-btn wizard-next"
+            onClick={ next }
+          >
+            { __( 'Next', 'endoplanner' ) }
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="stage-btn wizard-finish"
+            onClick={() => {/* handle final submit */}}
+          >
+            { __( 'Finish', 'endoplanner' ) }
+          </button>
+        ) }
       </div>
     </div>
   );

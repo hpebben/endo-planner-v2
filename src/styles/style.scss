@@ -64,6 +64,31 @@
 .selected-segments {
   margin-left: 1rem;
   min-width: 200px;
+  border: 1px solid #000;
+  border-radius: 6px;
+  padding: 0.5rem;
+  text-align: left;
+}
+.selected-segments ul,
+.arrow-list {
+  list-style: none;
+  margin: 0;
+  padding-left: 1rem;
+}
+.selected-segments li,
+.arrow-list li {
+  position: relative;
+  margin-bottom: 0.25rem;
+  padding-left: 0.5rem;
+}
+.selected-segments li::before,
+.arrow-list li::before {
+  content: '\27A4';
+  color: #000;
+  position: absolute;
+  left: -0.5rem;
+  font-size: 0.7em;
+  top: 0.2em;
 }
 
 /* Vessel map base layout */
@@ -91,12 +116,15 @@
 }
 .vessel-tooltip {
   position: absolute;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: #000;
+  color: #fff;
+  border: none;
   padding: .25em .5em;
   border-radius: 3px;
   pointer-events: none;
   transform: translate(-50%, -100%);
+  white-space: nowrap;
+  font-size: 0.75rem;
 }
 
 
@@ -109,6 +137,9 @@
 .endo-wizard .wizard-nav {
     margin-top: 1rem;
     text-align: center;
+}
+.endo-wizard .wizard-nav .stage-btn {
+  margin: 0.5rem;
 }
 
 .icon-button {
