@@ -38,17 +38,20 @@ export default function VesselMap({
           return (
             <g key={seg.id} id={seg.id} data-name={seg.name}>
               {seg.paths.map((p, i) => {
+                const attrs = p.attrs ? { ...p.attrs } : { d: p.d };
+                const tag = p.name || 'path';
                 const classes = [
-                  p.attrs.class,
+                  attrs.class,
                   'vessel-segment',
                   isSelected ? 'selected' : '',
                   isHover ? 'hovered' : '',
                 ]
                   .filter(Boolean)
                   .join(' ');
-                return React.createElement(p.name, {
+                delete attrs.class;
+                return React.createElement(tag, {
                   key: i,
-                  ...p.attrs,
+                  ...attrs,
                   className: classes,
                   onMouseEnter: handleEnter(seg.id, seg.name),
                   onMouseLeave: handleLeave(seg.id),
