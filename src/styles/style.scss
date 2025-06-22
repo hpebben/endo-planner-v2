@@ -391,3 +391,27 @@ svg .vessel-path:hover {
 
 }
 
+
+/* Parameter popup styling */
+.param-box {
+  border: 1px solid #ccc;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 6px;
+  min-width: 220px;
+}
+.param-box h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+.param-box .length-options,
+.param-box .calcium-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.param-box .save-btn {
+  margin-top: 1rem;
+  width: 100%;
+}
