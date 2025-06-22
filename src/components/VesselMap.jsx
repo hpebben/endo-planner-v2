@@ -23,26 +23,32 @@ export default function VesselMap({
 }) {
   const [hoverSegment, setHoverSegment] = useState(null);
 
-  const handleEnter = (id, name) => () => {
+  const handleEnter = (id, name) => (e) => {
     setHoverSegment(id);
+    if (setTooltip) {
+      const elRect = e.currentTarget.getBoundingClientRect();
+      const wrapper = e.currentTarget.closest('.vessel-map-wrapper');
+      const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : { left: 0, top: 0, width: 0 };
+      const center = elRect.left + elRect.width / 2;
+      const wrapperCenter = wrapperRect.left + wrapperRect.width / 2;
+      const side = center < wrapperCenter ? 'left' : 'right';
+      const x = side === 'left'
+        ? elRect.left - wrapperRect.left
+        : elRect.right - wrapperRect.left;
+      const y = elRect.top - wrapperRect.top + elRect.height / 2;
+      setTooltip({ name, x, y, side });
+    }
   };
 
   const handleLeave = (id) => () => {
     setHoverSegment((cur) => (cur === id ? null : cur));
+    if (setTooltip) {
+      setTooltip(null);
+    }
   };
 
-  const handleClick = (id, name) => (e) => {
+  const handleClick = (id) => () => {
     toggleSegment(id);
-    if (setTooltip) {
-      const elRect = e.currentTarget.getBoundingClientRect();
-      const wrapper = e.currentTarget.closest('.vessel-map-wrapper');
-      const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : { left: 0, top: 0 };
-      setTooltip({
-        name,
-        x: elRect.left - wrapperRect.left + elRect.width / 2,
-        y: elRect.top - wrapperRect.top,
-      });
-    }
   };
 
   if (!Array.isArray(vesselSegments)) {
@@ -84,7 +90,7 @@ export default function VesselMap({
                   className: classes,
                   onMouseEnter: handleEnter(seg.id, seg.name),
                   onMouseLeave: handleLeave(seg.id),
-                  onClick: handleClick(seg.id, seg.name),
+                  onClick: handleClick(seg.id),
                 });
               })}
             </g>

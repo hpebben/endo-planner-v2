@@ -64,7 +64,7 @@ export default function Step2_Patency({ data, setData }) {
           />
           {tooltip && (
             <div
-              className="vessel-tooltip"
+              className={`vessel-tooltip ${tooltip.side}`}
               style={{ left: tooltip.x, top: tooltip.y }}
             >
               {tooltip.name}

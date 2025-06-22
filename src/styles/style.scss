@@ -122,9 +122,17 @@
   padding: .25em .5em;
   border-radius: 3px;
   pointer-events: none;
-  transform: translate(-50%, -100%);
   white-space: nowrap;
   font-size: 0.75rem;
+  transition: opacity 0.2s;
+}
+
+.vessel-tooltip.right {
+  transform: translate(8px, -50%);
+}
+
+.vessel-tooltip.left {
+  transform: translate(calc(-100% - 8px), -50%);
 }
 
 
