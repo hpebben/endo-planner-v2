@@ -57,11 +57,16 @@ export default function VesselMap({
         {vesselSegments.map((seg) => {
           const isSelected = selectedSegments.includes(seg.id);
           const isHover = hoverSegment === seg.id;
+          const shapes = seg.paths || seg.polygons || [];
           return (
             <g key={seg.id} id={seg.id} data-name={seg.name}>
-              {seg.paths.map((p, i) => {
-                const attrs = p.attrs ? { ...p.attrs } : { d: p.d };
-                const tag = p.name || 'path';
+              {shapes.map((p, i) => {
+                const attrs = p.attrs
+                  ? { ...p.attrs }
+                  : p.d
+                  ? { d: p.d }
+                  : { points: p.points };
+                const tag = p.name || (p.points ? 'polygon' : 'path');
                 const classes = [
                   attrs.class,
                   'vessel-segment',
