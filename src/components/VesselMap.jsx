@@ -1,6 +1,20 @@
 import React, { useState } from 'react';
-import vesselData from '../assets/vessel-map.json';
+import rawVesselData from '../assets/vessel-map.json';
 import '../styles/style.scss';
+
+// Determine the actual segments array regardless of JSON shape.
+const parseVesselData = (data) => {
+  if (Array.isArray(data?.segments)) {
+    return { root: data.root || {}, segments: data.segments };
+  }
+  if (Array.isArray(data)) {
+    return { root: {}, segments: data };
+  }
+  console.error('Vessel map JSON does not contain a segments array');
+  return { root: {}, segments: null };
+};
+
+const { root: vesselRoot, segments: vesselSegments } = parseVesselData(rawVesselData);
 
 export default function VesselMap({
   selectedSegments = [],
@@ -29,10 +43,18 @@ export default function VesselMap({
     toggleSegment(id);
   };
 
+  if (!Array.isArray(vesselSegments)) {
+    return (
+      <div className="vessel-map-wrapper">
+        <p className="vessel-map-error">Unable to load vessel segments.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="vessel-map-wrapper">
-      <svg {...vesselData.root} className="vessel-svg">
-        {vesselData.segments.map((seg) => {
+      <svg {...vesselRoot} className="vessel-svg">
+        {vesselSegments.map((seg) => {
           const isSelected = selectedSegments.includes(seg.id);
           const isHover = hoverSegment === seg.id;
           return (
