@@ -1,30 +1,25 @@
-// src/components/steps/Step2_Patency.jsx
-
 import React, { useState, useEffect } from 'react';
 import VesselMap from '../VesselMap';
+import ParameterPopup from '../UI/ParameterPopup';
 import { useBlockProps } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
 import rawVesselData from '../../assets/vessel-map.json';
 
-// Parse vessel-map JSON in the same way as the map component
+// Parse vessel-map JSON
 const parseVesselData = (data) => {
-  if (Array.isArray(data?.segments)) {
-    return data.segments;
-  }
-  if (Array.isArray(data)) {
-    return data;
-  }
+  if (Array.isArray(data?.segments)) return data.segments;
+  if (Array.isArray(data)) return data;
   return null;
 };
 
 const vesselSegments = parseVesselData(rawVesselData) || [];
-
-
 export { vesselSegments };
 
 export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
   const [tooltip, setTooltip] = useState(null);
+  const [activeSegment, setActiveSegment] = useState(null);
+
   const selectedSegments = Object.keys(data.patencySegments || {});
 
   useEffect(() => {
@@ -35,22 +30,17 @@ export default function Step2_Patency({ data, setData }) {
     }
   }, [tooltip]);
 
-  const toggleSegment = (id) => {
-    setData((prev) => {
-      const segs = prev.patencySegments || {};
-      if (segs[id]) {
-        const updated = { ...segs };
-        delete updated[id];
-        return { ...prev, patencySegments: updated };
-      }
-      return {
-        ...prev,
-        patencySegments: {
-          ...segs,
-          [id]: { severity: 0, length: 0, calcium: 'none' },
-        },
-      };
-    });
+  const openSegment = (id) => setActiveSegment(id);
+
+  const saveSegment = (vals) => {
+    setData((prev) => ({
+      ...prev,
+      patencySegments: {
+        ...(prev.patencySegments || {}),
+        [activeSegment]: vals,
+      },
+    }));
+    setActiveSegment(null);
   };
 
   return (
@@ -59,7 +49,7 @@ export default function Step2_Patency({ data, setData }) {
         <div className="svg-wrapper patency-svg vessel-map-wrapper">
           <VesselMap
             selectedSegments={selectedSegments}
-            toggleSegment={toggleSegment}
+            toggleSegment={openSegment}
             setTooltip={setTooltip}
           />
           {tooltip && (
@@ -71,6 +61,17 @@ export default function Step2_Patency({ data, setData }) {
             </div>
           )}
         </div>
+        {activeSegment && (
+          <ParameterPopup
+            segmentName={
+              vesselSegments.find((s) => s.id === activeSegment)?.name ||
+              activeSegment
+            }
+            initialValues={data.patencySegments?.[activeSegment] || {}}
+            onSave={saveSegment}
+            onCancel={() => setActiveSegment(null)}
+          />
+        )}
         <div className="summary-box selected-segments">
           <h4>{__('Selected segments', 'endoplanner')}</h4>
           {selectedSegments.length ? (
@@ -78,7 +79,19 @@ export default function Step2_Patency({ data, setData }) {
               {selectedSegments.map((id) => {
                 const seg = vesselSegments.find((s) => s.id === id);
                 const name = seg ? seg.name : id;
-                return <li key={id}>{name}</li>;
+                const vals = data.patencySegments[id] || {};
+                const summary = `${vals.severity}% | ${vals.length} | ${vals.calcium}`;
+                return (
+                  <li key={id}>
+                    <strong>{name}</strong>{' '}
+                    <span
+                      className="segment-summary"
+                      onClick={() => openSegment(id)}
+                    >
+                      ({summary})
+                    </span>
+                  </li>
+                );
               })}
             </ul>
           ) : (
