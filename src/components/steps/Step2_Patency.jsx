@@ -80,7 +80,7 @@ export default function Step2_Patency({ data, setData }) {
                 const seg = vesselSegments.find((s) => s.id === id);
                 const name = seg ? seg.name : id;
                 const vals = data.patencySegments[id] || {};
-                const summary = `${vals.severity}% | ${vals.length} | ${vals.calcium}`;
+                const summary = `${vals.type || ''} | ${vals.length} | ${vals.calcium}`;
                 return (
                   <li key={id}>
                     <strong>{name}</strong>{' '}

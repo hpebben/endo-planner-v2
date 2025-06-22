@@ -6,15 +6,17 @@ const lengthLabels = ['<3cm', '3–10cm', '10–15cm', '15–20cm', '>20cm'];
 const lengthValues = ['<3', '3-10', '10-15', '15-20', '>20'];
 
 export default function ParameterPopup({ segmentName, initialValues, onSave, onCancel }) {
-  const [severity, setSeverity] = useState(initialValues.severity || 0);
+  const [condition, setCondition] = useState(initialValues.type || '');
   const [length, setLength] = useState(initialValues.length || '');
   const [calcium, setCalcium] = useState(initialValues.calcium || '');
+  const [dirty, setDirty] = useState(false);
   const boxRef = useRef(null);
 
   useEffect(() => {
-    setSeverity(initialValues.severity || 0);
+    setCondition(initialValues.type || '');
     setLength(initialValues.length || '');
     setCalcium(initialValues.calcium || '');
+    setDirty(false);
   }, [initialValues]);
 
   useEffect(() => {
@@ -27,31 +29,54 @@ export default function ParameterPopup({ segmentName, initialValues, onSave, onC
     return () => document.removeEventListener('mousedown', handleClick);
   }, [onCancel]);
 
-  const handleSave = () => {
-    onSave({ severity, length, calcium });
-  };
+  useEffect(() => {
+    if (dirty && condition && length && calcium) {
+      onSave({ type: condition, length, calcium });
+    }
+  }, [condition, length, calcium, dirty, onSave]);
 
   return (
     <div className="param-box" ref={boxRef}>
       <h4>{segmentName}</h4>
-      <label className="param-label">
-        {__('% Stenosis/Occlusion', 'endoplanner')} {severity}%
-      </label>
-      <input
-        type="range"
-        min="0"
-        max="100"
-        value={severity}
-        onChange={(e) => setSeverity(Number(e.target.value))}
-      />
+      <div className="condition-options">
+        <label className="param-radio">
+          <input
+            type="radio"
+            name="condition"
+            value="stenosis"
+            checked={condition === 'stenosis'}
+            onChange={() => {
+              setCondition('stenosis');
+              setDirty(true);
+            }}
+          />
+          <span>{__('Stenosis', 'endoplanner')}</span>
+        </label>
+        <label className="param-radio">
+          <input
+            type="radio"
+            name="condition"
+            value="occlusion"
+            checked={condition === 'occlusion'}
+            onChange={() => {
+              setCondition('occlusion');
+              setDirty(true);
+            }}
+          />
+          <span>{__('Occlusion', 'endoplanner')}</span>
+        </label>
+      </div>
 
       <div className="length-options">
         {lengthValues.map((val, i) => (
           <button
             key={val}
             type="button"
-            className={`stage-btn ${length === val ? 'active' : ''}`}
-            onClick={() => setLength(val)}
+            className={`param-option ${length === val ? 'active' : ''}`}
+            onClick={() => {
+              setLength(val);
+              setDirty(true);
+            }}
           >
             {lengthLabels[i]}
           </button>
@@ -63,21 +88,16 @@ export default function ParameterPopup({ segmentName, initialValues, onSave, onC
           <button
             key={val}
             type="button"
-            className={`stage-btn ${calcium === val ? 'active' : ''}`}
-            onClick={() => setCalcium(val)}
+            className={`param-option ${calcium === val ? 'active' : ''}`}
+            onClick={() => {
+              setCalcium(val);
+              setDirty(true);
+            }}
           >
             {val === 'none' ? __('None', 'endoplanner') : val === 'moderate' ? __('Moderate', 'endoplanner') : __('Heavy', 'endoplanner')}
           </button>
         ))}
       </div>
-
-      <button
-        type="button"
-        className="stage-btn save-btn"
-        onClick={handleSave}
-      >
-        {__('Save', 'endoplanner')}
-      </button>
     </div>
   );
 }
@@ -85,7 +105,7 @@ export default function ParameterPopup({ segmentName, initialValues, onSave, onC
 ParameterPopup.propTypes = {
   segmentName: PropTypes.string.isRequired,
   initialValues: PropTypes.shape({
-    severity: PropTypes.number,
+    type: PropTypes.string,
     length: PropTypes.string,
     calcium: PropTypes.string,
   }),

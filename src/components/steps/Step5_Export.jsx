@@ -33,7 +33,7 @@ export default function Step5({ data }) {
     if (data.patencySegments && Object.keys(data.patencySegments).length) {
       const rows = Object.entries(data.patencySegments).map(([id, v]) => [
         id,
-        v.severity,
+        v.type,
         v.length,
         v.calcium,
       ]);
@@ -42,7 +42,7 @@ export default function Step5({ data }) {
         head: [
           [
             __('Segment', 'endoplanner'),
-            __('Stenosis %', 'endoplanner'),
+            __('Type', 'endoplanner'),
             __('Length (cm)', 'endoplanner'),
             __('Calcification', 'endoplanner'),
           ],
@@ -98,8 +98,8 @@ Step5.propTypes = {
     }),
     patencySegments: PropTypes.objectOf(
       PropTypes.shape({
-        severity: PropTypes.number,
-        length: PropTypes.number,
+        type: PropTypes.string,
+        length: PropTypes.string,
         calcium: PropTypes.string,
       })
     ),

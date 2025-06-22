@@ -5,8 +5,8 @@ import { useBlockProps } from '@wordpress/block-editor';
 
 const stageOptions = [
   { label: __( 'I Asymptomatic', 'endoplanner' ), value: 'i' },
-  { label: __( 'IIa < 100 m', 'endoplanner' ), value: 'iia' },
-  { label: __( 'IIb > 100 m', 'endoplanner' ), value: 'iib' },
+  { label: __( 'IIa: >100m', 'endoplanner' ), value: 'iia' },
+  { label: __( 'IIb: <100m', 'endoplanner' ), value: 'iib' },
   { label: __( 'III Rest Pain', 'endoplanner' ), value: 'iii' },
   { label: __( 'IV Ulcer/Gangrene', 'endoplanner' ), value: 'iv' },
 ];

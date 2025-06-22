@@ -25,7 +25,7 @@ export default function Step3({ data }) {
             <thead>
               <tr>
                 <th>{ __( 'Segment', 'endoplanner' ) }</th>
-                <th>{ __( 'Stenosis (%)', 'endoplanner' ) }</th>
+                <th>{ __( 'Type', 'endoplanner' ) }</th>
                 <th>{ __( 'Length (cm)', 'endoplanner' ) }</th>
                 <th>{ __( 'Calcification', 'endoplanner' ) }</th>
               </tr>
@@ -34,7 +34,7 @@ export default function Step3({ data }) {
               {Object.entries(patencySegments).map(([id, vals]) => (
                 <tr key={id}>
                   <td>{id}</td>
-                  <td>{vals.severity}</td>
+                  <td>{vals.type}</td>
                   <td>{vals.length}</td>
                   <td>{vals.calcium}</td>
                 </tr>
