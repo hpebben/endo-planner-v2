@@ -80,7 +80,15 @@ export default function Step2_Patency({ data, setData }) {
                 const seg = vesselSegments.find((s) => s.id === id);
                 const name = seg ? seg.name : id;
                 const vals = data.patencySegments[id] || {};
-                const summary = `${vals.type || ''} | ${vals.length} | ${vals.calcium}`;
+                const lengthMap = {
+                  '<3': '<3cm',
+                  '3-10': '3\u201310cm',
+                  '10-15': '10\u201315cm',
+                  '15-20': '15\u201320cm',
+                  '>20': '>20cm',
+                };
+                const lengthLabel = lengthMap[vals.length] || vals.length;
+                const summary = `${vals.type || ''} | ${lengthLabel} | ${vals.calcium}`;
                 return (
                   <li key={id}>
                     <strong>{name}</strong>{' '}
