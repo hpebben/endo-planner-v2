@@ -19,6 +19,8 @@ export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
   const [tooltip, setTooltip] = useState(null);
   const [activeSegment, setActiveSegment] = useState(null);
+  const [editingFromSummary, setEditingFromSummary] = useState(false);
+  const [showInstruction, setShowInstruction] = useState(true);
 
   const selectedSegments = Object.keys(data.patencySegments || {});
 
@@ -30,7 +32,11 @@ export default function Step2_Patency({ data, setData }) {
     }
   }, [tooltip]);
 
-  const openSegment = (id) => setActiveSegment(id);
+  const openSegment = (id, fromSummary = false) => {
+    setActiveSegment(id);
+    setEditingFromSummary(fromSummary);
+    setShowInstruction(false);
+  };
 
   const saveSegment = (vals) => {
     setData((prev) => ({
@@ -41,6 +47,7 @@ export default function Step2_Patency({ data, setData }) {
       },
     }));
     setActiveSegment(null);
+    setEditingFromSummary(false);
   };
 
   return (
@@ -49,7 +56,7 @@ export default function Step2_Patency({ data, setData }) {
         <div className="svg-wrapper patency-svg vessel-map-wrapper">
           <VesselMap
             selectedSegments={selectedSegments}
-            toggleSegment={openSegment}
+            toggleSegment={(id) => openSegment(id, false)}
             setTooltip={setTooltip}
           />
           {tooltip && (
@@ -61,7 +68,17 @@ export default function Step2_Patency({ data, setData }) {
             </div>
           )}
         </div>
-        {activeSegment && (
+
+        {showInstruction && (
+          <div className="instruction-box">
+            {__(
+              'Select affected segments and specify patency, length and level of calcification.',
+              'endoplanner'
+            )}
+          </div>
+        )}
+
+        {!editingFromSummary && activeSegment && (
           <ParameterPopup
             segmentName={
               vesselSegments.find((s) => s.id === activeSegment)?.name ||
@@ -69,12 +86,16 @@ export default function Step2_Patency({ data, setData }) {
             }
             initialValues={data.patencySegments?.[activeSegment] || {}}
             onSave={saveSegment}
-            onCancel={() => setActiveSegment(null)}
+            onCancel={() => {
+              setActiveSegment(null);
+              setEditingFromSummary(false);
+            }}
           />
         )}
-        <div className="summary-box selected-segments">
-          <h4>{__('Selected segments', 'endoplanner')}</h4>
-          {selectedSegments.length ? (
+
+        {selectedSegments.length > 0 && (
+          <div className="summary-box selected-segments">
+            <h4>{__('Selected segments', 'endoplanner')}</h4>
             <ul className="vessel-summary arrow-list">
               {selectedSegments.map((id) => {
                 const seg = vesselSegments.find((s) => s.id === id);
@@ -90,22 +111,35 @@ export default function Step2_Patency({ data, setData }) {
                 const lengthLabel = lengthMap[vals.length] || vals.length;
                 const summary = `${vals.type || ''} | ${lengthLabel} | ${vals.calcium}`;
                 return (
-                  <li key={id}>
-                    <strong>{name}</strong>{' '}
-                    <span
-                      className="segment-summary"
-                      onClick={() => openSegment(id)}
-                    >
-                      ({summary})
-                    </span>
-                  </li>
+                  <React.Fragment key={id}>
+                    <li>
+                      <strong>{name}</strong>{' '}
+                      <span
+                        className="segment-summary"
+                        onClick={() => openSegment(id, true)}
+                      >
+                        ({summary})
+                      </span>
+                    </li>
+                    {editingFromSummary && activeSegment === id && (
+                      <li className="edit-popup">
+                        <ParameterPopup
+                          segmentName={name}
+                          initialValues={vals}
+                          onSave={saveSegment}
+                          onCancel={() => {
+                            setActiveSegment(null);
+                            setEditingFromSummary(false);
+                          }}
+                        />
+                      </li>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </ul>
-          ) : (
-            __('No segments selected.', 'endoplanner')
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
