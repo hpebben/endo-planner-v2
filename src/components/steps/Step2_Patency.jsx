@@ -19,7 +19,6 @@ export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
   const [tooltip, setTooltip] = useState(null);
   const [activeSegment, setActiveSegment] = useState(null);
-  const [editingFromSummary, setEditingFromSummary] = useState(false);
   const [showInstruction, setShowInstruction] = useState(true);
 
   const selectedSegments = Object.keys(data.patencySegments || {});
@@ -32,9 +31,8 @@ export default function Step2_Patency({ data, setData }) {
     }
   }, [tooltip]);
 
-  const openSegment = (id, fromSummary = false) => {
+  const openSegment = (id) => {
     setActiveSegment(id);
-    setEditingFromSummary(fromSummary);
     setShowInstruction(false);
   };
 
@@ -47,99 +45,86 @@ export default function Step2_Patency({ data, setData }) {
       },
     }));
     setActiveSegment(null);
-    setEditingFromSummary(false);
   };
 
   return (
     <div {...blockProps} className="step2-patency">
       <div className="patency-container">
-        <div className="svg-wrapper patency-svg vessel-map-wrapper">
-          <VesselMap
-            selectedSegments={selectedSegments}
-            toggleSegment={(id) => openSegment(id, false)}
-            setTooltip={setTooltip}
-          />
-          {tooltip && (
-            <div
-              className={`vessel-tooltip ${tooltip.side}`}
-              style={{ left: tooltip.x, top: tooltip.y }}
-            >
-              {tooltip.name}
-            </div>
-          )}
-        </div>
-
-        {showInstruction && (
-          <div className="instruction-box">
-            {__(
-              'Select affected segments and specify patency, length and level of calcification.',
-              'endoplanner'
+        <div className="vessel-column">
+          <div className="svg-wrapper patency-svg vessel-map-wrapper">
+            <VesselMap
+              selectedSegments={selectedSegments}
+              toggleSegment={(id) => openSegment(id)}
+              setTooltip={setTooltip}
+            />
+            {tooltip && (
+              <div
+                className={`vessel-tooltip ${tooltip.side}`}
+                style={{ left: tooltip.x, top: tooltip.y }}
+              >
+                {tooltip.name}
+              </div>
             )}
           </div>
-        )}
+        </div>
 
-        {!editingFromSummary && activeSegment && (
-          <ParameterPopup
-            segmentName={
-              vesselSegments.find((s) => s.id === activeSegment)?.name ||
-              activeSegment
-            }
-            initialValues={data.patencySegments?.[activeSegment] || {}}
-            onSave={saveSegment}
-            onCancel={() => {
-              setActiveSegment(null);
-              setEditingFromSummary(false);
-            }}
-          />
-        )}
-
-        {selectedSegments.length > 0 && (
-          <div className="summary-box selected-segments">
-            <h4>{__('Selected segments', 'endoplanner')}</h4>
-            <ul className="vessel-summary arrow-list">
-              {selectedSegments.map((id) => {
-                const seg = vesselSegments.find((s) => s.id === id);
-                const name = seg ? seg.name : id;
-                const vals = data.patencySegments[id] || {};
-                const lengthMap = {
-                  '<3': '<3cm',
-                  '3-10': '3\u201310cm',
-                  '10-15': '10\u201315cm',
-                  '15-20': '15\u201320cm',
-                  '>20': '>20cm',
-                };
-                const lengthLabel = lengthMap[vals.length] || vals.length;
-                const summary = `${vals.type || ''} | ${lengthLabel} | ${vals.calcium}`;
-                return (
-                  <React.Fragment key={id}>
-                    <li>
+        <div className="controls-column">
+          {selectedSegments.length > 0 && (
+            <div className="summary-box selected-segments">
+              <h4>{__('Selected segments', 'endoplanner')}</h4>
+              <ul className="vessel-summary arrow-list">
+                {selectedSegments.map((id) => {
+                  const seg = vesselSegments.find((s) => s.id === id);
+                  const name = seg ? seg.name : id;
+                  const vals = data.patencySegments[id] || {};
+                  const lengthMap = {
+                    '<3': '<3cm',
+                    '3-10': '3\u201310cm',
+                    '10-15': '10\u201315cm',
+                    '15-20': '15\u201320cm',
+                    '>20': '>20cm',
+                  };
+                  const lengthLabel = lengthMap[vals.length] || vals.length;
+                  const summary = `${vals.type || ''} | ${lengthLabel} | ${vals.calcium}`;
+                  return (
+                    <li key={id}>
                       <strong>{name}</strong>{' '}
                       <span
                         className="segment-summary"
-                        onClick={() => openSegment(id, true)}
+                        onClick={() => openSegment(id)}
                       >
                         ({summary})
                       </span>
                     </li>
-                    {editingFromSummary && activeSegment === id && (
-                      <li className="edit-popup">
-                        <ParameterPopup
-                          segmentName={name}
-                          initialValues={vals}
-                          onSave={saveSegment}
-                          onCancel={() => {
-                            setActiveSegment(null);
-                            setEditingFromSummary(false);
-                          }}
-                        />
-                      </li>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </ul>
-          </div>
-        )}
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {activeSegment && (
+            <ParameterPopup
+              segmentName={
+                vesselSegments.find((s) => s.id === activeSegment)?.name ||
+                activeSegment
+              }
+              initialValues={data.patencySegments?.[activeSegment] || {}}
+              onSave={saveSegment}
+              onCancel={() => {
+                setActiveSegment(null);
+              }}
+            />
+          )}
+
+          {showInstruction && (
+            <div className="instruction-box">
+              {__(
+                'Select affected segments and specify patency, length and level of calcification.',
+                'endoplanner'
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
