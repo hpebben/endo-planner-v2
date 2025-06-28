@@ -81,6 +81,14 @@
   margin-bottom: 0.25rem;
   padding-left: 0.5rem;
 }
+.segment-summary {
+  cursor: pointer;
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+.segment-summary:hover {
+  text-decoration: underline;
+  color: #0073e6;
+}
 .selected-segments li::before,
 .arrow-list li::before {
   content: '\27A4';
@@ -280,10 +288,12 @@
 }
 
 .controls-column {
-    flex: 0 0 40%;
-    max-width: 40%;
+    flex: 0 0 45%;
+    max-width: 45%;
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
     gap: 1rem;
 }
 
@@ -291,6 +301,7 @@
 .patency-container .summary-box,
 .patency-container .param-box {
     width: 100%;
+    max-width: 420px;
 }
 
 .patency-svg {
@@ -466,9 +477,18 @@ svg .vessel-path:hover {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   cursor: pointer;
+  transition: background-color 0.2s;
+  outline: none;
 }
-.param-box .param-option.active {
+.param-box .param-option:hover {
+  background: #222;
+}
+.param-box .param-option.active,
+.param-box .param-option:active {
   background: #333;
+}
+.param-box .param-option:focus {
+  outline: none;
 }
 .param-box .param-radio {
   cursor: pointer;
@@ -483,9 +503,18 @@ svg .vessel-path:hover {
   border-radius: 12px;
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
-.param-box .param-radio input:checked + span {
+.param-box .param-radio span:hover {
+  background: #222;
+}
+.param-box .param-radio input:checked + span,
+.param-box .param-radio span:active {
   background: #333;
+}
+.param-box .param-radio span:focus {
+  outline: none;
 }
 
 /* Instruction box shown on initial state */
