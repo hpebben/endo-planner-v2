@@ -270,6 +270,7 @@
     display: flex;
     align-items: flex-start;
     gap: 2rem;
+    flex-wrap: wrap;
 }
 .patency-svg {
     flex: 1;
@@ -414,6 +415,7 @@ svg .vessel-path:hover {
 .param-box .param-title {
   font-weight: bold;
   margin-bottom: 0.25rem;
+  text-align: center;
 }
 .param-box .condition-options,
 .param-box .length-options,
@@ -452,4 +454,21 @@ svg .vessel-path:hover {
 }
 .param-box .param-radio input:checked + span {
   background: #333;
+}
+
+/* Instruction box shown on initial state */
+.instruction-box {
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 240px;
+}
+
+/* Popup inserted when editing from summary list */
+.selected-segments .edit-popup {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 0.5rem;
 }
