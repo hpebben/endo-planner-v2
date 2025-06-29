@@ -16,6 +16,47 @@ const parseVesselData = (data) => {
 
 const { root: vesselRoot, segments: vesselSegments } = parseVesselData(rawVesselData);
 
+// Calculate tooltip placement relative to the hovered segment
+const getTooltipPlacement = (segRect, wrapperRect, tipSize = { width: 0, height: 0 }) => {
+  const margin = 8;
+  const containerCenter = wrapperRect.left + wrapperRect.width / 2;
+  let side = segRect.left + segRect.width / 2 < containerCenter ? 'left' : 'right';
+  let x = side === 'left'
+    ? segRect.left - wrapperRect.left - margin
+    : segRect.right - wrapperRect.left + margin;
+  let y = segRect.top - wrapperRect.top + segRect.height / 2;
+
+  // Horizontal overflow check
+  if (side === 'left' && (x - tipSize.width) < 0) {
+    // Not enough space on the left, flip
+    if (segRect.right - wrapperRect.left + margin + tipSize.width <= wrapperRect.width) {
+      side = 'right';
+      x = segRect.right - wrapperRect.left + margin;
+    } else {
+      // Clamp within container
+      x = tipSize.width;
+    }
+  } else if (side === 'right' && (x + tipSize.width) > wrapperRect.width) {
+    // Not enough space on the right, flip
+    if (segRect.left - wrapperRect.left - margin - tipSize.width >= 0) {
+      side = 'left';
+      x = segRect.left - wrapperRect.left - margin;
+    } else {
+      // Clamp within container
+      x = wrapperRect.width - tipSize.width;
+    }
+  }
+
+  // Vertical overflow check
+  if (y - tipSize.height / 2 < 0) {
+    y = tipSize.height / 2;
+  } else if (y + tipSize.height / 2 > wrapperRect.height) {
+    y = wrapperRect.height - tipSize.height / 2;
+  }
+
+  return { side, x, y };
+};
+
 export default function VesselMap({
   selectedSegments = [],
   toggleSegment = () => {},
@@ -26,17 +67,11 @@ export default function VesselMap({
   const handleEnter = (id, name) => (e) => {
     setHoverSegment(id);
     if (setTooltip) {
-      const elRect = e.currentTarget.getBoundingClientRect();
+      const segRect = e.currentTarget.getBoundingClientRect();
       const wrapper = e.currentTarget.closest('.vessel-map-wrapper');
-      const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : { left: 0, top: 0, width: 0 };
-      const center = elRect.left + elRect.width / 2;
-      const wrapperCenter = wrapperRect.left + wrapperRect.width / 2;
-      const side = center < wrapperCenter ? 'left' : 'right';
-      const x = side === 'left'
-        ? elRect.left - wrapperRect.left
-        : elRect.right - wrapperRect.left;
-      const y = elRect.top - wrapperRect.top + elRect.height / 2;
-      setTooltip({ name, x, y, side });
+      const wrapperRect = wrapper ? wrapper.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 };
+      const { side, x, y } = getTooltipPlacement(segRect, wrapperRect);
+      setTooltip({ name, x, y, side, segRect, wrapperRect });
     }
   };
 
