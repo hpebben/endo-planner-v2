@@ -49,8 +49,10 @@ export default function Wizard() {
   return (
     <div className="endo-wizard">
       <ProgressBar value={(current + 1) / steps.length} />
-      <h2>{ steps[current].title }</h2>
-      <StepComponent data={data} setData={setData} />
+      <div className="wizard-content">
+        <h2>{ steps[current].title }</h2>
+        <StepComponent data={data} setData={setData} />
+      </div>
       <div className="wizard-nav">
         { current > 0 && (
           <button type="button" className="stage-btn wizard-back" onClick={prev}>
