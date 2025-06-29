@@ -1,3 +1,10 @@
+:root {
+  --param-btn-bg: #d6d6d6;
+  --param-btn-hover-bg: #ececec;
+  --param-btn-active-bg: #bbbbbb;
+  --param-btn-text: #000;
+}
+
 .endo-wizard .step1-grid {
     display: flex;
     justify-content: center;
@@ -158,6 +165,16 @@
     margin: 0 auto;
     max-width: 800px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.wizard-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .endo-wizard .wizard-nav {
@@ -306,11 +323,18 @@
 }
 
 .patency-container .instruction-box,
-.patency-container .summary-box,
 .patency-container .param-box {
   width: 100%;
   max-width: 520px;
   min-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.patency-container .summary-box {
+  width: 90%;
+  max-width: 700px;
+  min-width: 480px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -481,22 +505,23 @@ svg .vessel-path:hover {
   margin-top: 0.25rem;
 }
 .param-box .param-option {
-  background: #000;
-  color: #fff;
+  background: var(--param-btn-bg);
+  color: var(--param-btn-text);
+  font-weight: bold;
   border: none;
   border-radius: 12px;
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s;
+  transition: background 0.18s;
   outline: none;
 }
 .param-box .param-option:hover {
-  background: #232323;
+  background: var(--param-btn-hover-bg);
 }
 .param-box .param-option.active,
 .param-box .param-option:active {
-  background: #444444;
+  background: var(--param-btn-active-bg);
 }
 .param-box .param-option:focus {
   outline: none;
@@ -509,20 +534,21 @@ svg .vessel-path:hover {
 }
 .param-box .param-radio span {
   display: inline-block;
-  background: #000;
-  color: #fff;
+  background: var(--param-btn-bg);
+  color: var(--param-btn-text);
+  font-weight: bold;
   border-radius: 12px;
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s;
+  transition: background 0.18s;
 }
 .param-box .param-radio span:hover {
-  background: #232323;
+  background: var(--param-btn-hover-bg);
 }
 .param-box .param-radio input:checked + span,
 .param-box .param-radio span:active {
-  background: #444444;
+  background: var(--param-btn-active-bg);
 }
 .param-box .param-radio span:focus {
   outline: none;
