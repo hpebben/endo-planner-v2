@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import VesselMap from '../VesselMap';
 import ParameterPopup from '../UI/ParameterPopup';
 import { useBlockProps } from '@wordpress/block-editor';
@@ -18,18 +18,73 @@ export { vesselSegments };
 export default function Step2_Patency({ data, setData }) {
   const blockProps = useBlockProps();
   const [tooltip, setTooltip] = useState(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const tooltipRef = useRef(null);
+
+  const handleTooltip = (tip) => {
+    if (tip) {
+      setTooltip(tip);
+      setTooltipVisible(true);
+    } else {
+      setTooltipVisible(false);
+    }
+  };
   const [activeSegment, setActiveSegment] = useState(null);
   const [showInstruction, setShowInstruction] = useState(true);
 
   const selectedSegments = Object.keys(data.patencySegments || {});
 
+  // Adjust tooltip position once it is rendered and handle fade out
   useEffect(() => {
-    if (tooltip) {
-      console.log('Render tooltip for', tooltip.name, tooltip);
-    } else {
-      console.log('Tooltip cleared');
+    if (!tooltip) return;
+    if (!tooltipVisible) {
+      const timeout = setTimeout(() => setTooltip(null), 200);
+      return () => clearTimeout(timeout);
     }
-  }, [tooltip]);
+
+    if (tooltipRef.current) {
+      const tipRect = tooltipRef.current.getBoundingClientRect();
+      const { side, x, y } = tooltip;
+      const { segRect, wrapperRect } = tooltip;
+      const placement = {
+        side,
+        x,
+        y,
+      };
+
+      // Recalculate with actual tooltip dimensions
+      const margin = 8;
+      if (side === 'left' && x - tipRect.width < 0) {
+        if (segRect.right - wrapperRect.left + margin + tipRect.width <= wrapperRect.width) {
+          placement.side = 'right';
+          placement.x = segRect.right - wrapperRect.left + margin;
+        } else {
+          placement.x = tipRect.width;
+        }
+      } else if (side === 'right' && x + tipRect.width > wrapperRect.width) {
+        if (segRect.left - wrapperRect.left - margin - tipRect.width >= 0) {
+          placement.side = 'left';
+          placement.x = segRect.left - wrapperRect.left - margin;
+        } else {
+          placement.x = wrapperRect.width - tipRect.width;
+        }
+      }
+
+      if (placement.y - tipRect.height / 2 < 0) {
+        placement.y = tipRect.height / 2;
+      } else if (placement.y + tipRect.height / 2 > wrapperRect.height) {
+        placement.y = wrapperRect.height - tipRect.height / 2;
+      }
+
+      if (
+        placement.x !== tooltip.x ||
+        placement.y !== tooltip.y ||
+        placement.side !== tooltip.side
+      ) {
+        setTooltip((prev) => prev && { ...prev, ...placement });
+      }
+    }
+  }, [tooltip, tooltipVisible]);
 
   const openSegment = (id) => {
     setActiveSegment(id);
@@ -55,11 +110,12 @@ export default function Step2_Patency({ data, setData }) {
             <VesselMap
               selectedSegments={selectedSegments}
               toggleSegment={(id) => openSegment(id)}
-              setTooltip={setTooltip}
+              setTooltip={handleTooltip}
             />
             {tooltip && (
               <div
-                className={`vessel-tooltip ${tooltip.side}`}
+                ref={tooltipRef}
+                className={`vessel-tooltip ${tooltip.side} ${tooltipVisible ? 'visible' : ''}`}
                 style={{ left: tooltip.x, top: tooltip.y }}
               >
                 {tooltip.name}
