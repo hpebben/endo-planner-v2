@@ -40,7 +40,8 @@ export default function ParameterPopup({ segmentName, initialValues, onSave, onC
       <h4>{segmentName}</h4>
 
       <div className="param-section">
-        <div className="param-title">{__('Patency:', 'endoplanner')}</div>
+        {/* Updated label to remove trailing colon */}
+        <div className="param-title">{__('Patency', 'endoplanner')}</div>
         <div className="condition-options">
           <label className="param-radio">
             <input
@@ -72,7 +73,8 @@ export default function ParameterPopup({ segmentName, initialValues, onSave, onC
       </div>
 
       <div className="param-section">
-        <div className="param-title">{__('Length:', 'endoplanner')}</div>
+        {/* Updated label to remove trailing colon */}
+        <div className="param-title">{__('Length', 'endoplanner')}</div>
         <div className="length-options">
           {lengthValues.map((val, i) => (
             <button
@@ -91,7 +93,8 @@ export default function ParameterPopup({ segmentName, initialValues, onSave, onC
       </div>
 
       <div className="param-section">
-        <div className="param-title">{__('Calcium:', 'endoplanner')}</div>
+        {/* Updated label to remove trailing colon */}
+        <div className="param-title">{__('Calcium', 'endoplanner')}</div>
         <div className="calcium-options">
           {['none', 'moderate', 'heavy'].map((val) => (
             <button

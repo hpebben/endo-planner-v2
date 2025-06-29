@@ -1,8 +1,9 @@
 :root {
-  --param-btn-bg: #d6d6d6;
-  --param-btn-hover-bg: #ececec;
-  --param-btn-active-bg: #bbbbbb;
-  --param-btn-text: #000;
+  /* Button color variables for selector controls */
+  --param-btn-bg: #000; /* default background */
+  --param-btn-hover-bg: #232323; /* hover background */
+  --param-btn-active-bg: #e0e0e0; /* active background */
+  --param-btn-text: #fff; /* default text color */
 }
 
 .endo-wizard .step1-grid {
@@ -513,7 +514,8 @@ svg .vessel-path:hover {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   cursor: pointer;
-  transition: background 0.18s;
+  /* transition both background and color for smooth state changes */
+  transition: background 0.18s, color 0.18s;
   outline: none;
 }
 .param-box .param-option:hover {
@@ -522,6 +524,7 @@ svg .vessel-path:hover {
 .param-box .param-option.active,
 .param-box .param-option:active {
   background: var(--param-btn-active-bg);
+  color: #000; /* high contrast when selected */
 }
 .param-box .param-option:focus {
   outline: none;
@@ -541,7 +544,7 @@ svg .vessel-path:hover {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   cursor: pointer;
-  transition: background 0.18s;
+  transition: background 0.18s, color 0.18s;
 }
 .param-box .param-radio span:hover {
   background: var(--param-btn-hover-bg);
@@ -549,6 +552,7 @@ svg .vessel-path:hover {
 .param-box .param-radio input:checked + span,
 .param-box .param-radio span:active {
   background: var(--param-btn-active-bg);
+  color: #000; /* high contrast when selected */
 }
 .param-box .param-radio span:focus {
   outline: none;
