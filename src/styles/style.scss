@@ -575,46 +575,85 @@ svg .vessel-path:hover {
 
 /* Intervention planning sections */
 .intervention-section {
-  padding: 1rem 0;
+  padding: 1.5rem 0;
   border-top: 1px solid #e2e2e2;
+  text-align: center;
 }
 .intervention-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 .row-title {
   font-weight: 600;
   margin-right: 0.5rem;
   font-size: 0.95rem;
 }
+.section-heading {
+  color: #0d6efd;
+  text-transform: uppercase;
+  font-weight: 700;
+  position: relative;
+  padding: 0.5rem 0;
+}
+.section-heading::before,
+.section-heading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 2px;
+  background: #0d6efd;
+}
+.section-heading::before { left: 0; }
+.section-heading::after { right: 0; }
+.selector-row {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+.device-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
 
 .device-button {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
   background: #fff;
   border: 1px solid #d1d1d1;
-  border-radius: 8px;
-  padding: 0.4rem 0.75rem;
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  transition: box-shadow 0.2s, background 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 .device-button:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
 }
 .device-button img {
-  width: 24px;
-  height: 24px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
+  margin-bottom: 0.25rem;
+}
+.device-button span {
+  font-size: 0.75rem;
+  color: #0d6efd;
 }
 
 .circle-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -622,23 +661,19 @@ svg .vessel-path:hover {
   border: none;
   cursor: pointer;
   font-weight: bold;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  transition: background 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 .add-row-btn {
-  background: #007aff;
+  background: #0d6efd;
   color: #fff;
+  margin: 0.5rem auto;
 }
-.add-row-btn:hover {
-  background: #1a84ff;
+.circle-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
 }
-.remove-row-btn {
-  background: #e0e0e0;
-  color: #333;
-}
-.remove-row-btn:hover {
-  background: #cacaca;
-}
+.remove-row-btn { background: #0d6efd; color: #fff; }
 
 /* Frosted modal look */
 .components-modal__frame {
