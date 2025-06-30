@@ -592,20 +592,21 @@ svg .vessel-path:hover {
   font-size: 0.95rem;
 }
 .section-heading {
-  color: #0d6efd;
+  color: #113195;
   text-transform: uppercase;
   font-weight: 700;
+  font-size: 1.05rem;
   position: relative;
-  padding: 0.5rem 0;
+  padding-bottom: 0.5rem;
 }
 .section-heading::before,
 .section-heading::after {
   content: '';
   position: absolute;
-  top: 50%;
-  width: 40%;
-  height: 2px;
-  background: #0d6efd;
+  top: 100%;
+  width: 45%;
+  height: 3px;
+  background: #113195;
 }
 .section-heading::before { left: 0; }
 .section-heading::after { right: 0; }
@@ -627,33 +628,34 @@ svg .vessel-path:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 80px;
+  width: 96px;
+  height: 96px;
   background: #fff;
-  border: 1px solid #d1d1d1;
-  border-radius: 12px;
+  border: none;
+  border-radius: 16px;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
 }
 .device-button:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 16px rgba(17,49,149,0.3);
+  background: #f0f4ff;
 }
 .device-button img {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
   margin-bottom: 0.25rem;
 }
 .device-button span {
   font-size: 0.75rem;
-  color: #0d6efd;
+  color: #113195;
 }
 
 .circle-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -665,15 +667,15 @@ svg .vessel-path:hover {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .add-row-btn {
-  background: #0d6efd;
+  background: #113195;
   color: #fff;
   margin: 0.5rem auto;
 }
 .circle-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(17,49,149,0.3);
 }
-.remove-row-btn { background: #0d6efd; color: #fff; }
+.remove-row-btn { background: #113195; color: #fff; }
 
 /* Frosted modal look */
 .components-modal__frame {
@@ -681,4 +683,33 @@ svg .vessel-path:hover {
   background: rgba(255,255,255,0.75);
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Inline popup modal */
+.inline-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+.inline-modal {
+  position: absolute;
+  transform: translate(-50%, -100%) translateY(-10px);
+  background: rgba(255,255,255,0.95);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  padding: 1rem;
+  min-width: 200px;
+}
+.inline-modal input:focus,
+.inline-modal select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #113195;
+}
+.modal-header {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #113195;
 }
