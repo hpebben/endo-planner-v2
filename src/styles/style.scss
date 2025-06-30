@@ -71,8 +71,11 @@
 }
 
 .selected-segments {
-  margin-left: 0;
-  min-width: 0;
+  margin-left: auto; /* center within column */
+  margin-right: auto; /* center within column */
+  min-width: 600px; /* increased minimum width */
+  max-width: 900px; /* increased maximum width */
+  width: 100%; /* allow box to fill available space */
   border: 1px solid #000;
   border-radius: 6px;
   padding: 0.5rem;
@@ -350,8 +353,9 @@
   }
   .patency-container .instruction-box,
   .patency-container .summary-box,
-  .patency-container .param-box {
-    min-width: 0;
+  .patency-container .param-box,
+  .selected-segments {
+    min-width: 0; /* responsive override */
   }
 }
 
