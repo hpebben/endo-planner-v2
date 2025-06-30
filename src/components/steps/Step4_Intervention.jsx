@@ -20,11 +20,19 @@ const deviceImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/miscdevice.jpg';
 const closureImg = deviceImg;
 
-// Simple wrapper for WordPress Modal
+// Simple wrapper for WordPress Modal with debug logging
 const SimpleModal = ({ title, isOpen, onRequestClose, children }) => {
+  useEffect(() => {
+    if (isOpen) {
+      console.log(`Opening modal: ${title}`);
+    } else {
+      console.log(`Closing modal: ${title}`);
+    }
+  }, [isOpen, title]);
+
   if (!isOpen) return null;
   return (
-    <Modal title={title} onRequestClose={onRequestClose}>
+    <Modal title={title} onRequestClose={() => { console.log(`Request close: ${title}`); onRequestClose(); }}>
       {children}
     </Modal>
   );
@@ -40,7 +48,14 @@ SimpleModal.propTypes = {
 // Generic card-like button used for selecting a device
 function DeviceButton({ label, img, onClick }) {
   return (
-    <button type="button" className="device-button" onClick={onClick}>
+    <button
+      type="button"
+      className="device-button"
+      onClick={() => {
+        console.log('Device button clicked', label);
+        onClick();
+      }}
+    >
       <img src={img} alt="" aria-hidden="true" />
       <span>{label}</span>
     </button>
@@ -320,7 +335,11 @@ DeviceModal.propTypes = { isOpen: PropTypes.bool.isRequired, onRequestClose: Pro
 
 // --- Row components -------------------------------------------------------
 const RowControls = ({ onRemove }) => (
-  <button type="button" className="circle-btn remove-row-btn" onClick={onRemove}>
+  <button
+    type="button"
+    className="circle-btn remove-row-btn"
+    onClick={() => { console.log('Remove row'); onRemove(); }}
+  >
     &minus;
   </button>
 );
@@ -334,16 +353,22 @@ function AccessRow({ index, values, onChange, onRemove }) {
   const data = values || {};
   return (
     <div className="intervention-row">
-      <div className="row-title">{__('Access', 'endoplanner')} {index + 1}</div>
-      <RadioControl label={__('Approach', 'endoplanner')} selected={data.approach || 'Antegrade'}
-        options={[{label:'Antegrade',value:'Antegrade'},{label:'Retrograde',value:'Retrograde'}]}
-        onChange={val => onChange({ ...data, approach: val })}
-      />
-      <DeviceButton label={data.vessel || __('Select vessel', 'endoplanner')} img={needleImg} onClick={() => setVesselOpen(true)} />
-      <DeviceButton label={__('Puncture needle', 'endoplanner')} img={needleImg} onClick={() => setNeedleOpen(true)} />
-      <DeviceButton label={__('Sheath', 'endoplanner')} img={sheathImg} onClick={() => setSheathOpen(true)} />
-      <DeviceButton label={__('Catheter', 'endoplanner')} img={catheterImg} onClick={() => setCatOpen(true)} />
-      <RowControls onRemove={onRemove} />
+      <div className="row-title section-heading">{__('Access', 'endoplanner')} {index + 1}</div>
+      <div className="selector-row">
+        <RadioControl
+          label={__('Approach', 'endoplanner')}
+          selected={data.approach || 'Antegrade'}
+          options={[{ label: 'Antegrade', value: 'Antegrade' }, { label: 'Retrograde', value: 'Retrograde' }]}
+          onChange={(val) => { console.log('Access approach', val); onChange({ ...data, approach: val }); }}
+        />
+      </div>
+      <div className="device-row">
+        <DeviceButton label={data.vessel || __('Select vessel', 'endoplanner')} img={needleImg} onClick={() => { console.log('Open vessel modal', index); setVesselOpen(true); }} />
+        <DeviceButton label={__('Puncture needle', 'endoplanner')} img={needleImg} onClick={() => { console.log('Open needle modal', index); setNeedleOpen(true); }} />
+        <DeviceButton label={__('Sheath', 'endoplanner')} img={sheathImg} onClick={() => { console.log('Open sheath modal', index); setSheathOpen(true); }} />
+        <DeviceButton label={__('Catheter', 'endoplanner')} img={catheterImg} onClick={() => { console.log('Open catheter modal', index); setCatOpen(true); }} />
+        <RowControls onRemove={onRemove} />
+      </div>
       <VesselModal isOpen={vesselOpen} onRequestClose={() => setVesselOpen(false)} value={data.vessel} onSave={val => onChange({ ...data, vessel: val })} />
       <NeedleModal isOpen={needleOpen} onRequestClose={() => setNeedleOpen(false)} values={data.needle || {}} onSave={val => onChange({ ...data, needle: val })} />
       <SheathModal isOpen={sheathOpen} onRequestClose={() => setSheathOpen(false)} values={data.sheath || {}} onSave={val => onChange({ ...data, sheath: val })} />
@@ -361,11 +386,13 @@ function NavRow({ index, values, onChange, onRemove }) {
   const data = values || {};
   return (
     <div className="intervention-row">
-      <div className="row-title">{__('Navigation & Crossing', 'endoplanner')} {index + 1}</div>
-      <DeviceButton label={__('Wire', 'endoplanner')} img={wireImg} onClick={() => setWireOpen(true)} />
-      <DeviceButton label={__('Catheter', 'endoplanner')} img={catheterImg} onClick={() => setCatOpen(true)} />
-      <DeviceButton label={__('Special device', 'endoplanner')} img={deviceImg} onClick={() => setDevOpen(true)} />
-      <RowControls onRemove={onRemove} />
+      <div className="row-title section-heading">{__('Navigation & Crossing', 'endoplanner')} {index + 1}</div>
+      <div className="device-row">
+        <DeviceButton label={__('Wire', 'endoplanner')} img={wireImg} onClick={() => { console.log('Open wire modal', index); setWireOpen(true); }} />
+        <DeviceButton label={__('Catheter', 'endoplanner')} img={catheterImg} onClick={() => { console.log('Open catheter modal', index); setCatOpen(true); }} />
+        <DeviceButton label={__('Special device', 'endoplanner')} img={deviceImg} onClick={() => { console.log('Open special device modal', index); setDevOpen(true); }} />
+        <RowControls onRemove={onRemove} />
+      </div>
       <WireModal isOpen={wireOpen} onRequestClose={() => setWireOpen(false)} values={data.wire || {}} onSave={val => onChange({ ...data, wire: val })} />
       <CatheterModal isOpen={catOpen} onRequestClose={() => setCatOpen(false)} values={data.catheter || {}} onSave={val => onChange({ ...data, catheter: val })} />
       <DeviceModal isOpen={devOpen} onRequestClose={() => setDevOpen(false)} value={data.device} onSave={val => onChange({ ...data, device: val })} />
@@ -382,11 +409,13 @@ function TherapyRow({ index, values, onChange, onRemove }) {
   const data = values || {};
   return (
     <div className="intervention-row">
-      <div className="row-title">{__('Vessel preparation & therapy', 'endoplanner')} {index + 1}</div>
-      <DeviceButton label={__('PTA balloon', 'endoplanner')} img={balloonImg} onClick={() => setBallOpen(true)} />
-      <DeviceButton label={__('Stent', 'endoplanner')} img={stentImg} onClick={() => setStentOpen(true)} />
-      <DeviceButton label={__('Special device', 'endoplanner')} img={deviceImg} onClick={() => setDevOpen(true)} />
-      <RowControls onRemove={onRemove} />
+      <div className="row-title section-heading">{__('Vessel preparation & therapy', 'endoplanner')} {index + 1}</div>
+      <div className="device-row">
+        <DeviceButton label={__('PTA balloon', 'endoplanner')} img={balloonImg} onClick={() => { console.log('Open balloon modal', index); setBallOpen(true); }} />
+        <DeviceButton label={__('Stent', 'endoplanner')} img={stentImg} onClick={() => { console.log('Open stent modal', index); setStentOpen(true); }} />
+        <DeviceButton label={__('Special device', 'endoplanner')} img={deviceImg} onClick={() => { console.log('Open special device modal', index); setDevOpen(true); }} />
+        <RowControls onRemove={onRemove} />
+      </div>
       <BalloonModal isOpen={ballOpen} onRequestClose={() => setBallOpen(false)} values={data.balloon || {}} onSave={val => onChange({ ...data, balloon: val })} />
       <StentModal isOpen={stentOpen} onRequestClose={() => setStentOpen(false)} values={data.stent || {}} onSave={val => onChange({ ...data, stent: val })} />
       <DeviceModal isOpen={devOpen} onRequestClose={() => setDevOpen(false)} value={data.device} onSave={val => onChange({ ...data, device: val })} />
@@ -402,15 +431,21 @@ function ClosureRow({ index, values, onChange, onRemove }) {
   const method = data.method || 'Manual pressure';
   return (
     <div className="intervention-row">
-      <div className="row-title">{__('Closure', 'endoplanner')} {index + 1}</div>
-      <RadioControl label={__('Method', 'endoplanner')} selected={method}
-        options={[{label:'Manual pressure',value:'Manual pressure'},{label:'Closure device',value:'Closure device'}]}
-        onChange={val => onChange({ ...data, method: val })}
-      />
-      {method === 'Closure device' && (
-        <DeviceButton label={__('Select device', 'endoplanner')} img={closureImg} onClick={() => setDevOpen(true)} />
-      )}
-      <RowControls onRemove={onRemove} />
+      <div className="row-title section-heading">{__('Closure', 'endoplanner')} {index + 1}</div>
+      <div className="selector-row">
+        <RadioControl
+          label={__('Method', 'endoplanner')}
+          selected={method}
+          options={[{ label: 'Manual pressure', value: 'Manual pressure' }, { label: 'Closure device', value: 'Closure device' }]}
+          onChange={(val) => { console.log('Closure method', val); onChange({ ...data, method: val }); }}
+        />
+      </div>
+      <div className="device-row">
+        {method === 'Closure device' && (
+          <DeviceButton label={__('Select device', 'endoplanner')} img={closureImg} onClick={() => { console.log('Open closure device modal', index); setDevOpen(true); }} />
+        )}
+        <RowControls onRemove={onRemove} />
+      </div>
       <DeviceModal isOpen={devOpen} onRequestClose={() => setDevOpen(false)} value={data.device} onSave={val => onChange({ ...data, device: val })} />
     </div>
   );
@@ -439,7 +474,7 @@ export default function Step4({ data, setData }) {
             onRemove={() => setAccessRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <button type="button" className="circle-btn add-row-btn" onClick={() => setAccessRows(prev => [...prev, {}])}>+</button>
+        <button type="button" className="circle-btn add-row-btn" onClick={() => { console.log('Add access row'); setAccessRows(prev => [...prev, {}]); }}>+</button>
       </section>
 
       <section className="intervention-section">
@@ -449,7 +484,7 @@ export default function Step4({ data, setData }) {
             onRemove={() => setNavRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <button type="button" className="circle-btn add-row-btn" onClick={() => setNavRows(prev => [...prev, {}])}>+</button>
+        <button type="button" className="circle-btn add-row-btn" onClick={() => { console.log('Add navigation row'); setNavRows(prev => [...prev, {}]); }}>+</button>
       </section>
 
       <section className="intervention-section">
@@ -459,7 +494,7 @@ export default function Step4({ data, setData }) {
             onRemove={() => setTherapyRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <button type="button" className="circle-btn add-row-btn" onClick={() => setTherapyRows(prev => [...prev, {}])}>+</button>
+        <button type="button" className="circle-btn add-row-btn" onClick={() => { console.log('Add therapy row'); setTherapyRows(prev => [...prev, {}]); }}>+</button>
       </section>
 
       <section className="intervention-section">
@@ -469,7 +504,7 @@ export default function Step4({ data, setData }) {
             onRemove={() => setClosureRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <button type="button" className="circle-btn add-row-btn" onClick={() => setClosureRows(prev => [...prev, {}])}>+</button>
+        <button type="button" className="circle-btn add-row-btn" onClick={() => { console.log('Add closure row'); setClosureRows(prev => [...prev, {}]); }}>+</button>
       </section>
     </div>
   );
