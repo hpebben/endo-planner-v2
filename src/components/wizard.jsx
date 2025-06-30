@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
 import Step1 from './steps/Step1_Clinical';
 import Step2 from './steps/Step2_Patency';
-import Step3 from './steps/Step3_Summary';
 import Step4 from './steps/Step4_Intervention';
 import Step5 from './steps/Step5_Export';
 import { ProgressBar, Button } from '@wordpress/components';
@@ -10,7 +9,6 @@ import { ProgressBar, Button } from '@wordpress/components';
 const steps = [
   { title: __( 'Clinical Indication', 'endoplanner' ), component: Step1 },
   { title: __( 'Vessel Patency', 'endoplanner' ),      component: Step2 },
-  { title: __( 'Case Summary', 'endoplanner' ),        component: Step3 },
   { title: __( 'Intervention Plan', 'endoplanner' ),   component: Step4 },
   { title: __( 'Export EndoPlan', 'endoplanner' ),     component: Step5 },
 ];

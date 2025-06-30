@@ -3,6 +3,22 @@ import PropTypes from 'prop-types';
 import { Button, Modal, SelectControl, RadioControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import VesselMap from '../VesselMap';
+// device images for selector buttons
+const needleImg =
+  'https://endoplanner.thesisapps.com/wp-content/uploads/2024/07/needle.png';
+const sheathImg =
+  'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/sheath.jpg';
+const catheterImg =
+  'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/catheter.jpg';
+const wireImg =
+  'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/wire.jpg';
+const balloonImg =
+  'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/pta.jpg';
+const stentImg =
+  'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/stent.jpg';
+const deviceImg =
+  'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/miscdevice.jpg';
+const closureImg = deviceImg;
 
 // Simple wrapper for WordPress Modal
 const SimpleModal = ({ title, isOpen, onRequestClose, children }) => {
@@ -19,6 +35,22 @@ SimpleModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
+};
+
+// Generic card-like button used for selecting a device
+function DeviceButton({ label, img, onClick }) {
+  return (
+    <button type="button" className="device-button" onClick={onClick}>
+      <img src={img} alt="" aria-hidden="true" />
+      <span>{label}</span>
+    </button>
+  );
+}
+
+DeviceButton.propTypes = {
+  label: PropTypes.string.isRequired,
+  img: PropTypes.string.isRequired,
+  onClick: PropTypes.func.isRequired,
 };
 
 // --- Popup Components -----------------------------------------------------
@@ -287,7 +319,11 @@ function DeviceModal({ isOpen, onRequestClose, value, onSave }) {
 DeviceModal.propTypes = { isOpen: PropTypes.bool.isRequired, onRequestClose: PropTypes.func.isRequired, value: PropTypes.string, onSave: PropTypes.func.isRequired };
 
 // --- Row components -------------------------------------------------------
-const RowControls = ({ onRemove }) => <Button isSecondary onClick={onRemove}>-</Button>;
+const RowControls = ({ onRemove }) => (
+  <button type="button" className="circle-btn remove-row-btn" onClick={onRemove}>
+    &minus;
+  </button>
+);
 RowControls.propTypes = { onRemove: PropTypes.func.isRequired };
 
 function AccessRow({ index, values, onChange, onRemove }) {
@@ -298,15 +334,15 @@ function AccessRow({ index, values, onChange, onRemove }) {
   const data = values || {};
   return (
     <div className="intervention-row">
-      <h4>{__('Access', 'endoplanner')} #{index + 1}</h4>
+      <div className="row-title">{__('Access', 'endoplanner')} {index + 1}</div>
       <RadioControl label={__('Approach', 'endoplanner')} selected={data.approach || 'Antegrade'}
         options={[{label:'Antegrade',value:'Antegrade'},{label:'Retrograde',value:'Retrograde'}]}
         onChange={val => onChange({ ...data, approach: val })}
       />
-      <Button isSecondary onClick={() => setVesselOpen(true)}>{data.vessel || __('Select vessel', 'endoplanner')}</Button>
-      <Button isSecondary onClick={() => setNeedleOpen(true)}>{__('Puncture needle', 'endoplanner')}</Button>
-      <Button isSecondary onClick={() => setSheathOpen(true)}>{__('Sheath', 'endoplanner')}</Button>
-      <Button isSecondary onClick={() => setCatOpen(true)}>{__('Catheter', 'endoplanner')}</Button>
+      <DeviceButton label={data.vessel || __('Select vessel', 'endoplanner')} img={needleImg} onClick={() => setVesselOpen(true)} />
+      <DeviceButton label={__('Puncture needle', 'endoplanner')} img={needleImg} onClick={() => setNeedleOpen(true)} />
+      <DeviceButton label={__('Sheath', 'endoplanner')} img={sheathImg} onClick={() => setSheathOpen(true)} />
+      <DeviceButton label={__('Catheter', 'endoplanner')} img={catheterImg} onClick={() => setCatOpen(true)} />
       <RowControls onRemove={onRemove} />
       <VesselModal isOpen={vesselOpen} onRequestClose={() => setVesselOpen(false)} value={data.vessel} onSave={val => onChange({ ...data, vessel: val })} />
       <NeedleModal isOpen={needleOpen} onRequestClose={() => setNeedleOpen(false)} values={data.needle || {}} onSave={val => onChange({ ...data, needle: val })} />
@@ -325,10 +361,10 @@ function NavRow({ index, values, onChange, onRemove }) {
   const data = values || {};
   return (
     <div className="intervention-row">
-      <h4>{__('Navigation & Crossing', 'endoplanner')} #{index + 1}</h4>
-      <Button isSecondary onClick={() => setWireOpen(true)}>{__('Wire', 'endoplanner')}</Button>
-      <Button isSecondary onClick={() => setCatOpen(true)}>{__('Catheter', 'endoplanner')}</Button>
-      <Button isSecondary onClick={() => setDevOpen(true)}>{__('Special device', 'endoplanner')}</Button>
+      <div className="row-title">{__('Navigation & Crossing', 'endoplanner')} {index + 1}</div>
+      <DeviceButton label={__('Wire', 'endoplanner')} img={wireImg} onClick={() => setWireOpen(true)} />
+      <DeviceButton label={__('Catheter', 'endoplanner')} img={catheterImg} onClick={() => setCatOpen(true)} />
+      <DeviceButton label={__('Special device', 'endoplanner')} img={deviceImg} onClick={() => setDevOpen(true)} />
       <RowControls onRemove={onRemove} />
       <WireModal isOpen={wireOpen} onRequestClose={() => setWireOpen(false)} values={data.wire || {}} onSave={val => onChange({ ...data, wire: val })} />
       <CatheterModal isOpen={catOpen} onRequestClose={() => setCatOpen(false)} values={data.catheter || {}} onSave={val => onChange({ ...data, catheter: val })} />
@@ -346,10 +382,10 @@ function TherapyRow({ index, values, onChange, onRemove }) {
   const data = values || {};
   return (
     <div className="intervention-row">
-      <h4>{__('Vessel preparation & therapy', 'endoplanner')} #{index + 1}</h4>
-      <Button isSecondary onClick={() => setBallOpen(true)}>{__('PTA balloon', 'endoplanner')}</Button>
-      <Button isSecondary onClick={() => setStentOpen(true)}>{__('Stent', 'endoplanner')}</Button>
-      <Button isSecondary onClick={() => setDevOpen(true)}>{__('Special device', 'endoplanner')}</Button>
+      <div className="row-title">{__('Vessel preparation & therapy', 'endoplanner')} {index + 1}</div>
+      <DeviceButton label={__('PTA balloon', 'endoplanner')} img={balloonImg} onClick={() => setBallOpen(true)} />
+      <DeviceButton label={__('Stent', 'endoplanner')} img={stentImg} onClick={() => setStentOpen(true)} />
+      <DeviceButton label={__('Special device', 'endoplanner')} img={deviceImg} onClick={() => setDevOpen(true)} />
       <RowControls onRemove={onRemove} />
       <BalloonModal isOpen={ballOpen} onRequestClose={() => setBallOpen(false)} values={data.balloon || {}} onSave={val => onChange({ ...data, balloon: val })} />
       <StentModal isOpen={stentOpen} onRequestClose={() => setStentOpen(false)} values={data.stent || {}} onSave={val => onChange({ ...data, stent: val })} />
@@ -366,13 +402,13 @@ function ClosureRow({ index, values, onChange, onRemove }) {
   const method = data.method || 'Manual pressure';
   return (
     <div className="intervention-row">
-      <h4>{__('Closure', 'endoplanner')} #{index + 1}</h4>
+      <div className="row-title">{__('Closure', 'endoplanner')} {index + 1}</div>
       <RadioControl label={__('Method', 'endoplanner')} selected={method}
         options={[{label:'Manual pressure',value:'Manual pressure'},{label:'Closure device',value:'Closure device'}]}
         onChange={val => onChange({ ...data, method: val })}
       />
       {method === 'Closure device' && (
-        <Button isSecondary onClick={() => setDevOpen(true)}>{__('Select device', 'endoplanner')}</Button>
+        <DeviceButton label={__('Select device', 'endoplanner')} img={closureImg} onClick={() => setDevOpen(true)} />
       )}
       <RowControls onRemove={onRemove} />
       <DeviceModal isOpen={devOpen} onRequestClose={() => setDevOpen(false)} value={data.device} onSave={val => onChange({ ...data, device: val })} />
@@ -395,50 +431,45 @@ export default function Step4({ data, setData }) {
 
   return (
     <div className="step4-intervention">
-      <h3>{__('Interventional planning', 'endoplanner')}</h3>
 
       <section className="intervention-section">
-        <h4>{__('Access', 'endoplanner')}</h4>
         {accessRows.map((row, i) => (
           <AccessRow key={i} index={i} values={row}
             onChange={val => setAccessRows(prev => prev.map((r, idx) => idx === i ? val : r))}
             onRemove={() => setAccessRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <Button isPrimary onClick={() => setAccessRows(prev => [...prev, {}])}>+</Button>
+        <button type="button" className="circle-btn add-row-btn" onClick={() => setAccessRows(prev => [...prev, {}])}>+</button>
       </section>
 
       <section className="intervention-section">
-        <h4>{__('Navigation & Crossing', 'endoplanner')}</h4>
         {navRows.map((row, i) => (
           <NavRow key={i} index={i} values={row}
             onChange={val => setNavRows(prev => prev.map((r, idx) => idx === i ? val : r))}
             onRemove={() => setNavRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <Button isPrimary onClick={() => setNavRows(prev => [...prev, {}])}>+</Button>
+        <button type="button" className="circle-btn add-row-btn" onClick={() => setNavRows(prev => [...prev, {}])}>+</button>
       </section>
 
       <section className="intervention-section">
-        <h4>{__('Vessel preparation & therapy', 'endoplanner')}</h4>
         {therapyRows.map((row, i) => (
           <TherapyRow key={i} index={i} values={row}
             onChange={val => setTherapyRows(prev => prev.map((r, idx) => idx === i ? val : r))}
             onRemove={() => setTherapyRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <Button isPrimary onClick={() => setTherapyRows(prev => [...prev, {}])}>+</Button>
+        <button type="button" className="circle-btn add-row-btn" onClick={() => setTherapyRows(prev => [...prev, {}])}>+</button>
       </section>
 
       <section className="intervention-section">
-        <h4>{__('Closure', 'endoplanner')}</h4>
         {closureRows.map((row, i) => (
           <ClosureRow key={i} index={i} values={row}
             onChange={val => setClosureRows(prev => prev.map((r, idx) => idx === i ? val : r))}
             onRemove={() => setClosureRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <Button isPrimary onClick={() => setClosureRows(prev => [...prev, {}])}>+</Button>
+        <button type="button" className="circle-btn add-row-btn" onClick={() => setClosureRows(prev => [...prev, {}])}>+</button>
       </section>
     </div>
   );
