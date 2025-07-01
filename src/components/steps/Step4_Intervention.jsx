@@ -471,17 +471,24 @@ DeviceModal.propTypes = {
 // --- Row components -------------------------------------------------------
 const RowControls = ({ onAdd, onRemove }) => (
   <div className="row-controls">
+    {/* debugging add/remove row clicks */}
     <button
       type="button"
       className="circle-btn add-row-btn"
-      onClick={() => { console.log('Add row'); onAdd(); }}
+      onClick={() => {
+        console.log('Add row');
+        onAdd();
+      }}
     >
       +
     </button>
     <button
       type="button"
       className="circle-btn remove-row-btn"
-      onClick={() => { console.log('Remove row'); onRemove(); }}
+      onClick={() => {
+        console.log('Remove row');
+        onRemove();
+      }}
     >
       &minus;
     </button>
@@ -547,12 +554,13 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
             setCatOpen(true);
           }}
         />
-        <RowControls onAdd={onAdd} onRemove={onRemove} />
       </div>
+      <RowControls onAdd={onAdd} onRemove={onRemove} />
       <VesselDropdown
         isOpen={vesselOpen}
         anchor={vesselAnchor}
         onRequestClose={() => {
+          console.log('Close vessel dropdown');
           setVesselOpen(false);
           setVesselAnchor(null);
         }}
@@ -563,6 +571,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
         isOpen={needleOpen}
         anchor={needleAnchor}
         onRequestClose={() => {
+          console.log('Close needle modal');
           setNeedleOpen(false);
           setNeedleAnchor(null);
         }}
@@ -573,6 +582,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
         isOpen={sheathOpen}
         anchor={sheathAnchor}
         onRequestClose={() => {
+          console.log('Close sheath modal');
           setSheathOpen(false);
           setSheathAnchor(null);
         }}
@@ -583,6 +593,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
         isOpen={catOpen}
         anchor={catAnchor}
         onRequestClose={() => {
+          console.log('Close catheter modal');
           setCatOpen(false);
           setCatAnchor(null);
         }}
@@ -634,12 +645,13 @@ function NavRow({ index, values, onChange, onAdd, onRemove }) {
             setDevOpen(true);
           }}
         />
-        <RowControls onAdd={onAdd} onRemove={onRemove} />
       </div>
+      <RowControls onAdd={onAdd} onRemove={onRemove} />
       <WireModal
         isOpen={wireOpen}
         anchor={wireAnchor}
         onRequestClose={() => {
+          console.log('Close wire modal');
           setWireOpen(false);
           setWireAnchor(null);
         }}
@@ -650,6 +662,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove }) {
         isOpen={catOpen}
         anchor={catAnchor}
         onRequestClose={() => {
+          console.log('Close catheter modal');
           setCatOpen(false);
           setCatAnchor(null);
         }}
@@ -660,6 +673,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove }) {
         isOpen={devOpen}
         anchor={devAnchor}
         onRequestClose={() => {
+          console.log('Close special device modal');
           setDevOpen(false);
           setDevAnchor(null);
         }}
@@ -711,12 +725,13 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
             setDevOpen(true);
           }}
         />
-        <RowControls onAdd={onAdd} onRemove={onRemove} />
       </div>
+      <RowControls onAdd={onAdd} onRemove={onRemove} />
         <BalloonModal
           isOpen={ballOpen}
           anchor={ballAnchor}
           onRequestClose={() => {
+            console.log('Close balloon modal');
             setBallOpen(false);
             setBallAnchor(null);
           }}
@@ -727,6 +742,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
           isOpen={stentOpen}
           anchor={stentAnchor}
           onRequestClose={() => {
+            console.log('Close stent modal');
             setStentOpen(false);
             setStentAnchor(null);
           }}
@@ -737,6 +753,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
           isOpen={devOpen}
           anchor={devAnchor}
           onRequestClose={() => {
+            console.log('Close special device modal');
             setDevOpen(false);
             setDevAnchor(null);
           }}
@@ -777,12 +794,13 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove }) {
             }}
           />
         )}
-        <RowControls onAdd={onAdd} onRemove={onRemove} />
       </div>
+      <RowControls onAdd={onAdd} onRemove={onRemove} />
       <DeviceModal
         isOpen={devOpen}
         anchor={devAnchor}
         onRequestClose={() => {
+          console.log('Close closure device modal');
           setDevOpen(false);
           setDevAnchor(null);
         }}
