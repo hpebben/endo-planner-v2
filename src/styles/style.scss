@@ -581,10 +581,26 @@ svg .vessel-path:hover {
 }
 .intervention-row {
   display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.row-inner {
+  flex: 1;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem; /* generous vertical spacing */
-  margin-bottom: 1rem;
+  gap: 1.5rem;
+}
+
+.row-number {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #113195;
+  width: 24px;
+  text-align: right;
+  padding-top: 0.4rem;
 }
 .row-title {
   font-weight: 600;
@@ -616,6 +632,14 @@ svg .vessel-path:hover {
   text-align: center;
   margin-bottom: 1.5rem; /* space below approach selector */
   display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.selector-row .components-radio-control__input-group {
+  display: flex;
+  gap: 0.5rem;
   justify-content: center;
 }
 .device-row {
@@ -672,7 +696,7 @@ svg .vessel-path:hover {
 .add-row-btn {
   background: #113195;
   color: #fff;
-  margin: 0.5rem auto;
+  margin: 0;
 }
 .circle-btn:hover {
   transform: scale(1.1);
@@ -684,7 +708,7 @@ svg .vessel-path:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem; /* keep +/- evenly spaced */
+  gap: 0.5rem;
   margin-top: 1rem;
   width: 100%;
 }
