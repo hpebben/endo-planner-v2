@@ -25,13 +25,11 @@ const InlineModal = ({ title, anchor, isOpen, onRequestClose, children, placemen
   const prevFocus = useRef(null);
 
   useEffect(() => {
-    const root = document.querySelector('.endo-wizard');
     const escHandler = (e) => e.key === 'Escape' && onRequestClose();
 
     if (isOpen) {
       console.log(`[Popup] Opened: ${title}`);
       prevFocus.current = document.activeElement;
-      root?.setAttribute('inert', '');
       document.addEventListener('keydown', escHandler);
       setTimeout(() => ref.current?.focus(), 0);
     }
@@ -39,7 +37,6 @@ const InlineModal = ({ title, anchor, isOpen, onRequestClose, children, placemen
     return () => {
       if (isOpen) {
         console.log(`[Popup] Closed: ${title}`);
-        root?.removeAttribute('inert');
         document.removeEventListener('keydown', escHandler);
         prevFocus.current?.focus();
       }
