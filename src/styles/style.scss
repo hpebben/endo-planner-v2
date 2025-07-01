@@ -575,7 +575,7 @@ svg .vessel-path:hover {
 
 /* Intervention planning sections */
 .intervention-section {
-  padding: 2rem 0; /* 32px spacing above and below sections */
+  padding: 3.5rem 0; /* 56px vertical spacing between sections */
   border-top: 1px solid #e2e2e2;
   text-align: center;
 }
@@ -614,7 +614,7 @@ svg .vessel-path:hover {
   font-size: 1.05rem;
   position: relative;
   padding-bottom: 0.5rem;
-  margin: 2rem 0 1.5rem; /* space above and below headings */
+  margin: 2rem 0 2.5rem; /* at least 40px below heading */
 }
 .section-heading::before,
 .section-heading::after {
@@ -639,8 +639,9 @@ svg .vessel-path:hover {
 
 .selector-row .components-radio-control__input-group {
   display: flex;
-  gap: 0.5rem;
+  gap: 24px;
   justify-content: center;
+  align-items: center;
 }
 .device-row {
   display: flex;
