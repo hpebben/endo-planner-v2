@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Button, SelectControl, RadioControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import VesselMap from '../VesselMap';
 // device images for selector buttons
 const needleImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2024/07/needle.png';
@@ -20,8 +19,8 @@ const deviceImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/miscdevice.jpg';
 const closureImg = deviceImg;
 
-// Accessible inline modal positioned above the triggering button
-const InlineModal = ({ title, anchor, isOpen, onRequestClose, children }) => {
+// Accessible inline modal positioned relative to the triggering button
+const InlineModal = ({ title, anchor, isOpen, onRequestClose, children, placement = 'top' }) => {
   const ref = useRef(null);
   const prevFocus = useRef(null);
 
@@ -49,15 +48,14 @@ const InlineModal = ({ title, anchor, isOpen, onRequestClose, children }) => {
 
   if (!isOpen || !anchor) return null;
 
-  const style = {
-    top: anchor.top + window.scrollY,
-    left: anchor.left + anchor.width / 2 + window.scrollX,
-  };
+  const style = placement === 'top'
+    ? { top: anchor.top + window.scrollY, left: anchor.left + anchor.width / 2 + window.scrollX }
+    : { top: anchor.top + anchor.height + window.scrollY, left: anchor.left + anchor.width / 2 + window.scrollX };
 
   return (
     <div className="inline-modal-overlay" onClick={onRequestClose}>
       <div
-        className="inline-modal"
+        className={`inline-modal ${placement}`}
         style={style}
         onClick={(e) => e.stopPropagation()}
         ref={ref}
@@ -114,27 +112,46 @@ DeviceButton.propTypes = {
 };
 
 // --- Popup Components -----------------------------------------------------
-function VesselModal({ isOpen, anchor, onRequestClose, value, onSave }) {
-  const [selected, setSelected] = useState(value ? [value] : []);
-  useEffect(() => { setSelected(value ? [value] : []); }, [value]);
+// Dropdown list of vessels displayed below the triggering button
+function VesselDropdown({ isOpen, anchor, onRequestClose, value, onSave }) {
+  const vessels = ['CFA', 'SFA', 'ATA', 'TTP', 'ATP', 'ADP'];
+  if (!isOpen) return null;
+  const handleSelect = (v) => {
+    console.log('Vessel selected', v);
+    onSave(v);
+    onRequestClose();
+  };
   return (
     <SimpleModal
-      title={__('Select Access Vessel', 'endoplanner')}
+      title={__('Select Vessel', 'endoplanner')}
       isOpen={isOpen}
       anchor={anchor}
+      placement="bottom"
       onRequestClose={onRequestClose}
     >
-      <VesselMap selectedSegments={selected} toggleSegment={(id) => setSelected([id])} />
-      <div style={{ textAlign: 'right', marginTop: '1rem' }}>
-        <Button isPrimary onClick={() => { onSave(selected[0] || null); onRequestClose(); }}>
-          {__('Save', 'endoplanner')}
-        </Button>
+      <ul className="vessel-dropdown">
+        {vessels.map((v) => (
+          <li key={v}>
+            <button
+              type="button"
+              className={`dropdown-item${value === v ? ' selected' : ''}`}
+              onClick={() => handleSelect(v)}
+            >
+              {v}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>
+          &times;
+        </button>
       </div>
     </SimpleModal>
   );
 }
 
-VesselModal.propTypes = {
+VesselDropdown.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   anchor: PropTypes.object,
   onRequestClose: PropTypes.func.isRequired,
@@ -146,20 +163,25 @@ function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   const [size, setSize] = useState(values.size || '19 Gauge');
   const [length, setLength] = useState(values.length || '4cm');
   useEffect(() => { setSize(values.size || '19 Gauge'); setLength(values.length || '4cm'); }, [values]);
+  const handleChange = (field, val) => {
+    const newVals = { size, length, [field]: val };
+    if (field === 'size') setSize(val); else setLength(val);
+    console.log('Needle updated', newVals);
+    onSave(newVals);
+    onRequestClose();
+  };
   return (
     <SimpleModal title={__('Puncture Needle', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
       <SelectControl label={__('Needle size', 'endoplanner')} value={size}
         options={['19 Gauge','21 Gauge'].map(v => ({ label:v, value:v }))}
-        onChange={setSize}
+        onChange={(val) => handleChange('size', val)}
       />
       <SelectControl label={__('Needle length', 'endoplanner')} value={length}
         options={['4cm','7cm','9cm'].map(v => ({ label:v, value:v }))}
-        onChange={setLength}
+        onChange={(val) => handleChange('length', val)}
       />
-      <div style={{ textAlign:'right', marginTop:'1rem' }}>
-        <Button isPrimary onClick={() => { onSave({ size, length }); onRequestClose(); }}>
-          {__('Save', 'endoplanner')}
-        </Button>
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>&times;</button>
       </div>
     </SimpleModal>
   );
@@ -179,18 +201,23 @@ function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   useEffect(() => { setFrSize(values.frSize || '4 Fr'); setLength(values.length || '10 cm'); }, [values]);
   const sizes = ['4 Fr','5 Fr','6 Fr','7 Fr','8 Fr','9 Fr'];
   const lengths = ['10 cm','12 cm','25 cm'];
+  const handleChange = (field, val) => {
+    const newVals = { frSize, length, [field]: val };
+    if (field === 'frSize') setFrSize(val); else setLength(val);
+    console.log('Sheath updated', newVals);
+    onSave(newVals);
+    onRequestClose();
+  };
   return (
     <SimpleModal title={__('Sheath', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
       <SelectControl label={__('French size', 'endoplanner')} value={frSize}
-        options={sizes.map(v => ({ label:v, value:v }))} onChange={setFrSize}
+        options={sizes.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('frSize', val)}
       />
       <SelectControl label={__('Length', 'endoplanner')} value={length}
-        options={lengths.map(v => ({ label:v, value:v }))} onChange={setLength}
+        options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
       />
-      <div style={{ textAlign:'right', marginTop:'1rem' }}>
-        <Button isPrimary onClick={() => { onSave({ frSize, length }); onRequestClose(); }}>
-          {__('Save', 'endoplanner')}
-        </Button>
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>&times;</button>
       </div>
     </SimpleModal>
   );
@@ -212,15 +239,22 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   const sizes = ['2.3 Fr','2.6 Fr','4 Fr','5 Fr','6 Fr','7 Fr'];
   const lengths = ['40 cm','65 cm','80 cm','90 cm','105 cm','110 cm','125 cm','135 cm','150 cm'];
   const specifics = ['BER2','BHW','Cobra 1','Cobra 2','Cobra 3','Cobra Glidecath','CXI 0.018','CXI 0.014','Navicross 0.018','Navicross 0.035','MultiPurpose','PIER','Pigtail Flush','Straight Flush','Universal Flush','Rim','Simmons 1','Simmons 2','Simmons 3','Vertebral'];
+  const handleChange = (field, val) => {
+    const newVals = { size, length, specific, [field]: val };
+    if (field === 'size') setSize(val);
+    if (field === 'length') setLength(val);
+    if (field === 'specific') setSpecific(val);
+    console.log('Catheter updated', newVals);
+    onSave(newVals);
+    onRequestClose();
+  };
   return (
     <SimpleModal title={__('Catheter', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl label={__('French size', 'endoplanner')} value={size} options={sizes.map(v => ({ label:v, value:v }))} onChange={setSize} />
-      <SelectControl label={__('Length', 'endoplanner')} value={length} options={lengths.map(v => ({ label:v, value:v }))} onChange={setLength} />
-      <SelectControl label={__('Specific catheter', 'endoplanner')} value={specific} options={specifics.map(v => ({ label:v, value:v }))} onChange={setSpecific} />
-      <div style={{ textAlign:'right', marginTop:'1rem' }}>
-        <Button isPrimary onClick={() => { onSave({ size, length, specific }); onRequestClose(); }}>
-          {__('Save', 'endoplanner')}
-        </Button>
+      <SelectControl label={__('French size', 'endoplanner')} value={size} options={sizes.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('size', val)} />
+      <SelectControl label={__('Length', 'endoplanner')} value={length} options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)} />
+      <SelectControl label={__('Specific catheter', 'endoplanner')} value={specific} options={specifics.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('specific', val)} />
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>&times;</button>
       </div>
     </SimpleModal>
   );
@@ -246,40 +280,54 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   const lengths = ['180 cm','260 cm','300 cm'];
   const bodyOpts = ['Light bodied','Intermediate bodied','Heavy bodied'];
   const supportOpts = ['Rosen wire','Lunderquist wire','Amplatz wire','Bentson wire','Meier wire','Newton wire'];
+  const handleChange = (field, val) => {
+    const newVals = { platform, length, type, body, support, technique, product, [field]: val };
+    switch(field){
+      case 'platform': setPlatform(val); break;
+      case 'length': setLength(val); break;
+      case 'type': setType(val); break;
+      case 'body': setBody(val); break;
+      case 'support': setSupport(val); break;
+      case 'technique': setTechnique(val); break;
+      case 'product': setProduct(val); break;
+      default: break;
+    }
+    console.log('Wire updated', newVals);
+    onSave(newVals);
+    onRequestClose();
+  };
   return (
     <SimpleModal title={__('Wire', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
       <RadioControl label={__('Platform', 'endoplanner')} selected={platform}
         options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
-        onChange={setPlatform}
+        onChange={(val)=>handleChange('platform', val)}
       />
       <SelectControl label={__('Length', 'endoplanner')} value={length}
-        options={lengths.map(v => ({ label:v, value:v }))} onChange={setLength}
+        options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
       />
       <RadioControl label={__('Type', 'endoplanner')} selected={type}
         options={[{label:'Glidewire',value:'Glidewire'},{label:'CTO wire',value:'CTO wire'},{label:'Support wire',value:'Support wire'}]}
-        onChange={setType}
+        onChange={(val)=>handleChange('type', val)}
       />
       {type === 'CTO wire' && (
         <SelectControl label={__('Body type', 'endoplanner')} value={body}
-          options={bodyOpts.map(v => ({ label:v, value:v }))} onChange={setBody}
+          options={bodyOpts.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('body', val)}
         />
       )}
       {type === 'Support wire' && (
         <SelectControl label={__('Support wire', 'endoplanner')} value={support}
-          options={supportOpts.map(v => ({ label:v, value:v }))} onChange={setSupport}
+          options={supportOpts.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('support', val)}
         />
       )}
       <RadioControl label={__('Technique', 'endoplanner')} selected={technique}
         options={[{label:'Intimal Tracking',value:'Intimal Tracking'},{label:'Limited sub-intimal dissection and re-entry',value:'Limited sub-intimal dissection and re-entry'}]}
-        onChange={setTechnique}
+        onChange={(val)=>handleChange('technique', val)}
       />
       <SelectControl label={__('Product', 'endoplanner')} value={product}
-        options={[{ label: __('None', 'endoplanner'), value: '' }]} onChange={setProduct}
+        options={[{ label: __('None', 'endoplanner'), value: '' }]} onChange={(val)=>handleChange('product', val)}
       />
-      <div style={{ textAlign:'right', marginTop:'1rem' }}>
-        <Button isPrimary onClick={() => { onSave({ platform, length, type, body, support, technique, product }); onRequestClose(); }}>
-          {__('Save', 'endoplanner')}
-        </Button>
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>&times;</button>
       </div>
     </SimpleModal>
   );
@@ -300,22 +348,29 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   useEffect(() => { setPlatform(values.platform || '0.014'); setDiameter(values.diameter || '1.5'); setLen(values.length || '10'); }, [values]);
   const diameters = { '0.014':['1.5','2','2.5','3.5','4'], '0.018':['2','2.5','3','4','5','5.5','6','7'], '0.035':['3','4','5','6','7','8','9','10','12','14'] };
   const lengths = ['10','12','15','18','20','30','40','50','60','70','80','90','100','110','120'];
+  const handleChange = (field, val) => {
+    const newVals = { platform, diameter, length: len, [field]: val };
+    if (field === 'platform'){ setPlatform(val); setDiameter(diameters[val][0]); }
+    if (field === 'diameter') setDiameter(val);
+    if (field === 'length') setLen(val);
+    console.log('Balloon updated', newVals);
+    onSave({ platform: newVals.platform, diameter: newVals.diameter, length: newVals.length });
+    onRequestClose();
+  };
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
       <RadioControl label={__('Platform', 'endoplanner')} selected={platform}
         options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
-        onChange={val => { setPlatform(val); setDiameter(diameters[val][0]); }}
+        onChange={(val) => handleChange('platform', val)}
       />
       <SelectControl label={__('Diameter', 'endoplanner')} value={diameter}
-        options={diameters[platform].map(v => ({ label:v, value:v }))} onChange={setDiameter}
+        options={diameters[platform].map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
       />
       <SelectControl label={__('Length (mm)', 'endoplanner')} value={len}
-        options={lengths.map(v => ({ label:v, value:v }))} onChange={setLen}
+        options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
       />
-      <div style={{ textAlign:'right', marginTop:'1rem' }}>
-        <Button isPrimary onClick={() => { onSave({ platform, diameter, length: len }); onRequestClose(); }}>
-          {__('Save', 'endoplanner')}
-        </Button>
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>&times;</button>
       </div>
     </SimpleModal>
   );
@@ -339,30 +394,42 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   const [dia, setDia] = useState(values.diameter || stentDia[platform][0]);
   const [len, setLen] = useState(values.length || stentLen[platform][0]);
   useEffect(() => { setPlatform(values.platform || '0.014'); setType(values.type || 'self expandable'); setMat(values.material || 'bare metal'); setDia(values.diameter || stentDia[values.platform || '0.014'][0]); setLen(values.length || stentLen[values.platform || '0.014'][0]); }, [values]);
+  const handleChange = (field, val) => {
+    const newVals = { platform, type, material: mat, diameter: dia, length: len, [field]: val };
+    switch(field){
+      case 'platform': setPlatform(val); setDia(stentDia[val][0]); setLen(stentLen[val][0]); break;
+      case 'type': setType(val); break;
+      case 'material': setMat(val); break;
+      case 'diameter': setDia(val); break;
+      case 'length': setLen(val); break;
+      default: break;
+    }
+    console.log('Stent updated', newVals);
+    onSave({ platform: newVals.platform, type: newVals.type, material: newVals.material, diameter: newVals.diameter, length: newVals.length });
+    onRequestClose();
+  };
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
       <RadioControl label={__('Platform', 'endoplanner')} selected={platform}
         options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
-        onChange={val => { setPlatform(val); setDia(stentDia[val][0]); setLen(stentLen[val][0]); }}
+        onChange={(val)=>handleChange('platform', val)}
       />
       <RadioControl label={__('Stent type', 'endoplanner')} selected={type}
         options={[{label:'self expandable',value:'self expandable'},{label:'balloon expandable',value:'balloon expandable'}]}
-        onChange={setType}
+        onChange={(val)=>handleChange('type', val)}
       />
       <RadioControl label={__('Stent material', 'endoplanner')} selected={mat}
         options={[{label:'bare metal',value:'bare metal'},{label:'covered',value:'covered'}]}
-        onChange={setMat}
+        onChange={(val)=>handleChange('material', val)}
       />
       <SelectControl label={__('Diameter', 'endoplanner')} value={dia}
-        options={stentDia[platform].map(v => ({ label:v, value:v }))} onChange={setDia}
+        options={stentDia[platform].map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
       />
       <SelectControl label={__('Length', 'endoplanner')} value={len}
-        options={stentLen[platform].map(v => ({ label:v, value:v }))} onChange={setLen}
+        options={stentLen[platform].map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
       />
-      <div style={{ textAlign:'right', marginTop:'1rem' }}>
-        <Button isPrimary onClick={() => { onSave({ platform, type, material: mat, diameter: dia, length: len }); onRequestClose(); }}>
-          {__('Save', 'endoplanner')}
-        </Button>
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>&times;</button>
       </div>
     </SimpleModal>
   );
@@ -383,12 +450,11 @@ function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave }) {
   return (
     <SimpleModal title={__('Special device', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
       <SelectControl label={__('Device', 'endoplanner')} value={device}
-        options={options.map(v => ({ label:v, value:v }))} onChange={setDevice}
+        options={options.map(v => ({ label:v, value:v }))}
+        onChange={(val)=>{ setDevice(val); console.log('Device selected', val); onSave(val); onRequestClose(); }}
       />
-      <div style={{ textAlign:'right', marginTop:'1rem' }}>
-        <Button isPrimary onClick={() => { onSave(device); onRequestClose(); }}>
-          {__('Save', 'endoplanner')}
-        </Button>
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>&times;</button>
       </div>
     </SimpleModal>
   );
@@ -403,18 +469,27 @@ DeviceModal.propTypes = {
 };
 
 // --- Row components -------------------------------------------------------
-const RowControls = ({ onRemove }) => (
-  <button
-    type="button"
-    className="circle-btn remove-row-btn"
-    onClick={() => { console.log('Remove row'); onRemove(); }}
-  >
-    &minus;
-  </button>
+const RowControls = ({ onAdd, onRemove }) => (
+  <div className="row-controls">
+    <button
+      type="button"
+      className="circle-btn add-row-btn"
+      onClick={() => { console.log('Add row'); onAdd(); }}
+    >
+      +
+    </button>
+    <button
+      type="button"
+      className="circle-btn remove-row-btn"
+      onClick={() => { console.log('Remove row'); onRemove(); }}
+    >
+      &minus;
+    </button>
+  </div>
 );
-RowControls.propTypes = { onRemove: PropTypes.func.isRequired };
+RowControls.propTypes = { onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
 
-function AccessRow({ index, values, onChange, onRemove }) {
+function AccessRow({ index, values, onChange, onAdd, onRemove }) {
   const [vesselOpen, setVesselOpen] = useState(false);
   const [needleOpen, setNeedleOpen] = useState(false);
   const [sheathOpen, setSheathOpen] = useState(false);
@@ -472,9 +547,9 @@ function AccessRow({ index, values, onChange, onRemove }) {
             setCatOpen(true);
           }}
         />
-        <RowControls onRemove={onRemove} />
+        <RowControls onAdd={onAdd} onRemove={onRemove} />
       </div>
-      <VesselModal
+      <VesselDropdown
         isOpen={vesselOpen}
         anchor={vesselAnchor}
         onRequestClose={() => {
@@ -518,9 +593,9 @@ function AccessRow({ index, values, onChange, onRemove }) {
   );
 }
 
-AccessRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
+AccessRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
 
-function NavRow({ index, values, onChange, onRemove }) {
+function NavRow({ index, values, onChange, onAdd, onRemove }) {
   const [wireOpen, setWireOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [devOpen, setDevOpen] = useState(false);
@@ -559,7 +634,7 @@ function NavRow({ index, values, onChange, onRemove }) {
             setDevOpen(true);
           }}
         />
-        <RowControls onRemove={onRemove} />
+        <RowControls onAdd={onAdd} onRemove={onRemove} />
       </div>
       <WireModal
         isOpen={wireOpen}
@@ -595,9 +670,9 @@ function NavRow({ index, values, onChange, onRemove }) {
   );
 }
 
-NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
+NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
 
-function TherapyRow({ index, values, onChange, onRemove }) {
+function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
   const [ballOpen, setBallOpen] = useState(false);
   const [stentOpen, setStentOpen] = useState(false);
   const [devOpen, setDevOpen] = useState(false);
@@ -636,7 +711,7 @@ function TherapyRow({ index, values, onChange, onRemove }) {
             setDevOpen(true);
           }}
         />
-        <RowControls onRemove={onRemove} />
+        <RowControls onAdd={onAdd} onRemove={onRemove} />
       </div>
         <BalloonModal
           isOpen={ballOpen}
@@ -672,9 +747,9 @@ function TherapyRow({ index, values, onChange, onRemove }) {
   );
 }
 
-TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
+TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
 
-function ClosureRow({ index, values, onChange, onRemove }) {
+function ClosureRow({ index, values, onChange, onAdd, onRemove }) {
   const [devOpen, setDevOpen] = useState(false);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
@@ -702,7 +777,7 @@ function ClosureRow({ index, values, onChange, onRemove }) {
             }}
           />
         )}
-        <RowControls onRemove={onRemove} />
+        <RowControls onAdd={onAdd} onRemove={onRemove} />
       </div>
       <DeviceModal
         isOpen={devOpen}
@@ -718,7 +793,7 @@ function ClosureRow({ index, values, onChange, onRemove }) {
   );
 }
 
-ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
+ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
 
 // --- Main Step Component --------------------------------------------------
 export default function Step4({ data, setData }) {
@@ -738,40 +813,40 @@ export default function Step4({ data, setData }) {
         {accessRows.map((row, i) => (
           <AccessRow key={i} index={i} values={row}
             onChange={val => setAccessRows(prev => prev.map((r, idx) => idx === i ? val : r))}
+            onAdd={() => setAccessRows(prev => [...prev, {}])}
             onRemove={() => setAccessRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <button type="button" className="circle-btn add-row-btn" onClick={() => { console.log('Add access row'); setAccessRows(prev => [...prev, {}]); }}>+</button>
       </section>
 
       <section className="intervention-section">
         {navRows.map((row, i) => (
           <NavRow key={i} index={i} values={row}
             onChange={val => setNavRows(prev => prev.map((r, idx) => idx === i ? val : r))}
+            onAdd={() => setNavRows(prev => [...prev, {}])}
             onRemove={() => setNavRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <button type="button" className="circle-btn add-row-btn" onClick={() => { console.log('Add navigation row'); setNavRows(prev => [...prev, {}]); }}>+</button>
       </section>
 
       <section className="intervention-section">
         {therapyRows.map((row, i) => (
           <TherapyRow key={i} index={i} values={row}
             onChange={val => setTherapyRows(prev => prev.map((r, idx) => idx === i ? val : r))}
+            onAdd={() => setTherapyRows(prev => [...prev, {}])}
             onRemove={() => setTherapyRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <button type="button" className="circle-btn add-row-btn" onClick={() => { console.log('Add therapy row'); setTherapyRows(prev => [...prev, {}]); }}>+</button>
       </section>
 
       <section className="intervention-section">
         {closureRows.map((row, i) => (
           <ClosureRow key={i} index={i} values={row}
             onChange={val => setClosureRows(prev => prev.map((r, idx) => idx === i ? val : r))}
+            onAdd={() => setClosureRows(prev => [...prev, {}])}
             onRemove={() => setClosureRows(prev => prev.filter((_, idx) => idx !== i))}
           />
         ))}
-        <button type="button" className="circle-btn add-row-btn" onClick={() => { console.log('Add closure row'); setClosureRows(prev => [...prev, {}]); }}>+</button>
       </section>
     </div>
   );
