@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Button, SelectControl, RadioControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+// miniature arterial tree icon used for vessel selector
+import vesselTreeIcon from '../../assets/vessel-map.svg';
 // device images for selector buttons
 const needleImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2024/07/needle.png';
@@ -25,23 +27,19 @@ const InlineModal = ({ title, anchor, isOpen, onRequestClose, children, placemen
   const prevFocus = useRef(null);
 
   useEffect(() => {
-    const escHandler = (e) => e.key === 'Escape' && onRequestClose();
-
     if (isOpen) {
       console.log(`[Popup] Opened: ${title}`);
       prevFocus.current = document.activeElement;
-      document.addEventListener('keydown', escHandler);
       setTimeout(() => ref.current?.focus(), 0);
     }
 
     return () => {
       if (isOpen) {
         console.log(`[Popup] Closed: ${title}`);
-        document.removeEventListener('keydown', escHandler);
         prevFocus.current?.focus();
       }
     };
-  }, [isOpen, onRequestClose, title]);
+  }, [isOpen, title]);
 
   if (!isOpen || !anchor) return null;
 
@@ -50,7 +48,7 @@ const InlineModal = ({ title, anchor, isOpen, onRequestClose, children, placemen
     : { top: anchor.top + anchor.height + window.scrollY, left: anchor.left + anchor.width / 2 + window.scrollX };
 
   return (
-    <div className="inline-modal-overlay" onClick={onRequestClose}>
+    <div className="inline-modal-overlay">
       <div
         className={`inline-modal ${placement}`}
         style={style}
@@ -116,7 +114,6 @@ function VesselDropdown({ isOpen, anchor, onRequestClose, value, onSave }) {
   const handleSelect = (v) => {
     console.log('[Popup] Selected: ' + v);
     onSave(v);
-    onRequestClose();
   };
   return (
     <SimpleModal
@@ -165,7 +162,6 @@ function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     if (field === 'size') setSize(val); else setLength(val);
     console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
-    onRequestClose();
   };
   return (
     <SimpleModal title={__('Puncture Needle', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -203,7 +199,6 @@ function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     if (field === 'frSize') setFrSize(val); else setLength(val);
     console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
-    onRequestClose();
   };
   return (
     <SimpleModal title={__('Sheath', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -243,7 +238,6 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     if (field === 'specific') setSpecific(val);
     console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
-    onRequestClose();
   };
   return (
     <SimpleModal title={__('Catheter', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -291,7 +285,6 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     }
     console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
-    onRequestClose();
   };
   return (
     <SimpleModal title={__('Wire', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -352,7 +345,6 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     if (field === 'length') setLen(val);
     console.log('[Popup] Updated: ', newVals);
     onSave({ platform: newVals.platform, diameter: newVals.diameter, length: newVals.length });
-    onRequestClose();
   };
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -403,7 +395,6 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     }
     console.log('[Popup] Updated: ', newVals);
     onSave({ platform: newVals.platform, type: newVals.type, material: newVals.material, diameter: newVals.diameter, length: newVals.length });
-    onRequestClose();
   };
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -448,7 +439,7 @@ function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave }) {
     <SimpleModal title={__('Special device', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
       <SelectControl label={__('Device', 'endoplanner')} value={device}
         options={options.map(v => ({ label:v, value:v }))}
-        onChange={(val)=>{ setDevice(val); console.log('[Popup] Selected: ' + val); onSave(val); onRequestClose(); }}
+        onChange={(val)=>{ setDevice(val); console.log('[Popup] Selected: ' + val); onSave(val); }}
       />
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
@@ -518,7 +509,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
         <div className="device-row">
         <DeviceButton
           label={data.vessel || __('Select vessel', 'endoplanner')}
-          img={needleImg}
+          img={vesselTreeIcon}
           onClick={(e) => {
             console.log('Open vessel modal', index);
             setVesselAnchor(e.currentTarget.getBoundingClientRect());
