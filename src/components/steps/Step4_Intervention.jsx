@@ -21,6 +21,9 @@ const deviceImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/miscdevice.jpg';
 const closureImg = deviceImg;
 
+// Simple utility to generate unique ids for dynamic rows
+const uid = () => Math.random().toString(36).substr(2, 9);
+
 // Accessible inline modal positioned relative to the triggering button
 const InlineModal = ({ title, anchor, isOpen, onRequestClose, children, placement = 'top' }) => {
   const ref = useRef(null);
@@ -106,6 +109,12 @@ DeviceButton.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
+// Helper to convert a selection object into a short label
+const summarize = (obj) => {
+  if (!obj || typeof obj !== 'object') return '';
+  return Object.values(obj).filter(Boolean).join(' ');
+};
+
 // --- Popup Components -----------------------------------------------------
 // Dropdown list of vessels displayed below the triggering button
 function VesselDropdown({ isOpen, anchor, onRequestClose, value, onSave }) {
@@ -164,7 +173,7 @@ function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     onSave(newVals);
   };
   return (
-    <SimpleModal title={__('Puncture Needle', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+    <SimpleModal title={__('Needle', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
       <SelectControl label={__('Needle size', 'endoplanner')} value={size}
         options={['19 Gauge','21 Gauge'].map(v => ({ label:v, value:v }))}
         onChange={(val) => handleChange('size', val)}
@@ -493,7 +502,23 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
   const [needleAnchor, setNeedleAnchor] = useState(null);
   const [sheathAnchor, setSheathAnchor] = useState(null);
   const [catAnchor, setCatAnchor] = useState(null);
+  const [needleIdx, setNeedleIdx] = useState(0);
+  const [sheathIdx, setSheathIdx] = useState(0);
+  const [catIdx, setCatIdx] = useState(0);
   const data = values || {};
+  const devices = data.deviceGroups || [{ needle: data.needle, sheath: data.sheath, catheter: data.catheter }];
+  const vesselLabel = data.vessel || __('Select vessel', 'endoplanner');
+
+  const updateDevice = (idx, field, val) => {
+    const newGroups = devices.map((g, i) => (i === idx ? { ...g, [field]: val } : g));
+    console.log('Update device group', idx, field, val);
+    onChange({ ...data, deviceGroups: newGroups });
+  };
+
+  const addDeviceGroup = () => {
+    console.log('Add device to access row', index);
+    onChange({ ...data, deviceGroups: [...devices, {}] });
+  };
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -508,7 +533,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
         </div>
         <div className="device-row">
         <DeviceButton
-          label={data.vessel || __('Select vessel', 'endoplanner')}
+          label={vesselLabel}
           img={vesselTreeIcon}
           onClick={(e) => {
             console.log('Open vessel modal', index);
@@ -516,34 +541,57 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
             setVesselOpen(true);
           }}
         />
-        <DeviceButton
-          label={__('Puncture needle', 'endoplanner')}
-          img={needleImg}
-          onClick={(e) => {
-            console.log('Open needle modal', index);
-            setNeedleAnchor(e.currentTarget.getBoundingClientRect());
-            setNeedleOpen(true);
-          }}
-        />
-        <DeviceButton
-          label={__('Sheath', 'endoplanner')}
-          img={sheathImg}
-          onClick={(e) => {
-            console.log('Open sheath modal', index);
-            setSheathAnchor(e.currentTarget.getBoundingClientRect());
-            setSheathOpen(true);
-          }}
-        />
-        <DeviceButton
-          label={__('Catheter', 'endoplanner')}
-          img={catheterImg}
-          onClick={(e) => {
-            console.log('Open catheter modal', index);
-            setCatAnchor(e.currentTarget.getBoundingClientRect());
-            setCatOpen(true);
-          }}
-        />
         </div>
+        {devices.map((grp, di) => {
+          const nLabel = summarize(grp.needle) || __('Needle', 'endoplanner');
+          const sLabel = summarize(grp.sheath) || __('Sheath', 'endoplanner');
+          const cLabel = summarize(grp.catheter) || __('Catheter', 'endoplanner');
+          return (
+            <div key={di} className="device-row-wrapper">
+              <div className="device-row">
+                <DeviceButton
+                  label={nLabel}
+                  img={needleImg}
+                  onClick={(e) => {
+                    console.log('Open needle modal', index, di);
+                    setNeedleIdx(di);
+                    setNeedleAnchor(e.currentTarget.getBoundingClientRect());
+                    setNeedleOpen(true);
+                  }}
+                />
+                <DeviceButton
+                  label={sLabel}
+                  img={sheathImg}
+                  onClick={(e) => {
+                    console.log('Open sheath modal', index, di);
+                    setSheathIdx(di);
+                    setSheathAnchor(e.currentTarget.getBoundingClientRect());
+                    setSheathOpen(true);
+                  }}
+                />
+                <DeviceButton
+                  label={cLabel}
+                  img={catheterImg}
+                  onClick={(e) => {
+                    console.log('Open catheter modal', index, di);
+                    setCatIdx(di);
+                    setCatAnchor(e.currentTarget.getBoundingClientRect());
+                    setCatOpen(true);
+                  }}
+                />
+              </div>
+              {di === devices.length - 1 && (
+                <button
+                  type="button"
+                  className="circle-btn add-device-btn"
+                  onClick={addDeviceGroup}
+                >
+                  +
+                </button>
+              )}
+            </div>
+          );
+        })}
         <RowControls onAdd={onAdd} onRemove={onRemove} />
         <VesselDropdown
           isOpen={vesselOpen}
@@ -564,30 +612,30 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
           setNeedleOpen(false);
           setNeedleAnchor(null);
         }}
-        values={data.needle || {}}
-        onSave={(val) => onChange({ ...data, needle: val })}
+        values={devices[needleIdx]?.needle || {}}
+        onSave={(val) => updateDevice(needleIdx, 'needle', val)}
         />
         <SheathModal
           isOpen={sheathOpen}
-        anchor={sheathAnchor}
-        onRequestClose={() => {
-          console.log('Close sheath modal');
-          setSheathOpen(false);
-          setSheathAnchor(null);
-        }}
-        values={data.sheath || {}}
-        onSave={(val) => onChange({ ...data, sheath: val })}
+          anchor={sheathAnchor}
+          onRequestClose={() => {
+            console.log('Close sheath modal');
+            setSheathOpen(false);
+            setSheathAnchor(null);
+          }}
+        values={devices[sheathIdx]?.sheath || {}}
+        onSave={(val) => updateDevice(sheathIdx, 'sheath', val)}
         />
         <CatheterModal
           isOpen={catOpen}
-        anchor={catAnchor}
-        onRequestClose={() => {
-          console.log('Close catheter modal');
-          setCatOpen(false);
-          setCatAnchor(null);
-        }}
-        values={data.catheter || {}}
-          onSave={(val) => onChange({ ...data, catheter: val })}
+          anchor={catAnchor}
+          onRequestClose={() => {
+            console.log('Close catheter modal');
+            setCatOpen(false);
+            setCatAnchor(null);
+          }}
+        values={devices[catIdx]?.catheter || {}}
+          onSave={(val) => updateDevice(catIdx, 'catheter', val)}
         />
       </div>
     </div>
@@ -604,13 +652,16 @@ function NavRow({ index, values, onChange, onAdd, onRemove }) {
   const [catAnchor, setCatAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
+  const wireLabel = summarize(data.wire) || __('Wire', 'endoplanner');
+  const catheterLabel = summarize(data.catheter) || __('Catheter', 'endoplanner');
+  const devLabel = data.device || __('Special device', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
       <div className="row-inner">
         <div className="device-row">
         <DeviceButton
-          label={__('Wire', 'endoplanner')}
+          label={wireLabel}
           img={wireImg}
           onClick={(e) => {
             console.log('Open wire modal', index);
@@ -619,7 +670,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove }) {
           }}
         />
         <DeviceButton
-          label={__('Catheter', 'endoplanner')}
+          label={catheterLabel}
           img={catheterImg}
           onClick={(e) => {
             console.log('Open catheter modal', index);
@@ -628,7 +679,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove }) {
           }}
         />
         <DeviceButton
-          label={__('Special device', 'endoplanner')}
+          label={devLabel}
           img={deviceImg}
           onClick={(e) => {
             console.log('Open special device modal', index);
@@ -692,7 +743,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
       <div className="row-inner">
         <div className="device-row">
         <DeviceButton
-          label={__('PTA balloon', 'endoplanner')}
+          label={balloonLabel}
           img={balloonImg}
           onClick={(e) => {
             console.log('Open balloon modal', index);
@@ -701,7 +752,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
           }}
         />
         <DeviceButton
-          label={__('Stent', 'endoplanner')}
+          label={stentLabel}
           img={stentImg}
           onClick={(e) => {
             console.log('Open stent modal', index);
@@ -710,7 +761,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
           }}
         />
         <DeviceButton
-          label={__('Special device', 'endoplanner')}
+          label={devLabel}
           img={deviceImg}
           onClick={(e) => {
             console.log('Open special device modal', index);
@@ -765,6 +816,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove }) {
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
   const method = data.method || 'Manual pressure';
+  const devLabel3 = data.device || __('Select device', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -780,7 +832,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove }) {
         <div className="device-row">
         {method === 'Closure device' && (
           <DeviceButton
-            label={__('Select device', 'endoplanner')}
+            label={devLabel3}
             img={closureImg}
             onClick={(e) => {
               console.log('Open closure device modal', index);
@@ -811,10 +863,12 @@ ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.o
 
 // --- Main Step Component --------------------------------------------------
 export default function Step4({ data, setData }) {
-  const [accessRows, setAccessRows] = useState(data.accessRows || [{}]);
-  const [navRows, setNavRows] = useState(data.navRows || [{}]);
-  const [therapyRows, setTherapyRows] = useState(data.therapyRows || [{}]);
-  const [closureRows, setClosureRows] = useState(data.closureRows || [{}]);
+  const initRows = (arr) =>
+    arr && arr.length ? arr.map((r) => ({ id: r.id || uid(), ...r })) : [{ id: uid() }];
+  const [accessRows, setAccessRows] = useState(initRows(data.accessRows));
+  const [navRows, setNavRows] = useState(initRows(data.navRows));
+  const [therapyRows, setTherapyRows] = useState(initRows(data.therapyRows));
+  const [closureRows, setClosureRows] = useState(initRows(data.closureRows));
 
   useEffect(() => {
     setData({ ...data, accessRows, navRows, therapyRows, closureRows });
@@ -826,10 +880,10 @@ export default function Step4({ data, setData }) {
       <section className="intervention-section">
         <div className="section-heading">{__('Access', 'endoplanner')}</div>
         {accessRows.map((row, i) => (
-          <AccessRow key={i} index={i} values={row}
-            onChange={val => setAccessRows(prev => prev.map((r, idx) => idx === i ? val : r))}
-            onAdd={() => setAccessRows(prev => [...prev, {}])}
-            onRemove={() => setAccessRows(prev => prev.filter((_, idx) => idx !== i))}
+          <AccessRow key={row.id} index={i} values={row}
+            onChange={val => setAccessRows(prev => prev.map(r => r.id === row.id ? val : r))}
+            onAdd={() => setAccessRows(prev => [...prev, { id: uid() }])}
+            onRemove={() => setAccessRows(prev => prev.filter(r => r.id !== row.id))}
           />
         ))}
       </section>
@@ -837,10 +891,10 @@ export default function Step4({ data, setData }) {
       <section className="intervention-section">
         <div className="section-heading">{__('Navigation & Crossing', 'endoplanner')}</div>
         {navRows.map((row, i) => (
-          <NavRow key={i} index={i} values={row}
-            onChange={val => setNavRows(prev => prev.map((r, idx) => idx === i ? val : r))}
-            onAdd={() => setNavRows(prev => [...prev, {}])}
-            onRemove={() => setNavRows(prev => prev.filter((_, idx) => idx !== i))}
+          <NavRow key={row.id} index={i} values={row}
+            onChange={val => setNavRows(prev => prev.map(r => r.id === row.id ? val : r))}
+            onAdd={() => setNavRows(prev => [...prev, { id: uid() }])}
+            onRemove={() => setNavRows(prev => prev.filter(r => r.id !== row.id))}
           />
         ))}
       </section>
@@ -848,10 +902,10 @@ export default function Step4({ data, setData }) {
       <section className="intervention-section">
         <div className="section-heading">{__('Vessel preparation & therapy', 'endoplanner')}</div>
         {therapyRows.map((row, i) => (
-          <TherapyRow key={i} index={i} values={row}
-            onChange={val => setTherapyRows(prev => prev.map((r, idx) => idx === i ? val : r))}
-            onAdd={() => setTherapyRows(prev => [...prev, {}])}
-            onRemove={() => setTherapyRows(prev => prev.filter((_, idx) => idx !== i))}
+          <TherapyRow key={row.id} index={i} values={row}
+            onChange={val => setTherapyRows(prev => prev.map(r => r.id === row.id ? val : r))}
+            onAdd={() => setTherapyRows(prev => [...prev, { id: uid() }])}
+            onRemove={() => setTherapyRows(prev => prev.filter(r => r.id !== row.id))}
           />
         ))}
       </section>
@@ -859,10 +913,10 @@ export default function Step4({ data, setData }) {
       <section className="intervention-section">
         <div className="section-heading">{__('Closure', 'endoplanner')}</div>
         {closureRows.map((row, i) => (
-          <ClosureRow key={i} index={i} values={row}
-            onChange={val => setClosureRows(prev => prev.map((r, idx) => idx === i ? val : r))}
-            onAdd={() => setClosureRows(prev => [...prev, {}])}
-            onRemove={() => setClosureRows(prev => prev.filter((_, idx) => idx !== i))}
+          <ClosureRow key={row.id} index={i} values={row}
+            onChange={val => setClosureRows(prev => prev.map(r => r.id === row.id ? val : r))}
+            onAdd={() => setClosureRows(prev => [...prev, { id: uid() }])}
+            onRemove={() => setClosureRows(prev => prev.filter(r => r.id !== row.id))}
           />
         ))}
       </section>
