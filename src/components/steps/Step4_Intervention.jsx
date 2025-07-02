@@ -651,76 +651,96 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
           onChange={(val) => { console.log('Access approach', val); onChange({ ...data, approach: val }); }}
         />
         </div>
-        <div className="device-row">
-        <DeviceButton
-          label={vesselLabel}
-          img={vesselTreeIcon}
-          onClick={(e) => {
-            console.log('Open vessel modal', index);
-            setVesselAnchor(e.currentTarget.getBoundingClientRect());
-            setVesselOpen(true);
-          }}
-        />
-        </div>
-        <div className="device-row">
-          {needles.map((n, i) => (
-            <div key={`n${i}`} className="device-row-wrapper">
-              <DeviceButton
-                label={shortLabel('needle', n) || __('choose needle', 'endoplanner')}
-                img={needleImg}
-                onClick={(e) => {
-                  console.log('Open needle modal', index, i);
-                  setNeedleIdx(i);
-                  setNeedleAnchor(e.currentTarget.getBoundingClientRect());
-                  setNeedleOpen(true);
-                }}
-              />
-              {i > 0 && (
-                <button type="button" className="device-inline-btn remove-btn" onClick={() => removeNeedle(i)}>&minus;</button>
-              )}
-              <button type="button" className="device-inline-btn add-btn" onClick={addNeedle}>+</button>
-            </div>
-          ))}
-        </div>
-        <div className="device-row">
-          {sheaths.map((s, i) => (
-            <div key={`s${i}`} className="device-row-wrapper">
-              <DeviceButton
-                label={shortLabel('sheath', s) || __('choose sheath', 'endoplanner')}
-                img={sheathImg}
-                onClick={(e) => {
-                  console.log('Open sheath modal', index, i);
-                  setSheathIdx(i);
-                  setSheathAnchor(e.currentTarget.getBoundingClientRect());
-                  setSheathOpen(true);
-                }}
-              />
-              {i > 0 && (
-                <button type="button" className="device-inline-btn remove-btn" onClick={() => removeSheath(i)}>&minus;</button>
-              )}
-              <button type="button" className="device-inline-btn add-btn" onClick={addSheath}>+</button>
-            </div>
-          ))}
-        </div>
-        <div className="device-row">
-          {catheters.map((c, i) => (
-            <div key={`c${i}`} className="device-row-wrapper">
-              <DeviceButton
-                label={shortLabel('catheter', c) || __('choose catheter', 'endoplanner')}
-                img={catheterImg}
-                onClick={(e) => {
-                  console.log('Open catheter modal', index, i);
-                  setCatIdx(i);
-                  setCatAnchor(e.currentTarget.getBoundingClientRect());
-                  setCatOpen(true);
-                }}
-              />
-              {i > 0 && (
-                <button type="button" className="device-inline-btn remove-btn" onClick={() => removeCatheter(i)}>&minus;</button>
-              )}
-              <button type="button" className="device-inline-btn add-btn" onClick={addCatheter}>+</button>
-            </div>
-          ))}
+        <div className="device-grid">
+          <div className="device-column">
+            <DeviceButton
+              label={vesselLabel}
+              img={vesselTreeIcon}
+              onClick={(e) => {
+                console.log('Open vessel modal', index);
+                setVesselAnchor(e.currentTarget.getBoundingClientRect());
+                setVesselOpen(true);
+              }}
+            />
+          </div>
+          <div className="device-column">
+            {needles.map((n, i) => (
+              <div key={`n${i}`} className="device-wrapper">
+                <DeviceButton
+                  label={shortLabel('needle', n) || __('choose needle', 'endoplanner')}
+                  img={needleImg}
+                  onClick={(e) => {
+                    console.log('Open needle modal', index, i);
+                    setNeedleIdx(i);
+                    setNeedleAnchor(e.currentTarget.getBoundingClientRect());
+                    setNeedleOpen(true);
+                  }}
+                />
+                <div className="device-controls">
+                  {i > 0 && (
+                    <button type="button" className="device-inline-btn remove-btn" onClick={() => removeNeedle(i)}>
+                      &minus;
+                    </button>
+                  )}
+                  <button type="button" className="device-inline-btn add-btn" onClick={addNeedle}>
+                    +
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="device-column">
+            {sheaths.map((s, i) => (
+              <div key={`s${i}`} className="device-wrapper">
+                <DeviceButton
+                  label={shortLabel('sheath', s) || __('choose sheath', 'endoplanner')}
+                  img={sheathImg}
+                  onClick={(e) => {
+                    console.log('Open sheath modal', index, i);
+                    setSheathIdx(i);
+                    setSheathAnchor(e.currentTarget.getBoundingClientRect());
+                    setSheathOpen(true);
+                  }}
+                />
+                <div className="device-controls">
+                  {i > 0 && (
+                    <button type="button" className="device-inline-btn remove-btn" onClick={() => removeSheath(i)}>
+                      &minus;
+                    </button>
+                  )}
+                  <button type="button" className="device-inline-btn add-btn" onClick={addSheath}>
+                    +
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="device-column">
+            {catheters.map((c, i) => (
+              <div key={`c${i}`} className="device-wrapper">
+                <DeviceButton
+                  label={shortLabel('catheter', c) || __('choose catheter', 'endoplanner')}
+                  img={catheterImg}
+                  onClick={(e) => {
+                    console.log('Open catheter modal', index, i);
+                    setCatIdx(i);
+                    setCatAnchor(e.currentTarget.getBoundingClientRect());
+                    setCatOpen(true);
+                  }}
+                />
+                <div className="device-controls">
+                  {i > 0 && (
+                    <button type="button" className="device-inline-btn remove-btn" onClick={() => removeCatheter(i)}>
+                      &minus;
+                    </button>
+                  )}
+                  <button type="button" className="device-inline-btn add-btn" onClick={addCatheter}>
+                    +
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
         <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
         <VesselDropdown

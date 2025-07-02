@@ -657,31 +657,32 @@ svg .vessel-path:hover {
   width: 100%;
 }
 
-.device-row-wrapper {
-  /* wrap each device button so +/− controls can be positioned over it */
-  position: relative;
-  display: inline-flex;
-  margin: 0 0.5rem 1.5rem;
-}
-
-.add-device-btn {
-  position: absolute;
-  right: 0;
-  bottom: -14px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #113195;
-  color: #fff;
-  border: none;
+// layout holding one column per device type
+.device-grid {
   display: flex;
-  align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  gap: 1rem;
+  width: 100%;
+  flex-wrap: nowrap;
 }
 
-/* small inline add/remove controls placed at bottom-right of each selector */
+
+// container for a column of device selectors (e.g. all needles)
+.device-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+// wrapper around each individual selector so controls sit below
+.device-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* small inline add/remove controls placed below each selector */
 .device-inline-btn {
   width: 22px; /* smaller than main selector */
   height: 22px;
@@ -694,13 +695,14 @@ svg .vessel-path:hover {
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  position: absolute;
-  bottom: -10px;
-  right: 0;
   font-size: 12px;
 }
-.device-inline-btn.remove-btn {
-  right: 26px;
+.device-controls {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: 4px;
 }
 
 .device-button {
