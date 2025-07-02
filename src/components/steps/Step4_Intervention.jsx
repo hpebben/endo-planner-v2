@@ -24,8 +24,11 @@ const closureImg = deviceImg;
 // Simple utility to generate unique ids for dynamic rows
 const uid = () => Math.random().toString(36).substr(2, 9);
 
-// Accessible inline modal positioned relative to the triggering button
-const InlineModal = ({ title, anchor, isOpen, onRequestClose, children, placement = 'top' }) => {
+// Accessible inline modal centered in the viewport. Previously this was anchored
+// to the triggering element, but UX testing showed the popup should appear
+// centered and scroll independently of the page.  The `anchor` prop is kept so
+// existing calls do not break, but it is ignored.
+const InlineModal = ({ title, isOpen, onRequestClose, children }) => {
   const ref = useRef(null);
   const prevFocus = useRef(null);
 
@@ -44,17 +47,12 @@ const InlineModal = ({ title, anchor, isOpen, onRequestClose, children, placemen
     };
   }, [isOpen, title]);
 
-  if (!isOpen || !anchor) return null;
-
-  const style = placement === 'top'
-    ? { top: anchor.top + window.scrollY, left: anchor.left + anchor.width / 2 + window.scrollX }
-    : { top: anchor.top + anchor.height + window.scrollY, left: anchor.left + anchor.width / 2 + window.scrollX };
+  if (!isOpen) return null;
 
   return (
-    <div className="inline-modal-overlay">
+    <div className="inline-modal-overlay" onClick={onRequestClose}>
       <div
-        className={`inline-modal ${placement}`}
-        style={style}
+        className="inline-modal centered"
         onClick={(e) => e.stopPropagation()}
         ref={ref}
         tabIndex="-1"
@@ -68,7 +66,6 @@ const InlineModal = ({ title, anchor, isOpen, onRequestClose, children, placemen
 
 InlineModal.propTypes = {
   title: PropTypes.string.isRequired,
-  anchor: PropTypes.object,
   isOpen: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
@@ -79,7 +76,6 @@ const SimpleModal = (props) => <InlineModal {...props} />;
 
 SimpleModal.propTypes = {
   title: PropTypes.string.isRequired,
-  anchor: PropTypes.object,
   isOpen: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
@@ -109,10 +105,29 @@ DeviceButton.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-// Helper to convert a selection object into a short label
+// Helper to convert a selection object into a short label.  For the button text
+// we only want the most recognisable parameter (gauge, platform, size, etc.).
 const summarize = (obj) => {
   if (!obj || typeof obj !== 'object') return '';
   return Object.values(obj).filter(Boolean).join(' ');
+};
+
+const shortLabel = (type, obj) => {
+  if (!obj || typeof obj !== 'object') return '';
+  switch (type) {
+    case 'needle':
+      return obj.size ? obj.size.replace(' Gauge', '') : '';
+    case 'sheath':
+      return obj.frSize || '';
+    case 'catheter':
+      return obj.size || '';
+    case 'wire':
+    case 'balloon':
+    case 'stent':
+      return obj.platform || '';
+    default:
+      return summarize(obj);
+  }
 };
 
 // --- Popup Components -----------------------------------------------------
@@ -579,7 +594,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [sheathIdx, setSheathIdx] = useState(0);
   const [catIdx, setCatIdx] = useState(0);
   const data = values || {};
-  const vesselLabel = data.vessel || __('choose below', 'endoplanner');
+  const vesselLabel = data.vessel || __('choose vessel', 'endoplanner');
   const needles = data.needles || [{}];
   const sheaths = data.sheaths || [{}];
   const catheters = data.catheters || [{}];
@@ -650,66 +665,60 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
         <div className="device-row">
           {needles.map((n, i) => (
             <div key={`n${i}`} className="device-row-wrapper">
-              <div className="device-row">
-                <DeviceButton
-                  label={summarize(n) || __('choose below', 'endoplanner')}
-                  img={needleImg}
-                  onClick={(e) => {
-                    console.log('Open needle modal', index, i);
-                    setNeedleIdx(i);
-                    setNeedleAnchor(e.currentTarget.getBoundingClientRect());
-                    setNeedleOpen(true);
-                  }}
-                />
-                {i > 0 && (
-                  <button type="button" className="device-inline-btn" onClick={() => removeNeedle(i)}>&minus;</button>
-                )}
-                <button type="button" className="device-inline-btn" onClick={addNeedle}>+</button>
-              </div>
+              <DeviceButton
+                label={shortLabel('needle', n) || __('choose needle', 'endoplanner')}
+                img={needleImg}
+                onClick={(e) => {
+                  console.log('Open needle modal', index, i);
+                  setNeedleIdx(i);
+                  setNeedleAnchor(e.currentTarget.getBoundingClientRect());
+                  setNeedleOpen(true);
+                }}
+              />
+              {i > 0 && (
+                <button type="button" className="device-inline-btn remove-btn" onClick={() => removeNeedle(i)}>&minus;</button>
+              )}
+              <button type="button" className="device-inline-btn add-btn" onClick={addNeedle}>+</button>
             </div>
           ))}
         </div>
         <div className="device-row">
           {sheaths.map((s, i) => (
             <div key={`s${i}`} className="device-row-wrapper">
-              <div className="device-row">
-                <DeviceButton
-                  label={summarize(s) || __('choose below', 'endoplanner')}
-                  img={sheathImg}
-                  onClick={(e) => {
-                    console.log('Open sheath modal', index, i);
-                    setSheathIdx(i);
-                    setSheathAnchor(e.currentTarget.getBoundingClientRect());
-                    setSheathOpen(true);
-                  }}
-                />
-                {i > 0 && (
-                  <button type="button" className="device-inline-btn" onClick={() => removeSheath(i)}>&minus;</button>
-                )}
-                <button type="button" className="device-inline-btn" onClick={addSheath}>+</button>
-              </div>
+              <DeviceButton
+                label={shortLabel('sheath', s) || __('choose sheath', 'endoplanner')}
+                img={sheathImg}
+                onClick={(e) => {
+                  console.log('Open sheath modal', index, i);
+                  setSheathIdx(i);
+                  setSheathAnchor(e.currentTarget.getBoundingClientRect());
+                  setSheathOpen(true);
+                }}
+              />
+              {i > 0 && (
+                <button type="button" className="device-inline-btn remove-btn" onClick={() => removeSheath(i)}>&minus;</button>
+              )}
+              <button type="button" className="device-inline-btn add-btn" onClick={addSheath}>+</button>
             </div>
           ))}
         </div>
         <div className="device-row">
           {catheters.map((c, i) => (
             <div key={`c${i}`} className="device-row-wrapper">
-              <div className="device-row">
-                <DeviceButton
-                  label={summarize(c) || __('choose below', 'endoplanner')}
-                  img={catheterImg}
-                  onClick={(e) => {
-                    console.log('Open catheter modal', index, i);
-                    setCatIdx(i);
-                    setCatAnchor(e.currentTarget.getBoundingClientRect());
-                    setCatOpen(true);
-                  }}
-                />
-                {i > 0 && (
-                  <button type="button" className="device-inline-btn" onClick={() => removeCatheter(i)}>&minus;</button>
-                )}
-                <button type="button" className="device-inline-btn" onClick={addCatheter}>+</button>
-              </div>
+              <DeviceButton
+                label={shortLabel('catheter', c) || __('choose catheter', 'endoplanner')}
+                img={catheterImg}
+                onClick={(e) => {
+                  console.log('Open catheter modal', index, i);
+                  setCatIdx(i);
+                  setCatAnchor(e.currentTarget.getBoundingClientRect());
+                  setCatOpen(true);
+                }}
+              />
+              {i > 0 && (
+                <button type="button" className="device-inline-btn remove-btn" onClick={() => removeCatheter(i)}>&minus;</button>
+              )}
+              <button type="button" className="device-inline-btn add-btn" onClick={addCatheter}>+</button>
             </div>
           ))}
         </div>
@@ -773,9 +782,9 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [catAnchor, setCatAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
-  const wireLabel = summarize(data.wire) || __('choose below', 'endoplanner');
-  const catheterLabel = summarize(data.catheter) || __('choose below', 'endoplanner');
-  const devLabel = data.device || __('choose below', 'endoplanner');
+  const wireLabel = shortLabel('wire', data.wire) || __('choose wire', 'endoplanner');
+  const catheterLabel = shortLabel('catheter', data.catheter) || __('choose catheter', 'endoplanner');
+  const devLabel = data.device || __('choose device', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -858,9 +867,9 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [stentAnchor, setStentAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
-  const balloonLabel = summarize(data.balloon) || __('choose below', 'endoplanner');
-  const stentLabel = summarize(data.stent) || __('choose below', 'endoplanner');
-  const devLabel = data.device || __('choose below', 'endoplanner');
+  const balloonLabel = shortLabel('balloon', data.balloon) || __('choose balloon', 'endoplanner');
+  const stentLabel = shortLabel('stent', data.stent) || __('choose stent', 'endoplanner');
+  const devLabel = data.device || __('choose device', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -940,7 +949,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
   const method = data.method || 'Manual pressure';
-  const devLabel3 = data.device || __('choose below', 'endoplanner');
+  const devLabel3 = data.device || __('choose closure device', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
