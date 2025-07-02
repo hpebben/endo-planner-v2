@@ -643,12 +643,43 @@ svg .vessel-path:hover {
   justify-content: center;
   align-items: center;
 }
+
+/* inline radio groups everywhere */
+.components-radio-control__input-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
 .device-row {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: 1rem;
   width: 100%;
+}
+
+.device-row-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.add-device-btn {
+  position: absolute;
+  right: 0;
+  bottom: -14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #113195;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 .device-button {
