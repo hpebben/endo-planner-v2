@@ -737,6 +737,10 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
   const [stentAnchor, setStentAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
+  const balloonLabel =
+    summarize(data.balloon) || __('PTA Balloon', 'endoplanner');
+  const stentLabel = summarize(data.stent) || __('Stent', 'endoplanner');
+  const devLabel = data.device || __('Special device', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>

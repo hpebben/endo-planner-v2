@@ -7,7 +7,11 @@ import Wizard from './components/wizard';
 // current readyState and call the mount function immediately when possible.
 const mount = () => {
   document.querySelectorAll('.endoplanner-root').forEach((container) => {
-    ReactDOM.render(<Wizard />, container);
+    try {
+      ReactDOM.render(<Wizard />, container);
+    } catch (err) {
+      console.error('Error rendering Endoplanner wizard:', err);
+    }
   });
 };
 
