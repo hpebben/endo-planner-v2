@@ -616,17 +616,15 @@ svg .vessel-path:hover {
   padding-bottom: 0.5rem;
   margin: 2rem 0 2.5rem; /* at least 40px below heading */
 }
-.section-heading::before,
 .section-heading::after {
   content: '';
   position: absolute;
+  left: 0;
+  right: 0;
   top: 100%;
-  width: 45%;
   height: 3px;
   background: #113195;
 }
-.section-heading::before { left: 0; }
-.section-heading::after { right: 0; }
 .selector-row {
   width: 100%;
   text-align: center;
@@ -680,6 +678,22 @@ svg .vessel-path:hover {
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* small inline add/remove controls next to device buttons */
+.device-inline-btn {
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: #113195;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .device-button {
@@ -774,6 +788,13 @@ svg .vessel-path:hover {
 .inline-modal select:focus {
   outline: none;
   box-shadow: 0 0 0 2px #113195;
+}
+.custom-device-input {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
 .modal-header {
   font-weight: 600;

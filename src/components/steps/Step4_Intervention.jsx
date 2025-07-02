@@ -133,6 +133,11 @@ function VesselDropdown({ isOpen, anchor, onRequestClose, value, onSave }) {
       onRequestClose={onRequestClose}
     >
       <ul className="vessel-dropdown">
+        <li>
+          <button type="button" className="dropdown-item" disabled>
+            {__('choose below', 'endoplanner')}
+          </button>
+        </li>
         {vessels.map((v) => (
           <li key={v}>
             <button
@@ -163,9 +168,9 @@ VesselDropdown.propTypes = {
 };
 
 function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [size, setSize] = useState(values.size || '19 Gauge');
-  const [length, setLength] = useState(values.length || '4cm');
-  useEffect(() => { setSize(values.size || '19 Gauge'); setLength(values.length || '4cm'); }, [values]);
+  const [size, setSize] = useState(values.size || '');
+  const [length, setLength] = useState(values.length || '');
+  useEffect(() => { setSize(values.size || ''); setLength(values.length || ''); }, [values]);
   const handleChange = (field, val) => {
     const newVals = { size, length, [field]: val };
     if (field === 'size') setSize(val); else setLength(val);
@@ -174,12 +179,16 @@ function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Needle', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl label={__('Needle size', 'endoplanner')} value={size}
-        options={['19 Gauge','21 Gauge'].map(v => ({ label:v, value:v }))}
+      <SelectControl
+        label={__('Needle size', 'endoplanner')}
+        value={size}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...['19 Gauge', '21 Gauge'].map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('size', val)}
       />
-      <SelectControl label={__('Needle length', 'endoplanner')} value={length}
-        options={['4cm','7cm','9cm'].map(v => ({ label:v, value:v }))}
+      <SelectControl
+        label={__('Needle length', 'endoplanner')}
+        value={length}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...['4cm', '7cm', '9cm'].map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
       />
       <div className="popup-close-row">
@@ -198,9 +207,9 @@ NeedleModal.propTypes = {
 };
 
 function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [frSize, setFrSize] = useState(values.frSize || '4 Fr');
-  const [length, setLength] = useState(values.length || '10 cm');
-  useEffect(() => { setFrSize(values.frSize || '4 Fr'); setLength(values.length || '10 cm'); }, [values]);
+  const [frSize, setFrSize] = useState(values.frSize || '');
+  const [length, setLength] = useState(values.length || '');
+  useEffect(() => { setFrSize(values.frSize || ''); setLength(values.length || ''); }, [values]);
   const sizes = ['4 Fr','5 Fr','6 Fr','7 Fr','8 Fr','9 Fr'];
   const lengths = ['10 cm','12 cm','25 cm'];
   const handleChange = (field, val) => {
@@ -211,11 +220,17 @@ function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Sheath', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl label={__('French size', 'endoplanner')} value={frSize}
-        options={sizes.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('frSize', val)}
+      <SelectControl
+        label={__('French size', 'endoplanner')}
+        value={frSize}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
+        onChange={(val) => handleChange('frSize', val)}
       />
-      <SelectControl label={__('Length', 'endoplanner')} value={length}
-        options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
+      <SelectControl
+        label={__('Length', 'endoplanner')}
+        value={length}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
+        onChange={(val) => handleChange('length', val)}
       />
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
@@ -233,10 +248,10 @@ SheathModal.propTypes = {
 };
 
 function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [size, setSize] = useState(values.size || '2.3 Fr');
-  const [length, setLength] = useState(values.length || '40 cm');
-  const [specific, setSpecific] = useState(values.specific || 'BER2');
-  useEffect(() => { setSize(values.size || '2.3 Fr'); setLength(values.length || '40 cm'); setSpecific(values.specific || 'BER2'); }, [values]);
+  const [size, setSize] = useState(values.size || '');
+  const [length, setLength] = useState(values.length || '');
+  const [specific, setSpecific] = useState(values.specific || '');
+  useEffect(() => { setSize(values.size || ''); setLength(values.length || ''); setSpecific(values.specific || ''); }, [values]);
   const sizes = ['2.3 Fr','2.6 Fr','4 Fr','5 Fr','6 Fr','7 Fr'];
   const lengths = ['40 cm','65 cm','80 cm','90 cm','105 cm','110 cm','125 cm','135 cm','150 cm'];
   const specifics = ['BER2','BHW','Cobra 1','Cobra 2','Cobra 3','Cobra Glidecath','CXI 0.018','CXI 0.014','Navicross 0.018','Navicross 0.035','MultiPurpose','PIER','Pigtail Flush','Straight Flush','Universal Flush','Rim','Simmons 1','Simmons 2','Simmons 3','Vertebral'];
@@ -250,9 +265,24 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Catheter', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl label={__('French size', 'endoplanner')} value={size} options={sizes.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('size', val)} />
-      <SelectControl label={__('Length', 'endoplanner')} value={length} options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)} />
-      <SelectControl label={__('Specific catheter', 'endoplanner')} value={specific} options={specifics.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('specific', val)} />
+      <SelectControl
+        label={__('French size', 'endoplanner')}
+        value={size}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
+        onChange={(val) => handleChange('size', val)}
+      />
+      <SelectControl
+        label={__('Length', 'endoplanner')}
+        value={length}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
+        onChange={(val) => handleChange('length', val)}
+      />
+      <SelectControl
+        label={__('Specific catheter', 'endoplanner')}
+        value={specific}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...specifics.map(v => ({ label: v, value: v }))]}
+        onChange={(val) => handleChange('specific', val)}
+      />
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
       </div>
@@ -309,13 +339,19 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
         onChange={(val)=>handleChange('type', val)}
       />
       {type === 'CTO wire' && (
-        <SelectControl label={__('Body type', 'endoplanner')} value={body}
-          options={bodyOpts.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('body', val)}
+        <SelectControl
+          label={__('Body type', 'endoplanner')}
+          value={body}
+          options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...bodyOpts.map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('body', val)}
         />
       )}
       {type === 'Support wire' && (
-        <SelectControl label={__('Support wire', 'endoplanner')} value={support}
-          options={supportOpts.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('support', val)}
+        <SelectControl
+          label={__('Support wire', 'endoplanner')}
+          value={support}
+          options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...supportOpts.map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('support', val)}
         />
       )}
       <RadioControl label={__('Technique', 'endoplanner')} selected={technique}
@@ -343,8 +379,8 @@ WireModal.propTypes = {
 function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   const [platform, setPlatform] = useState(values.platform || '0.014');
   const [diameter, setDiameter] = useState(values.diameter || '1.5');
-  const [len, setLen] = useState(values.length || '10');
-  useEffect(() => { setPlatform(values.platform || '0.014'); setDiameter(values.diameter || '1.5'); setLen(values.length || '10'); }, [values]);
+  const [len, setLen] = useState(values.length || '');
+  useEffect(() => { setPlatform(values.platform || '0.014'); setDiameter(values.diameter || '1.5'); setLen(values.length || ''); }, [values]);
   const diameters = { '0.014':['1.5','2','2.5','3.5','4'], '0.018':['2','2.5','3','4','5','5.5','6','7'], '0.035':['3','4','5','6','7','8','9','10','12','14'] };
   const lengths = ['10','12','15','18','20','30','40','50','60','70','80','90','100','110','120'];
   const handleChange = (field, val) => {
@@ -364,8 +400,11 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
       <SelectControl label={__('Diameter', 'endoplanner')} value={diameter}
         options={diameters[platform].map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
       />
-      <SelectControl label={__('Length (mm)', 'endoplanner')} value={len}
-        options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
+      <SelectControl
+        label={__('Length (mm)', 'endoplanner')}
+        value={len}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
+        onChange={(val) => handleChange('length', val)}
       />
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
@@ -419,11 +458,17 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
         options={[{label:'bare metal',value:'bare metal'},{label:'covered',value:'covered'}]}
         onChange={(val)=>handleChange('material', val)}
       />
-      <SelectControl label={__('Diameter', 'endoplanner')} value={dia}
-        options={stentDia[platform].map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
+      <SelectControl
+        label={__('Diameter', 'endoplanner')}
+        value={dia}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...stentDia[platform].map(v => ({ label: v, value: v }))]}
+        onChange={(val) => handleChange('diameter', val)}
       />
-      <SelectControl label={__('Length', 'endoplanner')} value={len}
-        options={stentLen[platform].map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
+      <SelectControl
+        label={__('Length', 'endoplanner')}
+        value={len}
+        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...stentLen[platform].map(v => ({ label: v, value: v }))]}
+        onChange={(val) => handleChange('length', val)}
       />
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
@@ -441,15 +486,41 @@ StentModal.propTypes = {
 };
 
 function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave }) {
-  const [device, setDevice] = useState(value || 'Re-entry device');
-  useEffect(() => { setDevice(value || 'Re-entry device'); }, [value]);
-  const options = ['Re-entry device','IVUS catheter','Vascular plug','Embolization coils','Closure device','Shockwave','Scoring balloon','Atherectomy device','Thrombectomy device','Miscellaneous'];
+  const optionList = ['Re-entry device','IVUS catheter','Vascular plug','Embolization coils','Closure device','Shockwave','Scoring balloon','Atherectomy device','Thrombectomy device','Custom'];
+  const initIsKnown = optionList.includes(value);
+  const [device, setDevice] = useState(initIsKnown ? value : 'Custom');
+  const [customText, setCustomText] = useState(initIsKnown ? '' : value || '');
+  useEffect(() => {
+    const known = optionList.includes(value);
+    setDevice(known ? value : 'Custom');
+    setCustomText(known ? '' : value || '');
+  }, [value]);
+  const handleSave = (val, customVal = customText) => {
+    console.log('[Popup] Selected: ' + val);
+    setDevice(val);
+    if (val !== 'Custom') {
+      onSave(val);
+    } else {
+      onSave(customVal);
+    }
+  };
   return (
     <SimpleModal title={__('Special device', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl label={__('Device', 'endoplanner')} value={device}
-        options={options.map(v => ({ label:v, value:v }))}
-        onChange={(val)=>{ setDevice(val); console.log('[Popup] Selected: ' + val); onSave(val); }}
+      <SelectControl
+        label={__('Device', 'endoplanner')}
+        value={device}
+        options={optionList.map(v => ({ label: v, value: v }))}
+        onChange={(val)=> handleSave(val)}
       />
+      {device === 'Custom' && (
+        <input
+          type="text"
+          className="custom-device-input"
+          value={customText}
+          onChange={e => { setCustomText(e.target.value); console.log('[Popup] Custom text', e.target.value); handleSave('Custom', e.target.value); }}
+          placeholder={__('Enter custom device', 'endoplanner')}
+        />
+      )}
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
       </div>
@@ -466,7 +537,7 @@ DeviceModal.propTypes = {
 };
 
 // --- Row components -------------------------------------------------------
-const RowControls = ({ onAdd, onRemove }) => (
+const RowControls = ({ onAdd, onRemove, showRemove }) => (
   <div className="row-controls">
     {/* debugging add/remove row clicks */}
     <button
@@ -479,21 +550,23 @@ const RowControls = ({ onAdd, onRemove }) => (
     >
       +
     </button>
-    <button
-      type="button"
-      className="circle-btn remove-row-btn"
-      onClick={() => {
-        console.log('Remove row');
-        onRemove();
-      }}
-    >
-      &minus;
-    </button>
+    {showRemove && (
+      <button
+        type="button"
+        className="circle-btn remove-row-btn"
+        onClick={() => {
+          console.log('Remove row');
+          onRemove();
+        }}
+      >
+        &minus;
+      </button>
+    )}
   </div>
 );
-RowControls.propTypes = { onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
+RowControls.propTypes = { onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
 
-function AccessRow({ index, values, onChange, onAdd, onRemove }) {
+function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [vesselOpen, setVesselOpen] = useState(false);
   const [needleOpen, setNeedleOpen] = useState(false);
   const [sheathOpen, setSheathOpen] = useState(false);
@@ -506,18 +579,50 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
   const [sheathIdx, setSheathIdx] = useState(0);
   const [catIdx, setCatIdx] = useState(0);
   const data = values || {};
-  const devices = data.deviceGroups || [{ needle: data.needle, sheath: data.sheath, catheter: data.catheter }];
-  const vesselLabel = data.vessel || __('Select vessel', 'endoplanner');
+  const vesselLabel = data.vessel || __('choose below', 'endoplanner');
+  const needles = data.needles || [{}];
+  const sheaths = data.sheaths || [{}];
+  const catheters = data.catheters || [{}];
 
-  const updateDevice = (idx, field, val) => {
-    const newGroups = devices.map((g, i) => (i === idx ? { ...g, [field]: val } : g));
-    console.log('Update device group', idx, field, val);
-    onChange({ ...data, deviceGroups: newGroups });
+  const updateArray = (arr, idx, val) => arr.map((d, i) => (i === idx ? val : d));
+
+  const updateNeedle = (idx, val) => {
+    console.log('Update needle', idx, val);
+    onChange({ ...data, needles: updateArray(needles, idx, val) });
+  };
+  const addNeedle = () => {
+    console.log('Add needle');
+    onChange({ ...data, needles: [...needles, {}] });
+  };
+  const removeNeedle = (idx) => {
+    console.log('Remove needle', idx);
+    onChange({ ...data, needles: needles.filter((_, i) => i !== idx) });
   };
 
-  const addDeviceGroup = () => {
-    console.log('Add device to access row', index);
-    onChange({ ...data, deviceGroups: [...devices, {}] });
+  const updateSheath = (idx, val) => {
+    console.log('Update sheath', idx, val);
+    onChange({ ...data, sheaths: updateArray(sheaths, idx, val) });
+  };
+  const addSheath = () => {
+    console.log('Add sheath');
+    onChange({ ...data, sheaths: [...sheaths, {}] });
+  };
+  const removeSheath = (idx) => {
+    console.log('Remove sheath', idx);
+    onChange({ ...data, sheaths: sheaths.filter((_, i) => i !== idx) });
+  };
+
+  const updateCatheter = (idx, val) => {
+    console.log('Update catheter', idx, val);
+    onChange({ ...data, catheters: updateArray(catheters, idx, val) });
+  };
+  const addCatheter = () => {
+    console.log('Add catheter');
+    onChange({ ...data, catheters: [...catheters, {}] });
+  };
+  const removeCatheter = (idx) => {
+    console.log('Remove catheter', idx);
+    onChange({ ...data, catheters: catheters.filter((_, i) => i !== idx) });
   };
   return (
     <div className="intervention-row">
@@ -542,57 +647,73 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
           }}
         />
         </div>
-        {devices.map((grp, di) => {
-          const nLabel = summarize(grp.needle) || __('Needle', 'endoplanner');
-          const sLabel = summarize(grp.sheath) || __('Sheath', 'endoplanner');
-          const cLabel = summarize(grp.catheter) || __('Catheter', 'endoplanner');
-          return (
-            <div key={di} className="device-row-wrapper">
+        <div className="device-row">
+          {needles.map((n, i) => (
+            <div key={`n${i}`} className="device-row-wrapper">
               <div className="device-row">
                 <DeviceButton
-                  label={nLabel}
+                  label={summarize(n) || __('choose below', 'endoplanner')}
                   img={needleImg}
                   onClick={(e) => {
-                    console.log('Open needle modal', index, di);
-                    setNeedleIdx(di);
+                    console.log('Open needle modal', index, i);
+                    setNeedleIdx(i);
                     setNeedleAnchor(e.currentTarget.getBoundingClientRect());
                     setNeedleOpen(true);
                   }}
                 />
+                {i > 0 && (
+                  <button type="button" className="device-inline-btn" onClick={() => removeNeedle(i)}>&minus;</button>
+                )}
+                <button type="button" className="device-inline-btn" onClick={addNeedle}>+</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="device-row">
+          {sheaths.map((s, i) => (
+            <div key={`s${i}`} className="device-row-wrapper">
+              <div className="device-row">
                 <DeviceButton
-                  label={sLabel}
+                  label={summarize(s) || __('choose below', 'endoplanner')}
                   img={sheathImg}
                   onClick={(e) => {
-                    console.log('Open sheath modal', index, di);
-                    setSheathIdx(di);
+                    console.log('Open sheath modal', index, i);
+                    setSheathIdx(i);
                     setSheathAnchor(e.currentTarget.getBoundingClientRect());
                     setSheathOpen(true);
                   }}
                 />
+                {i > 0 && (
+                  <button type="button" className="device-inline-btn" onClick={() => removeSheath(i)}>&minus;</button>
+                )}
+                <button type="button" className="device-inline-btn" onClick={addSheath}>+</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="device-row">
+          {catheters.map((c, i) => (
+            <div key={`c${i}`} className="device-row-wrapper">
+              <div className="device-row">
                 <DeviceButton
-                  label={cLabel}
+                  label={summarize(c) || __('choose below', 'endoplanner')}
                   img={catheterImg}
                   onClick={(e) => {
-                    console.log('Open catheter modal', index, di);
-                    setCatIdx(di);
+                    console.log('Open catheter modal', index, i);
+                    setCatIdx(i);
                     setCatAnchor(e.currentTarget.getBoundingClientRect());
                     setCatOpen(true);
                   }}
                 />
+                {i > 0 && (
+                  <button type="button" className="device-inline-btn" onClick={() => removeCatheter(i)}>&minus;</button>
+                )}
+                <button type="button" className="device-inline-btn" onClick={addCatheter}>+</button>
               </div>
-              {di === devices.length - 1 && (
-                <button
-                  type="button"
-                  className="circle-btn add-device-btn"
-                  onClick={addDeviceGroup}
-                >
-                  +
-                </button>
-              )}
             </div>
-          );
-        })}
-        <RowControls onAdd={onAdd} onRemove={onRemove} />
+          ))}
+        </div>
+        <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
         <VesselDropdown
           isOpen={vesselOpen}
         anchor={vesselAnchor}
@@ -606,14 +727,14 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
         />
         <NeedleModal
           isOpen={needleOpen}
-        anchor={needleAnchor}
-        onRequestClose={() => {
-          console.log('Close needle modal');
-          setNeedleOpen(false);
-          setNeedleAnchor(null);
-        }}
-        values={devices[needleIdx]?.needle || {}}
-        onSave={(val) => updateDevice(needleIdx, 'needle', val)}
+          anchor={needleAnchor}
+          onRequestClose={() => {
+            console.log('Close needle modal');
+            setNeedleOpen(false);
+            setNeedleAnchor(null);
+          }}
+          values={needles[needleIdx] || {}}
+          onSave={(val) => updateNeedle(needleIdx, val)}
         />
         <SheathModal
           isOpen={sheathOpen}
@@ -623,8 +744,8 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
             setSheathOpen(false);
             setSheathAnchor(null);
           }}
-        values={devices[sheathIdx]?.sheath || {}}
-        onSave={(val) => updateDevice(sheathIdx, 'sheath', val)}
+          values={sheaths[sheathIdx] || {}}
+          onSave={(val) => updateSheath(sheathIdx, val)}
         />
         <CatheterModal
           isOpen={catOpen}
@@ -634,17 +755,17 @@ function AccessRow({ index, values, onChange, onAdd, onRemove }) {
             setCatOpen(false);
             setCatAnchor(null);
           }}
-        values={devices[catIdx]?.catheter || {}}
-          onSave={(val) => updateDevice(catIdx, 'catheter', val)}
+          values={catheters[catIdx] || {}}
+          onSave={(val) => updateCatheter(catIdx, val)}
         />
       </div>
     </div>
   );
 }
 
-AccessRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
+AccessRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
 
-function NavRow({ index, values, onChange, onAdd, onRemove }) {
+function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [wireOpen, setWireOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [devOpen, setDevOpen] = useState(false);
@@ -652,9 +773,9 @@ function NavRow({ index, values, onChange, onAdd, onRemove }) {
   const [catAnchor, setCatAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
-  const wireLabel = summarize(data.wire) || __('Wire', 'endoplanner');
-  const catheterLabel = summarize(data.catheter) || __('Catheter', 'endoplanner');
-  const devLabel = data.device || __('Special device', 'endoplanner');
+  const wireLabel = summarize(data.wire) || __('choose below', 'endoplanner');
+  const catheterLabel = summarize(data.catheter) || __('choose below', 'endoplanner');
+  const devLabel = data.device || __('choose below', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -688,7 +809,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove }) {
           }}
         />
       </div>
-      <RowControls onAdd={onAdd} onRemove={onRemove} />
+      <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
       <WireModal
         isOpen={wireOpen}
         anchor={wireAnchor}
@@ -727,9 +848,9 @@ function NavRow({ index, values, onChange, onAdd, onRemove }) {
   );
 }
 
-NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
+NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
 
-function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
+function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [ballOpen, setBallOpen] = useState(false);
   const [stentOpen, setStentOpen] = useState(false);
   const [devOpen, setDevOpen] = useState(false);
@@ -737,10 +858,9 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
   const [stentAnchor, setStentAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
-  const balloonLabel =
-    summarize(data.balloon) || __('PTA Balloon', 'endoplanner');
-  const stentLabel = summarize(data.stent) || __('Stent', 'endoplanner');
-  const devLabel = data.device || __('Special device', 'endoplanner');
+  const balloonLabel = summarize(data.balloon) || __('choose below', 'endoplanner');
+  const stentLabel = summarize(data.stent) || __('choose below', 'endoplanner');
+  const devLabel = data.device || __('choose below', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -774,7 +894,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
           }}
         />
       </div>
-      <RowControls onAdd={onAdd} onRemove={onRemove} />
+      <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
         <BalloonModal
           isOpen={ballOpen}
           anchor={ballAnchor}
@@ -813,14 +933,14 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove }) {
   );
 }
 
-TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
+TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
 
-function ClosureRow({ index, values, onChange, onAdd, onRemove }) {
+function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [devOpen, setDevOpen] = useState(false);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
   const method = data.method || 'Manual pressure';
-  const devLabel3 = data.device || __('Select device', 'endoplanner');
+  const devLabel3 = data.device || __('choose below', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -846,7 +966,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove }) {
           />
         )}
         </div>
-        <RowControls onAdd={onAdd} onRemove={onRemove} />
+        <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
         <DeviceModal
           isOpen={devOpen}
           anchor={devAnchor}
@@ -863,7 +983,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove }) {
   );
 }
 
-ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired };
+ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
 
 // --- Main Step Component --------------------------------------------------
 export default function Step4({ data, setData }) {
@@ -884,10 +1004,14 @@ export default function Step4({ data, setData }) {
       <section className="intervention-section">
         <div className="section-heading">{__('Access', 'endoplanner')}</div>
         {accessRows.map((row, i) => (
-          <AccessRow key={row.id} index={i} values={row}
-            onChange={val => setAccessRows(prev => prev.map(r => r.id === row.id ? val : r))}
-            onAdd={() => setAccessRows(prev => [...prev, { id: uid() }])}
-            onRemove={() => setAccessRows(prev => prev.filter(r => r.id !== row.id))}
+          <AccessRow
+            key={row.id}
+            index={i}
+            values={row}
+            onChange={(val) => setAccessRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
+            onAdd={() => setAccessRows((prev) => [...prev, { id: uid() }])}
+            onRemove={() => setAccessRows((prev) => prev.filter((r) => r.id !== row.id))}
+            showRemove={accessRows.length > 1}
           />
         ))}
       </section>
@@ -895,10 +1019,14 @@ export default function Step4({ data, setData }) {
       <section className="intervention-section">
         <div className="section-heading">{__('Navigation & Crossing', 'endoplanner')}</div>
         {navRows.map((row, i) => (
-          <NavRow key={row.id} index={i} values={row}
-            onChange={val => setNavRows(prev => prev.map(r => r.id === row.id ? val : r))}
-            onAdd={() => setNavRows(prev => [...prev, { id: uid() }])}
-            onRemove={() => setNavRows(prev => prev.filter(r => r.id !== row.id))}
+          <NavRow
+            key={row.id}
+            index={i}
+            values={row}
+            onChange={(val) => setNavRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
+            onAdd={() => setNavRows((prev) => [...prev, { id: uid() }])}
+            onRemove={() => setNavRows((prev) => prev.filter((r) => r.id !== row.id))}
+            showRemove={navRows.length > 1}
           />
         ))}
       </section>
@@ -906,10 +1034,14 @@ export default function Step4({ data, setData }) {
       <section className="intervention-section">
         <div className="section-heading">{__('Vessel preparation & therapy', 'endoplanner')}</div>
         {therapyRows.map((row, i) => (
-          <TherapyRow key={row.id} index={i} values={row}
-            onChange={val => setTherapyRows(prev => prev.map(r => r.id === row.id ? val : r))}
-            onAdd={() => setTherapyRows(prev => [...prev, { id: uid() }])}
-            onRemove={() => setTherapyRows(prev => prev.filter(r => r.id !== row.id))}
+          <TherapyRow
+            key={row.id}
+            index={i}
+            values={row}
+            onChange={(val) => setTherapyRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
+            onAdd={() => setTherapyRows((prev) => [...prev, { id: uid() }])}
+            onRemove={() => setTherapyRows((prev) => prev.filter((r) => r.id !== row.id))}
+            showRemove={therapyRows.length > 1}
           />
         ))}
       </section>
@@ -917,10 +1049,14 @@ export default function Step4({ data, setData }) {
       <section className="intervention-section">
         <div className="section-heading">{__('Closure', 'endoplanner')}</div>
         {closureRows.map((row, i) => (
-          <ClosureRow key={row.id} index={i} values={row}
-            onChange={val => setClosureRows(prev => prev.map(r => r.id === row.id ? val : r))}
-            onAdd={() => setClosureRows(prev => [...prev, { id: uid() }])}
-            onRemove={() => setClosureRows(prev => prev.filter(r => r.id !== row.id))}
+          <ClosureRow
+            key={row.id}
+            index={i}
+            values={row}
+            onChange={(val) => setClosureRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
+            onAdd={() => setClosureRows((prev) => [...prev, { id: uid() }])}
+            onRemove={() => setClosureRows((prev) => prev.filter((r) => r.id !== row.id))}
+            showRemove={closureRows.length > 1}
           />
         ))}
       </section>
