@@ -658,9 +658,10 @@ svg .vessel-path:hover {
 }
 
 .device-row-wrapper {
+  /* wrap each device button so +/− controls can be positioned over it */
   position: relative;
-  width: 100%;
-  margin-bottom: 1.5rem;
+  display: inline-flex;
+  margin: 0 0.5rem 1.5rem;
 }
 
 .add-device-btn {
@@ -680,11 +681,10 @@ svg .vessel-path:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-/* small inline add/remove controls next to device buttons */
+/* small inline add/remove controls placed at bottom-right of each selector */
 .device-inline-btn {
-  width: 24px;
-  height: 24px;
-  margin-left: 4px;
+  width: 22px; /* smaller than main selector */
+  height: 22px;
   border-radius: 50%;
   background: #113195;
   color: #fff;
@@ -694,6 +694,13 @@ svg .vessel-path:hover {
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  position: absolute;
+  bottom: -10px;
+  right: 0;
+  font-size: 12px;
+}
+.device-inline-btn.remove-btn {
+  right: 26px;
 }
 
 .device-button {
@@ -775,14 +782,19 @@ svg .vessel-path:hover {
   width: 100%;
   height: 100%;
   z-index: 1000;
+  display: flex; /* center modal in viewport */
+  align-items: center;
+  justify-content: center;
 }
 .inline-modal {
-  position: absolute;
+  position: relative; /* centered via flexbox */
   background: rgba(255,255,255,0.95);
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
   padding: 1rem;
   min-width: 200px;
+  max-height: 90vh; /* scroll when content too tall */
+  overflow-y: auto;
 }
 .inline-modal input:focus,
 .inline-modal select:focus {
@@ -810,12 +822,6 @@ svg .vessel-path:hover {
 .close-modal-btn {
   background: #113195;
   color: #fff;
-}
-.inline-modal.bottom {
-  transform: translate(-50%, 0) translateY(10px);
-}
-.inline-modal.top {
-  transform: translate(-50%, -100%) translateY(-10px);
 }
 
 .vessel-dropdown {
