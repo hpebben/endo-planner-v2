@@ -653,6 +653,8 @@ svg .vessel-path:hover {
   margin-bottom: 0.25rem;
 }
 
+
+/* layout tweaks when using RadioControl inside selector rows */
 .selector-row .components-radio-control__input-group {
   display: flex;
   gap: 24px;
@@ -660,8 +662,8 @@ svg .vessel-path:hover {
   align-items: center;
 }
 
-/* inline radio groups everywhere */
-.components-radio-control__input-group {
+/* horizontal layout for any group marked with .radio-group */
+.radio-group .components-radio-control__input-group {
   display: flex;
   gap: 12px;
   justify-content: center;
