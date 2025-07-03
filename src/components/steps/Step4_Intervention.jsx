@@ -343,17 +343,25 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Wire', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <RadioControl label={__('Platform', 'endoplanner')} selected={platform}
-        options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
-        onChange={(val)=>handleChange('platform', val)}
-      />
+        <div className="radio-group">
+          <RadioControl
+            label={__('Platform', 'endoplanner')}
+            selected={platform}
+            options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
+            onChange={(val)=>handleChange('platform', val)}
+          />
+        </div>
       <SelectControl label={__('Length', 'endoplanner')} value={length}
         options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
       />
-      <RadioControl label={__('Type', 'endoplanner')} selected={type}
-        options={[{label:'Glidewire',value:'Glidewire'},{label:'CTO wire',value:'CTO wire'},{label:'Support wire',value:'Support wire'}]}
-        onChange={(val)=>handleChange('type', val)}
-      />
+        <div className="radio-group">
+          <RadioControl
+            label={__('Type', 'endoplanner')}
+            selected={type}
+            options={[{label:'Glidewire',value:'Glidewire'},{label:'CTO wire',value:'CTO wire'},{label:'Support wire',value:'Support wire'}]}
+            onChange={(val)=>handleChange('type', val)}
+          />
+        </div>
       {type === 'CTO wire' && (
         <SelectControl
           label={__('Body type', 'endoplanner')}
@@ -370,12 +378,22 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
           onChange={(val) => handleChange('support', val)}
         />
       )}
-      <RadioControl label={__('Technique', 'endoplanner')} selected={technique}
-        options={[{label:'Intimal Tracking',value:'Intimal Tracking'},{label:'Limited sub-intimal dissection and re-entry',value:'Limited sub-intimal dissection and re-entry'}]}
-        onChange={(val)=>handleChange('technique', val)}
-      />
-      <SelectControl label={__('Product', 'endoplanner')} value={product}
-        options={[{ label: __('None', 'endoplanner'), value: '' }]} onChange={(val)=>handleChange('product', val)}
+        <div className="radio-group">
+          <RadioControl
+            label={__('Technique', 'endoplanner')}
+            selected={technique}
+            options={[{label:'Intimal Tracking',value:'Intimal Tracking'},{label:'Limited sub-intimal dissection and re-entry',value:'Limited sub-intimal dissection and re-entry'}]}
+            onChange={(val)=>handleChange('technique', val)}
+          />
+        </div>
+      <SelectControl
+        label={__('Product', 'endoplanner')}
+        value={product}
+        options={[
+          { label: __('Choose product', 'endoplanner'), value: '', disabled: true },
+          { label: __('None', 'endoplanner'), value: 'none' }
+        ]}
+        onChange={(val)=>handleChange('product', val)}
       />
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
@@ -409,10 +427,14 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <RadioControl label={__('Platform', 'endoplanner')} selected={platform}
-        options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
-        onChange={(val) => handleChange('platform', val)}
-      />
+        <div className="radio-group">
+          <RadioControl
+            label={__('Platform', 'endoplanner')}
+            selected={platform}
+            options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
+            onChange={(val) => handleChange('platform', val)}
+          />
+        </div>
       <SelectControl label={__('Diameter', 'endoplanner')} value={diameter}
         options={diameters[platform].map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
       />
@@ -462,18 +484,30 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <RadioControl label={__('Platform', 'endoplanner')} selected={platform}
-        options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
-        onChange={(val)=>handleChange('platform', val)}
-      />
-      <RadioControl label={__('Stent type', 'endoplanner')} selected={type}
-        options={[{label:'self expandable',value:'self expandable'},{label:'balloon expandable',value:'balloon expandable'}]}
-        onChange={(val)=>handleChange('type', val)}
-      />
-      <RadioControl label={__('Stent material', 'endoplanner')} selected={mat}
-        options={[{label:'bare metal',value:'bare metal'},{label:'covered',value:'covered'}]}
-        onChange={(val)=>handleChange('material', val)}
-      />
+      <div className="radio-group">
+        <RadioControl
+          label={__('Platform', 'endoplanner')}
+          selected={platform}
+          options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
+          onChange={(val)=>handleChange('platform', val)}
+        />
+      </div>
+        <div className="radio-group">
+          <RadioControl
+            label={__('Stent type', 'endoplanner')}
+            selected={type}
+            options={[{label:'self expandable',value:'self expandable'},{label:'balloon expandable',value:'balloon expandable'}]}
+            onChange={(val)=>handleChange('type', val)}
+          />
+        </div>
+        <div className="radio-group">
+          <RadioControl
+            label={__('Stent material', 'endoplanner')}
+            selected={mat}
+            options={[{label:'bare metal',value:'bare metal'},{label:'covered',value:'covered'}]}
+            onChange={(val)=>handleChange('material', val)}
+          />
+        </div>
       <SelectControl
         label={__('Diameter', 'endoplanner')}
         value={dia}
@@ -553,19 +587,21 @@ DeviceModal.propTypes = {
 };
 
 // --- Row components -------------------------------------------------------
-const RowControls = ({ onAdd, onRemove, showRemove, label }) => (
+const RowControls = ({ onAdd, onRemove, showRemove, label, showAdd = true }) => (
   <div className="row-controls">
     {label && <span className="row-add-label">{label}</span>}
-    <button
-      type="button"
-      className="circle-btn small-circle-btn add-row-btn"
-      onClick={() => {
-        console.log('Add row');
-        onAdd();
-      }}
-    >
-      +
-    </button>
+    {showAdd && (
+      <button
+        type="button"
+        className="circle-btn small-circle-btn add-row-btn"
+        onClick={() => {
+          console.log('Add row');
+          onAdd();
+        }}
+      >
+        +
+      </button>
+    )}
     {showRemove && (
       <button
         type="button"
@@ -580,7 +616,7 @@ const RowControls = ({ onAdd, onRemove, showRemove, label }) => (
     )}
   </div>
 );
-RowControls.propTypes = { onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, label: PropTypes.string };
+RowControls.propTypes = { onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, label: PropTypes.string, showAdd: PropTypes.bool };
 
 function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [vesselOpen, setVesselOpen] = useState(false);
@@ -595,7 +631,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [sheathIdx, setSheathIdx] = useState(0);
   const [catIdx, setCatIdx] = useState(0);
   const data = values || {};
-  const vesselLabel = data.vessel || __('none', 'endoplanner');
+  const vesselLabel = data.vessel || __('Vessel', 'endoplanner');
   const needles = data.needles || [{}];
   const sheaths = data.sheaths || [{}];
   const catheters = data.catheters || [{}];
@@ -644,13 +680,13 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
       <div className="row-inner">
-        <div className="selector-row">
+        <div className="selector-row radio-group">
           <RadioControl
             label={__('Approach', 'endoplanner')}
             selected={data.approach || 'Antegrade'}
-          options={[{ label: 'Antegrade', value: 'Antegrade' }, { label: 'Retrograde', value: 'Retrograde' }]}
-          onChange={(val) => { console.log('Access approach', val); onChange({ ...data, approach: val }); }}
-        />
+            options={[{ label: 'Antegrade', value: 'Antegrade' }, { label: 'Retrograde', value: 'Retrograde' }]}
+            onChange={(val) => { console.log('Access approach', val); onChange({ ...data, approach: val }); }}
+          />
         </div>
         <div className="device-grid">
           <div className="device-column">
@@ -668,7 +704,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             {needles.map((n, i) => (
               <div key={`n${i}`} className="device-wrapper">
                 <DeviceButton
-                  label={shortLabel('needle', n) || __('none', 'endoplanner')}
+                  label={shortLabel('needle', n) || __('Needle', 'endoplanner')}
                   img={needleImg}
                   onClick={(e) => {
                     console.log('Open needle modal', index, i);
@@ -694,7 +730,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             {sheaths.map((s, i) => (
               <div key={`s${i}`} className="device-wrapper">
                 <DeviceButton
-                  label={shortLabel('sheath', s) || __('none', 'endoplanner')}
+                  label={shortLabel('sheath', s) || __('Sheath', 'endoplanner')}
                   img={sheathImg}
                   onClick={(e) => {
                     console.log('Open sheath modal', index, i);
@@ -720,7 +756,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             {catheters.map((c, i) => (
               <div key={`c${i}`} className="device-wrapper">
                 <DeviceButton
-                  label={shortLabel('catheter', c) || __('none', 'endoplanner')}
+                  label={shortLabel('catheter', c) || __('Catheter', 'endoplanner')}
                   img={catheterImg}
                   onClick={(e) => {
                     console.log('Open catheter modal', index, i);
@@ -747,7 +783,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
           onAdd={onAdd}
           onRemove={onRemove}
           showRemove={showRemove}
-          label={__('Add another approach', 'endoplanner')}
+          showAdd={false}
         />
         <VesselDropdown
           isOpen={vesselOpen}
@@ -808,9 +844,9 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [catAnchor, setCatAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
-  const wireLabel = shortLabel('wire', data.wire) || __('none', 'endoplanner');
-  const catheterLabel = shortLabel('catheter', data.catheter) || __('none', 'endoplanner');
-  const devLabel = data.device || __('none', 'endoplanner');
+  const wireLabel = shortLabel('wire', data.wire) || __('Wire', 'endoplanner');
+  const catheterLabel = shortLabel('catheter', data.catheter) || __('Catheter', 'endoplanner');
+  const devLabel = data.device || __('Device', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -893,9 +929,9 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [stentAnchor, setStentAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
-  const balloonLabel = shortLabel('balloon', data.balloon) || __('none', 'endoplanner');
-  const stentLabel = shortLabel('stent', data.stent) || __('none', 'endoplanner');
-  const devLabel = data.device || __('none', 'endoplanner');
+  const balloonLabel = shortLabel('balloon', data.balloon) || __('Balloon', 'endoplanner');
+  const stentLabel = shortLabel('stent', data.stent) || __('Stent', 'endoplanner');
+  const devLabel = data.device || __('Device', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -975,18 +1011,18 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
   const method = data.method || 'Manual pressure';
-  const devLabel3 = data.device || __('none', 'endoplanner');
+  const devLabel3 = data.device || __('Device', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
       <div className="row-inner">
-        <div className="selector-row">
+        <div className="selector-row radio-group">
           <RadioControl
             label={__('Method', 'endoplanner')}
             selected={method}
-          options={[{ label: 'Manual pressure', value: 'Manual pressure' }, { label: 'Closure device', value: 'Closure device' }]}
-          onChange={(val) => { console.log('Closure method', val); onChange({ ...data, method: val }); }}
-        />
+            options={[{ label: 'Manual pressure', value: 'Manual pressure' }, { label: 'Closure device', value: 'Closure device' }]}
+            onChange={(val) => { console.log('Closure method', val); onChange({ ...data, method: val }); }}
+          />
         </div>
         <div className="device-row">
         {method === 'Closure device' && (
@@ -1044,11 +1080,17 @@ export default function Step4({ data, setData }) {
             index={i}
             values={row}
             onChange={(val) => setAccessRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
-            onAdd={() => setAccessRows((prev) => [...prev, { id: uid() }])}
+            onAdd={() => {}}
             onRemove={() => setAccessRows((prev) => prev.filter((r) => r.id !== row.id))}
             showRemove={accessRows.length > 1}
           />
         ))}
+        <RowControls
+          onAdd={() => setAccessRows((prev) => [...prev, { id: uid() }])}
+          onRemove={() => {}}
+          showRemove={false}
+          label={__('Add another approach', 'endoplanner')}
+        />
       </section>
 
       <section className="intervention-section">
