@@ -19,7 +19,8 @@ const stentImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/stent.jpg';
 const deviceImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2023/09/miscdevice.jpg';
-const closureImg = deviceImg;
+const closureImg =
+  'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
 // Simple utility to generate unique ids for dynamic rows
 const uid = () => Math.random().toString(36).substr(2, 9);
@@ -116,11 +117,11 @@ const shortLabel = (type, obj) => {
   if (!obj || typeof obj !== 'object') return '';
   switch (type) {
     case 'needle':
-      return obj.size ? obj.size.replace(' Gauge', '') : '';
+      return obj.size ? obj.size.replace(' Gauge', 'G') : '';
     case 'sheath':
       return obj.frSize || '';
     case 'catheter':
-      return obj.size || '';
+      return obj.specific || '';
     case 'wire':
     case 'balloon':
     case 'stent':
@@ -150,7 +151,7 @@ function VesselDropdown({ isOpen, anchor, onRequestClose, value, onSave }) {
       <ul className="vessel-dropdown">
         <li>
           <button type="button" className="dropdown-item" disabled>
-            {__('choose below', 'endoplanner')}
+            {__('Choose vessel', 'endoplanner')}
           </button>
         </li>
         {vessels.map((v) => (
@@ -197,13 +198,13 @@ function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
       <SelectControl
         label={__('Needle size', 'endoplanner')}
         value={size}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...['19 Gauge', '21 Gauge'].map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...['19 Gauge', '21 Gauge'].map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('size', val)}
       />
       <SelectControl
         label={__('Needle length', 'endoplanner')}
         value={length}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...['4cm', '7cm', '9cm'].map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...['4cm', '7cm', '9cm'].map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
       />
       <div className="popup-close-row">
@@ -238,13 +239,13 @@ function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
       <SelectControl
         label={__('French size', 'endoplanner')}
         value={frSize}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('frSize', val)}
       />
       <SelectControl
         label={__('Length', 'endoplanner')}
         value={length}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
       />
       <div className="popup-close-row">
@@ -283,19 +284,19 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
       <SelectControl
         label={__('French size', 'endoplanner')}
         value={size}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('size', val)}
       />
       <SelectControl
         label={__('Length', 'endoplanner')}
         value={length}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
       />
       <SelectControl
         label={__('Specific catheter', 'endoplanner')}
         value={specific}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...specifics.map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose catheter', 'endoplanner'), value: '', disabled: true }, ...specifics.map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('specific', val)}
       />
       <div className="popup-close-row">
@@ -357,7 +358,7 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
         <SelectControl
           label={__('Body type', 'endoplanner')}
           value={body}
-          options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...bodyOpts.map(v => ({ label: v, value: v }))]}
+          options={[{ label: __('Choose body', 'endoplanner'), value: '', disabled: true }, ...bodyOpts.map(v => ({ label: v, value: v }))]}
           onChange={(val) => handleChange('body', val)}
         />
       )}
@@ -365,7 +366,7 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
         <SelectControl
           label={__('Support wire', 'endoplanner')}
           value={support}
-          options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...supportOpts.map(v => ({ label: v, value: v }))]}
+          options={[{ label: __('Choose wire', 'endoplanner'), value: '', disabled: true }, ...supportOpts.map(v => ({ label: v, value: v }))]}
           onChange={(val) => handleChange('support', val)}
         />
       )}
@@ -418,7 +419,7 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
       <SelectControl
         label={__('Length (mm)', 'endoplanner')}
         value={len}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
       />
       <div className="popup-close-row">
@@ -476,13 +477,13 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
       <SelectControl
         label={__('Diameter', 'endoplanner')}
         value={dia}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...stentDia[platform].map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose diameter', 'endoplanner'), value: '', disabled: true }, ...stentDia[platform].map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('diameter', val)}
       />
       <SelectControl
         label={__('Length', 'endoplanner')}
         value={len}
-        options={[{ label: __('choose below', 'endoplanner'), value: '', disabled: true }, ...stentLen[platform].map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...stentLen[platform].map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
       />
       <div className="popup-close-row">
@@ -552,12 +553,12 @@ DeviceModal.propTypes = {
 };
 
 // --- Row components -------------------------------------------------------
-const RowControls = ({ onAdd, onRemove, showRemove }) => (
+const RowControls = ({ onAdd, onRemove, showRemove, label }) => (
   <div className="row-controls">
-    {/* debugging add/remove row clicks */}
+    {label && <span className="row-add-label">{label}</span>}
     <button
       type="button"
-      className="circle-btn add-row-btn"
+      className="circle-btn small-circle-btn add-row-btn"
       onClick={() => {
         console.log('Add row');
         onAdd();
@@ -568,7 +569,7 @@ const RowControls = ({ onAdd, onRemove, showRemove }) => (
     {showRemove && (
       <button
         type="button"
-        className="circle-btn remove-row-btn"
+        className="circle-btn small-circle-btn remove-row-btn"
         onClick={() => {
           console.log('Remove row');
           onRemove();
@@ -579,7 +580,7 @@ const RowControls = ({ onAdd, onRemove, showRemove }) => (
     )}
   </div>
 );
-RowControls.propTypes = { onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
+RowControls.propTypes = { onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, label: PropTypes.string };
 
 function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [vesselOpen, setVesselOpen] = useState(false);
@@ -594,7 +595,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [sheathIdx, setSheathIdx] = useState(0);
   const [catIdx, setCatIdx] = useState(0);
   const data = values || {};
-  const vesselLabel = data.vessel || __('choose vessel', 'endoplanner');
+  const vesselLabel = data.vessel || __('none', 'endoplanner');
   const needles = data.needles || [{}];
   const sheaths = data.sheaths || [{}];
   const catheters = data.catheters || [{}];
@@ -667,7 +668,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             {needles.map((n, i) => (
               <div key={`n${i}`} className="device-wrapper">
                 <DeviceButton
-                  label={shortLabel('needle', n) || __('choose needle', 'endoplanner')}
+                  label={shortLabel('needle', n) || __('none', 'endoplanner')}
                   img={needleImg}
                   onClick={(e) => {
                     console.log('Open needle modal', index, i);
@@ -693,7 +694,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             {sheaths.map((s, i) => (
               <div key={`s${i}`} className="device-wrapper">
                 <DeviceButton
-                  label={shortLabel('sheath', s) || __('choose sheath', 'endoplanner')}
+                  label={shortLabel('sheath', s) || __('none', 'endoplanner')}
                   img={sheathImg}
                   onClick={(e) => {
                     console.log('Open sheath modal', index, i);
@@ -719,7 +720,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             {catheters.map((c, i) => (
               <div key={`c${i}`} className="device-wrapper">
                 <DeviceButton
-                  label={shortLabel('catheter', c) || __('choose catheter', 'endoplanner')}
+                  label={shortLabel('catheter', c) || __('none', 'endoplanner')}
                   img={catheterImg}
                   onClick={(e) => {
                     console.log('Open catheter modal', index, i);
@@ -742,7 +743,12 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             ))}
           </div>
         </div>
-        <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
+        <RowControls
+          onAdd={onAdd}
+          onRemove={onRemove}
+          showRemove={showRemove}
+          label={__('Add another approach', 'endoplanner')}
+        />
         <VesselDropdown
           isOpen={vesselOpen}
         anchor={vesselAnchor}
@@ -802,9 +808,9 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [catAnchor, setCatAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
-  const wireLabel = shortLabel('wire', data.wire) || __('choose wire', 'endoplanner');
-  const catheterLabel = shortLabel('catheter', data.catheter) || __('choose catheter', 'endoplanner');
-  const devLabel = data.device || __('choose device', 'endoplanner');
+  const wireLabel = shortLabel('wire', data.wire) || __('none', 'endoplanner');
+  const catheterLabel = shortLabel('catheter', data.catheter) || __('none', 'endoplanner');
+  const devLabel = data.device || __('none', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -887,9 +893,9 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [stentAnchor, setStentAnchor] = useState(null);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
-  const balloonLabel = shortLabel('balloon', data.balloon) || __('choose balloon', 'endoplanner');
-  const stentLabel = shortLabel('stent', data.stent) || __('choose stent', 'endoplanner');
-  const devLabel = data.device || __('choose device', 'endoplanner');
+  const balloonLabel = shortLabel('balloon', data.balloon) || __('none', 'endoplanner');
+  const stentLabel = shortLabel('stent', data.stent) || __('none', 'endoplanner');
+  const devLabel = data.device || __('none', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -969,7 +975,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
   const method = data.method || 'Manual pressure';
-  const devLabel3 = data.device || __('choose closure device', 'endoplanner');
+  const devLabel3 = data.device || __('none', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
