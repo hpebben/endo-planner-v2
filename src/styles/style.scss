@@ -639,6 +639,12 @@ svg .vessel-path:hover {
   align-items: center;
 }
 
+/* When a selector row also acts as a radio group, force horizontal layout */
+.selector-row.radio-group {
+  flex-direction: row !important;
+  gap: 16px;
+}
+
 .selector-row label,
 .selector-row legend {
   font-size: 0.7rem;
