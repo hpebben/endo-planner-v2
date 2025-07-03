@@ -42,7 +42,7 @@ export default function ParameterPopup({ segmentName, initialValues, onSave, onC
       <div className="param-section">
         {/* Updated label to remove trailing colon */}
         <div className="param-title">{__('Patency', 'endoplanner')}</div>
-        <div className="condition-options radio-group">
+        <div className="radio-group condition-options">
           <label className="param-radio">
             <input
               type="radio"
