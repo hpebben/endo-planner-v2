@@ -140,6 +140,7 @@ function VesselDropdown({ isOpen, anchor, onRequestClose, value, onSave }) {
   const handleSelect = (v) => {
     console.log('[Popup] Selected: ' + v);
     onSave(v);
+    onRequestClose();
   };
   return (
     <SimpleModal
@@ -193,6 +194,7 @@ function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     if (field === 'size') setSize(val); else setLength(val);
     console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
+    if (newVals.size && newVals.length) onRequestClose();
   };
   return (
     <SimpleModal title={__('Needle', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -234,6 +236,7 @@ function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     if (field === 'frSize') setFrSize(val); else setLength(val);
     console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
+    if (newVals.frSize && newVals.length) onRequestClose();
   };
   return (
     <SimpleModal title={__('Sheath', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -265,12 +268,18 @@ SheathModal.propTypes = {
 };
 
 function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [size, setSize] = useState(values.size || '');
-  const [length, setLength] = useState(values.length || '');
-  const [specific, setSpecific] = useState(values.specific || '');
-  useEffect(() => { setSize(values.size || ''); setLength(values.length || ''); setSpecific(values.specific || ''); }, [values]);
   const sizes = ['2.3 Fr','2.6 Fr','4 Fr','5 Fr','6 Fr','7 Fr'];
   const lengths = ['40 cm','65 cm','80 cm','90 cm','105 cm','110 cm','125 cm','135 cm','150 cm'];
+  const [size, setSize] = useState('');
+  const [length, setLength] = useState('');
+  const [specific, setSpecific] = useState('');
+  useEffect(() => {
+    const defaultSize = values.size || (sizes.includes('4 Fr') ? '4 Fr' : '');
+    const defaultLength = values.length || (lengths.includes('65 cm') ? '65 cm' : '');
+    setSize(defaultSize);
+    setLength(defaultLength);
+    setSpecific(values.specific || '');
+  }, [values]);
   const specifics = ['BER2','BHW','Cobra 1','Cobra 2','Cobra 3','Cobra Glidecath','CXI 0.018','CXI 0.014','Navicross 0.018','Navicross 0.035','MultiPurpose','PIER','Pigtail Flush','Straight Flush','Universal Flush','Rim','Simmons 1','Simmons 2','Simmons 3','Vertebral'];
   const handleChange = (field, val) => {
     const newVals = { size, length, specific, [field]: val };
@@ -279,9 +288,16 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     if (field === 'specific') setSpecific(val);
     console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
+    if (newVals.size && newVals.length && newVals.specific) onRequestClose();
   };
   return (
     <SimpleModal title={__('Catheter', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+      <SelectControl
+        label={__('Specific catheter', 'endoplanner')}
+        value={specific}
+        options={[{ label: __('Choose catheter', 'endoplanner'), value: '', disabled: true }, ...specifics.map(v => ({ label: v, value: v }))]}
+        onChange={(val) => handleChange('specific', val)}
+      />
       <SelectControl
         label={__('French size', 'endoplanner')}
         value={size}
@@ -293,12 +309,6 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
         value={length}
         options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
-      />
-      <SelectControl
-        label={__('Specific catheter', 'endoplanner')}
-        value={specific}
-        options={[{ label: __('Choose catheter', 'endoplanner'), value: '', disabled: true }, ...specifics.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('specific', val)}
       />
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
@@ -341,6 +351,7 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     }
     console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
+    if (newVals.platform && newVals.length && newVals.type && newVals.technique) onRequestClose();
   };
   return (
     <SimpleModal title={__('Wire', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -422,6 +433,7 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     if (field === 'length') setLen(val);
     console.log('[Popup] Updated: ', newVals);
     onSave({ platform: newVals.platform, diameter: newVals.diameter, length: newVals.length });
+    if (newVals.platform && newVals.diameter && newVals.length) onRequestClose();
   };
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -477,6 +489,7 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     }
     console.log('[Popup] Updated: ', newVals);
     onSave({ platform: newVals.platform, type: newVals.type, material: newVals.material, diameter: newVals.diameter, length: newVals.length });
+    if (newVals.platform && newVals.type && newVals.material && newVals.diameter && newVals.length) onRequestClose();
   };
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -540,8 +553,10 @@ function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave }) {
     setDevice(val);
     if (val !== 'Custom') {
       onSave(val);
+      onRequestClose();
     } else {
       onSave(customVal);
+      if (customVal) onRequestClose();
     }
   };
   return (

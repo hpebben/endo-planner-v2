@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import { useBlockProps } from '@wordpress/block-editor';
+import SegmentedControl from '../UI/SegmentedControl';
 
 const stageOptions = [
   { label: __( 'I Asymptomatic', 'endoplanner' ), value: 'i' },
@@ -54,18 +55,12 @@ export default function Step1({ data, setData }) {
       <p className="section-subtitle">
         {__('Stage I\u2013IV based on Fontaine classification', 'endoplanner')}
       </p>
-      <div className="stage-buttons">
-        {stageOptions.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            className={`stage-btn${data.stage === opt.value ? ' active' : ''}`}
-            onClick={() => setData({ ...data, stage: opt.value })}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        options={stageOptions}
+        value={data.stage}
+        onChange={(val) => setData({ ...data, stage: val })}
+        ariaLabel={__('Fontaine stage', 'endoplanner')}
+      />
 
       <div className="section-spacer" />
 
