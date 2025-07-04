@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Button, SelectControl, RadioControl } from '@wordpress/components';
+import { Button, SelectControl } from '@wordpress/components';
+import SegmentedControl from '../UI/SegmentedControl';
 import { __ } from '@wordpress/i18n';
 // miniature arterial tree icon used for vessel selector
 import vesselTreeIcon from '../../assets/vessel-map.svg';
@@ -343,25 +344,21 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Wire', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-        <div className="radio-group">
-          <RadioControl
-            label={__('Platform', 'endoplanner')}
-            selected={platform}
-            options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
-            onChange={(val)=>handleChange('platform', val)}
-          />
-        </div>
+        <SegmentedControl
+          options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
+          value={platform}
+          onChange={(val)=>handleChange('platform', val)}
+          ariaLabel={__('Platform', 'endoplanner')}
+        />
       <SelectControl label={__('Length', 'endoplanner')} value={length}
         options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
       />
-        <div className="radio-group">
-          <RadioControl
-            label={__('Type', 'endoplanner')}
-            selected={type}
-            options={[{label:'Glidewire',value:'Glidewire'},{label:'CTO wire',value:'CTO wire'},{label:'Support wire',value:'Support wire'}]}
-            onChange={(val)=>handleChange('type', val)}
-          />
-        </div>
+        <SegmentedControl
+          options={[{label:'Glidewire',value:'Glidewire'},{label:'CTO wire',value:'CTO wire'},{label:'Support wire',value:'Support wire'}]}
+          value={type}
+          onChange={(val)=>handleChange('type', val)}
+          ariaLabel={__('Type', 'endoplanner')}
+        />
       {type === 'CTO wire' && (
         <SelectControl
           label={__('Body type', 'endoplanner')}
@@ -378,14 +375,15 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
           onChange={(val) => handleChange('support', val)}
         />
       )}
-        <div className="radio-group">
-          <RadioControl
-            label={__('Technique', 'endoplanner')}
-            selected={technique}
-            options={[{label:'Intimal Tracking',value:'Intimal Tracking'},{label:'Limited sub-intimal dissection and re-entry',value:'Limited sub-intimal dissection and re-entry'}]}
-            onChange={(val)=>handleChange('technique', val)}
-          />
-        </div>
+        <SegmentedControl
+          options={[
+            {label:'Intimal Tracking',value:'Intimal Tracking'},
+            {label:'Limited sub-intimal dissection and re-entry',value:'Limited sub-intimal dissection and re-entry'}
+          ]}
+          value={technique}
+          onChange={(val)=>handleChange('technique', val)}
+          ariaLabel={__('Technique', 'endoplanner')}
+        />
       <SelectControl
         label={__('Product', 'endoplanner')}
         value={product}
@@ -427,14 +425,12 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-        <div className="radio-group">
-          <RadioControl
-            label={__('Platform', 'endoplanner')}
-            selected={platform}
-            options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
-            onChange={(val) => handleChange('platform', val)}
-          />
-        </div>
+        <SegmentedControl
+          options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
+          value={platform}
+          onChange={(val) => handleChange('platform', val)}
+          ariaLabel={__('Platform', 'endoplanner')}
+        />
       <SelectControl label={__('Diameter', 'endoplanner')} value={diameter}
         options={diameters[platform].map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
       />
@@ -484,30 +480,24 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <div className="radio-group">
-        <RadioControl
-          label={__('Platform', 'endoplanner')}
-          selected={platform}
-          options={['0.014','0.018','0.035'].map(v => ({ label:v, value:v }))}
-          onChange={(val)=>handleChange('platform', val)}
-        />
-      </div>
-        <div className="radio-group">
-          <RadioControl
-            label={__('Stent type', 'endoplanner')}
-            selected={type}
-            options={[{label:'self expandable',value:'self expandable'},{label:'balloon expandable',value:'balloon expandable'}]}
-            onChange={(val)=>handleChange('type', val)}
-          />
-        </div>
-        <div className="radio-group">
-          <RadioControl
-            label={__('Stent material', 'endoplanner')}
-            selected={mat}
-            options={[{label:'bare metal',value:'bare metal'},{label:'covered',value:'covered'}]}
-            onChange={(val)=>handleChange('material', val)}
-          />
-        </div>
+      <SegmentedControl
+        options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
+        value={platform}
+        onChange={(val)=>handleChange('platform', val)}
+        ariaLabel={__('Platform', 'endoplanner')}
+      />
+      <SegmentedControl
+        options={[{label:'self expandable',value:'self expandable'},{label:'balloon expandable',value:'balloon expandable'}]}
+        value={type}
+        onChange={(val)=>handleChange('type', val)}
+        ariaLabel={__('Stent type', 'endoplanner')}
+      />
+      <SegmentedControl
+        options={[{label:'bare metal',value:'bare metal'},{label:'covered',value:'covered'}]}
+        value={mat}
+        onChange={(val)=>handleChange('material', val)}
+        ariaLabel={__('Stent material', 'endoplanner')}
+      />
       <SelectControl
         label={__('Diameter', 'endoplanner')}
         value={dia}
@@ -680,14 +670,12 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
       <div className="row-inner">
-        <div className="selector-row radio-group">
-          <RadioControl
-            label={__('Approach', 'endoplanner')}
-            selected={data.approach || 'Antegrade'}
-            options={[{ label: 'Antegrade', value: 'Antegrade' }, { label: 'Retrograde', value: 'Retrograde' }]}
-            onChange={(val) => { console.log('Access approach', val); onChange({ ...data, approach: val }); }}
-          />
-        </div>
+        <SegmentedControl
+          options={[{ label: 'Antegrade', value: 'Antegrade' }, { label: 'Retrograde', value: 'Retrograde' }]}
+          value={data.approach || 'Antegrade'}
+          onChange={(val) => { console.log('Access approach', val); onChange({ ...data, approach: val }); }}
+          ariaLabel={__('Approach', 'endoplanner')}
+        />
         <div className="device-grid">
           <div className="device-column">
             <DeviceButton
@@ -1016,14 +1004,12 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
       <div className="row-inner">
-        <div className="selector-row radio-group">
-          <RadioControl
-            label={__('Method', 'endoplanner')}
-            selected={method}
-            options={[{ label: 'Manual pressure', value: 'Manual pressure' }, { label: 'Closure device', value: 'Closure device' }]}
-            onChange={(val) => { console.log('Closure method', val); onChange({ ...data, method: val }); }}
-          />
-        </div>
+        <SegmentedControl
+          options={[{ label: 'Manual pressure', value: 'Manual pressure' }, { label: 'Closure device', value: 'Closure device' }]}
+          value={method}
+          onChange={(val) => { console.log('Closure method', val); onChange({ ...data, method: val }); }}
+          ariaLabel={__('Method', 'endoplanner')}
+        />
         <div className="device-row">
         {method === 'Closure device' && (
           <DeviceButton
