@@ -57,47 +57,27 @@ export default function ParameterPopup({ segmentName, initialValues, onSave, onC
       </div>
 
       <div className="param-section">
-        {/* Updated label to remove trailing colon */}
         <div className="param-title">{__('Length', 'endoplanner')}</div>
-        <div className="length-options">
-          {lengthValues.map((val, i) => (
-            <button
-              key={val}
-              type="button"
-              className={`param-option ${length === val ? 'active' : ''}`}
-              onClick={() => {
-                setLength(val);
-                setDirty(true);
-              }}
-            >
-              {lengthLabels[i]}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={lengthValues.map((val, i) => ({ label: lengthLabels[i], value: val }))}
+          value={length}
+          onChange={(val) => { setLength(val); setDirty(true); }}
+          ariaLabel={__('Length', 'endoplanner')}
+        />
       </div>
 
       <div className="param-section">
-        {/* Updated label to remove trailing colon */}
         <div className="param-title">{__('Calcium', 'endoplanner')}</div>
-        <div className="calcium-options">
-          {['none', 'moderate', 'heavy'].map((val) => (
-            <button
-              key={val}
-              type="button"
-              className={`param-option ${calcium === val ? 'active' : ''}`}
-              onClick={() => {
-                setCalcium(val);
-                setDirty(true);
-              }}
-            >
-              {val === 'none'
-                ? __('None', 'endoplanner')
-                : val === 'moderate'
-                ? __('Moderate', 'endoplanner')
-                : __('Heavy', 'endoplanner')}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={[
+            { label: __('None', 'endoplanner'), value: 'none' },
+            { label: __('Moderate', 'endoplanner'), value: 'moderate' },
+            { label: __('Heavy', 'endoplanner'), value: 'heavy' },
+          ]}
+          value={calcium}
+          onChange={(val) => { setCalcium(val); setDirty(true); }}
+          ariaLabel={__('Calcium', 'endoplanner')}
+        />
       </div>
     </div>
   );
