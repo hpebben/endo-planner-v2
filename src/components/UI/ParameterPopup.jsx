@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
+import SegmentedControl from './SegmentedControl';
 
 const lengthLabels = ['<3cm', '3–10cm', '10–15cm', '15–20cm', '>20cm'];
 const lengthValues = ['<3', '3-10', '10-15', '15-20', '>20'];
@@ -42,34 +43,17 @@ export default function ParameterPopup({ segmentName, initialValues, onSave, onC
       <div className="param-section">
         {/* Updated label to remove trailing colon */}
         <div className="param-title">{__('Patency', 'endoplanner')}</div>
-        <div className="radio-group condition-options">
-          <label className="param-radio">
-            <input
-              type="radio"
-              name="condition"
-              value="stenosis"
-              checked={condition === 'stenosis'}
-              onChange={() => {
-                setCondition('stenosis');
-                setDirty(true);
-              }}
-            />
-            <span>{__('Stenosis', 'endoplanner')}</span>
-          </label>
-          <label className="param-radio">
-            <input
-              type="radio"
-              name="condition"
-              value="occlusion"
-              checked={condition === 'occlusion'}
-              onChange={() => {
-                setCondition('occlusion');
-                setDirty(true);
-              }}
-            />
-            <span>{__('Occlusion', 'endoplanner')}</span>
-          </label>
-        </div>
+        <SegmentedControl
+          options={[
+            { label: __('Stenosis', 'endoplanner'), value: 'stenosis' },
+            { label: __('Occlusion', 'endoplanner'), value: 'occlusion' },
+          ]}
+          value={condition}
+          onChange={(val) => {
+            setCondition(val);
+            setDirty(true);
+          }}
+        />
       </div>
 
       <div className="param-section">

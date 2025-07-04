@@ -654,28 +654,27 @@ svg .vessel-path:hover {
 }
 
 
-/* layout tweaks when using RadioControl inside selector rows */
-.selector-row .components-radio-control__input-group {
-  display: flex;
-  gap: 24px;
-  justify-content: center;
-  align-items: center;
-}
 
-/* horizontal layout for any group marked with .radio-group */
-.radio-group .components-radio-control__input-group {
+/* Reusable segmented control for option pickers */
+.segmented-control {
   display: flex;
-  gap: 12px;
-  justify-content: center;
-  align-items: center;
+  gap: 1rem;
 }
-
-.radio-group {
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  align-items: center;
-  justify-content: center;
+.segmented-control button {
+  padding: 0.7rem 1.7rem;
+  border: none;
+  background: #f0f4fa;
+  border-radius: 99px;
+  font-size: 1.05rem;
+  cursor: pointer;
+  color: #333;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.segmented-control button.active {
+  background: #06379B;
+  color: #fff;
+  font-weight: 700;
 }
 .device-row {
   display: flex;
