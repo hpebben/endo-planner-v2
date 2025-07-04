@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Button, SelectControl } from '@wordpress/components';
 import SegmentedControl from '../UI/SegmentedControl';
+import InlineDeviceSelect from '../UI/InlineDeviceSelect';
 import { __ } from '@wordpress/i18n';
 // miniature arterial tree icon used for vessel selector
 import vesselTreeIcon from '../../assets/vessel-map.svg';
@@ -24,7 +25,6 @@ const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
 const closureDeviceOptions = [
-  'Choose',
   '6F AngioSeal',
   '8F AngioSeal',
   'Perclose ProStyle',
@@ -33,6 +33,19 @@ const closureDeviceOptions = [
   '14F Manta',
   '18F Manta',
   'Mynx',
+  'Custom',
+];
+
+const specialDeviceOptions = [
+  'Re-entry device',
+  'IVUS catheter',
+  'Vascular plug',
+  'Embolization coils',
+  'Closure device',
+  'Shockwave',
+  'Scoring balloon',
+  'Atherectomy device',
+  'Thrombectomy device',
   'Custom',
 ];
 
@@ -574,65 +587,6 @@ StentModal.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
-function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave, title = __('Special device', 'endoplanner'), options }) {
-  const baseOptions = options || ['Re-entry device','IVUS catheter','Vascular plug','Embolization coils','Closure device','Shockwave','Scoring balloon','Atherectomy device','Thrombectomy device','Custom'];
-  const optionList = baseOptions[0] === 'Choose' ? baseOptions : ['Choose', ...baseOptions];
-  const initIsKnown = baseOptions.includes(value);
-  const [device, setDevice] = useState(initIsKnown ? value : value ? 'Custom' : 'Choose');
-  const [customText, setCustomText] = useState(initIsKnown || !value ? '' : value || '');
-  useEffect(() => {
-    const known = baseOptions.includes(value);
-    setDevice(known ? value : value ? 'Custom' : 'Choose');
-    setCustomText(known || !value ? '' : value || '');
-  }, [value]);
-  const handleSave = (val, customVal = customText) => {
-    console.log('[Popup] Selected: ' + val);
-    setDevice(val);
-    if (val === 'Choose') {
-      onSave('');
-      return;
-    }
-    if (val !== 'Custom') {
-      onSave(val);
-      onRequestClose();
-    } else {
-      onSave(customVal);
-      if (customVal) onRequestClose();
-    }
-  };
-  return (
-    <SimpleModal title={title} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl
-        label={__('Device', 'endoplanner')}
-        value={device}
-        options={optionList.map(v => ({ label: v, value: v }))}
-        onChange={(val)=> handleSave(val)}
-      />
-      {device === 'Custom' && (
-        <input
-          type="text"
-          className="custom-device-input"
-          value={customText}
-          onChange={e => { setCustomText(e.target.value); console.log('[Popup] Custom text', e.target.value); handleSave('Custom', e.target.value); }}
-          placeholder={__('Enter custom device', 'endoplanner')}
-        />
-      )}
-      <div className="popup-close-row">
-        <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
-      </div>
-    </SimpleModal>
-  );
-}
-
-DeviceModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  anchor: PropTypes.object,
-  onRequestClose: PropTypes.func.isRequired,
-  value: PropTypes.string,
-  onSave: PropTypes.func.isRequired,
-  title: PropTypes.string,
-  options: PropTypes.arrayOf(PropTypes.string),
-};
 
 // --- Row components -------------------------------------------------------
 const RowControls = ({ onAdd, onRemove, showRemove, label, showAdd = true }) => (
@@ -885,14 +839,12 @@ AccessRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.ob
 function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [wireOpen, setWireOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
-  const [devOpen, setDevOpen] = useState(false);
   const [wireAnchor, setWireAnchor] = useState(null);
   const [catAnchor, setCatAnchor] = useState(null);
-  const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
   const wireLabel = shortLabel('wire', data.wire) || __('Wire', 'endoplanner');
   const catheterLabel = shortLabel('catheter', data.catheter) || __('Catheter', 'endoplanner');
-  const devLabel = data.device || __('Device', 'endoplanner');
+  const devLabel = data.device || __('Choose', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -916,14 +868,12 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             setCatOpen(true);
           }}
         />
-        <DeviceButton
-          label={devLabel}
-          img={deviceImg}
-          onClick={(e) => {
-            console.log('Open special device modal', index);
-            setDevAnchor(e.currentTarget.getBoundingClientRect());
-            setDevOpen(true);
-          }}
+        <InlineDeviceSelect
+          image={deviceImg}
+          options={specialDeviceOptions}
+          value={data.device}
+          onChange={(val) => onChange({ ...data, device: val })}
+          buttonLabel={__('Choose', 'endoplanner')}
         />
       </div>
       <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
@@ -949,17 +899,6 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
         values={data.catheter || {}}
         onSave={(val) => onChange({ ...data, catheter: val })}
       />
-      <DeviceModal
-        isOpen={devOpen}
-        anchor={devAnchor}
-        onRequestClose={() => {
-          console.log('Close special device modal');
-          setDevOpen(false);
-          setDevAnchor(null);
-        }}
-        value={data.device}
-        onSave={(val) => onChange({ ...data, device: val })}
-      />
       </div>
     </div>
   );
@@ -970,14 +909,12 @@ NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.objec
 function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [ballOpen, setBallOpen] = useState(false);
   const [stentOpen, setStentOpen] = useState(false);
-  const [devOpen, setDevOpen] = useState(false);
   const [ballAnchor, setBallAnchor] = useState(null);
   const [stentAnchor, setStentAnchor] = useState(null);
-  const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
   const balloonLabel = shortLabel('balloon', data.balloon) || __('Balloon', 'endoplanner');
   const stentLabel = shortLabel('stent', data.stent) || __('Stent', 'endoplanner');
-  const devLabel = data.device || __('Device', 'endoplanner');
+  const devLabel = data.device || __('Choose', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -1001,14 +938,12 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             setStentOpen(true);
           }}
         />
-        <DeviceButton
-          label={devLabel}
-          img={deviceImg}
-          onClick={(e) => {
-            console.log('Open special device modal', index);
-            setDevAnchor(e.currentTarget.getBoundingClientRect());
-            setDevOpen(true);
-          }}
+        <InlineDeviceSelect
+          image={deviceImg}
+          options={specialDeviceOptions}
+          value={data.device}
+          onChange={(val) => onChange({ ...data, device: val })}
+          buttonLabel={__('Choose', 'endoplanner')}
         />
       </div>
       <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
@@ -1034,17 +969,6 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
           values={data.stent || {}}
           onSave={(val) => onChange({ ...data, stent: val })}
         />
-      <DeviceModal
-        isOpen={devOpen}
-        anchor={devAnchor}
-        onRequestClose={() => {
-          console.log('Close special device modal');
-          setDevOpen(false);
-          setDevAnchor(null);
-        }}
-        value={data.device}
-        onSave={(val) => onChange({ ...data, device: val })}
-      />
       </div>
     </div>
   );
@@ -1053,11 +977,9 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
 TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
 
 function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
-  const [devOpen, setDevOpen] = useState(false);
-  const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
   const method = data.method || '';
-  const devLabel3 = data.device || __('Device', 'endoplanner');
+  const devLabel3 = data.device || __('Choose', 'endoplanner');
   return (
     <div className="intervention-row">
       <div className="row-number">{index + 1}</div>
@@ -1070,31 +992,16 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
         />
         <div className="device-row">
         {method === 'Closure device' && (
-          <DeviceButton
-            label={devLabel3}
-            img={closureImg}
-            onClick={(e) => {
-              console.log('Open closure device modal', index);
-              setDevAnchor(e.currentTarget.getBoundingClientRect());
-              setDevOpen(true);
-            }}
+          <InlineDeviceSelect
+            image={closureImg}
+            options={closureDeviceOptions}
+            value={data.device}
+            onChange={(val) => onChange({ ...data, device: val })}
+            buttonLabel={__('Choose', 'endoplanner')}
           />
         )}
         </div>
         <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
-        <DeviceModal
-          isOpen={devOpen}
-          anchor={devAnchor}
-          title={__('Closure device', 'endoplanner')}
-          options={closureDeviceOptions}
-        onRequestClose={() => {
-          console.log('Close closure device modal');
-          setDevOpen(false);
-          setDevAnchor(null);
-        }}
-        value={data.device}
-          onSave={(val) => onChange({ ...data, device: val })}
-        />
       </div>
     </div>
   );
