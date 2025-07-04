@@ -24,6 +24,7 @@ const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
 const closureDeviceOptions = [
+  'Choose',
   '6F AngioSeal',
   '8F AngioSeal',
   'Perclose ProStyle',
@@ -286,10 +287,8 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   const [length, setLength] = useState('');
   const [specific, setSpecific] = useState('');
   useEffect(() => {
-    const defaultSize = values.size || (sizes.includes('4 Fr') ? '4 Fr' : '');
-    const defaultLength = values.length || (lengths.includes('65 cm') ? '65 cm' : '');
-    setSize(defaultSize);
-    setLength(defaultLength);
+    setSize(values.size || '');
+    setLength(values.length || '');
     setSpecific(values.specific || '');
   }, [values]);
   const specifics = ['BER2','BHW','Cobra 1','Cobra 2','Cobra 3','Cobra Glidecath','CXI 0.018','CXI 0.014','Navicross 0.018','Navicross 0.035','MultiPurpose','PIER','Pigtail Flush','Straight Flush','Universal Flush','Rim','Simmons 1','Simmons 2','Simmons 3','Vertebral'];
@@ -338,14 +337,22 @@ CatheterModal.propTypes = {
 };
 
 function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [platform, setPlatform] = useState(values.platform || '0.014');
-  const [length, setLength] = useState(values.length || '180 cm');
-  const [type, setType] = useState(values.type || 'Glidewire');
-  const [body, setBody] = useState(values.body || 'Light bodied');
-  const [support, setSupport] = useState(values.support || 'Rosen wire');
-  const [technique, setTechnique] = useState(values.technique || 'Intimal Tracking');
+  const [platform, setPlatform] = useState(values.platform || '');
+  const [length, setLength] = useState(values.length || '');
+  const [type, setType] = useState(values.type || '');
+  const [body, setBody] = useState(values.body || '');
+  const [support, setSupport] = useState(values.support || '');
+  const [technique, setTechnique] = useState(values.technique || '');
   const [product, setProduct] = useState(values.product || '');
-  useEffect(() => { setPlatform(values.platform || '0.014'); setLength(values.length || '180 cm'); setType(values.type || 'Glidewire'); setBody(values.body || 'Light bodied'); setSupport(values.support || 'Rosen wire'); setTechnique(values.technique || 'Intimal Tracking'); setProduct(values.product || ''); }, [values]);
+  useEffect(() => {
+    setPlatform(values.platform || '');
+    setLength(values.length || '');
+    setType(values.type || '');
+    setBody(values.body || '');
+    setSupport(values.support || '');
+    setTechnique(values.technique || '');
+    setProduct(values.product || '');
+  }, [values]);
   const lengths = ['180 cm','260 cm','300 cm'];
   const bodyOpts = ['Light bodied','Intermediate bodied','Heavy bodied'];
   const supportOpts = ['Rosen wire','Lunderquist wire','Amplatz wire','Bentson wire','Meier wire','Newton wire'];
@@ -432,15 +439,22 @@ WireModal.propTypes = {
 };
 
 function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [platform, setPlatform] = useState(values.platform || '0.014');
-  const [diameter, setDiameter] = useState(values.diameter || '1.5');
+  const [platform, setPlatform] = useState(values.platform || '');
+  const [diameter, setDiameter] = useState(values.diameter || '');
   const [len, setLen] = useState(values.length || '');
-  useEffect(() => { setPlatform(values.platform || '0.014'); setDiameter(values.diameter || '1.5'); setLen(values.length || ''); }, [values]);
+  useEffect(() => {
+    setPlatform(values.platform || '');
+    setDiameter(values.diameter || '');
+    setLen(values.length || '');
+  }, [values]);
   const diameters = { '0.014':['1.5','2','2.5','3.5','4'], '0.018':['2','2.5','3','4','5','5.5','6','7'], '0.035':['3','4','5','6','7','8','9','10','12','14'] };
   const lengths = ['10','12','15','18','20','30','40','50','60','70','80','90','100','110','120'];
   const handleChange = (field, val) => {
     const newVals = { platform, diameter, length: len, [field]: val };
-    if (field === 'platform'){ setPlatform(val); setDiameter(diameters[val][0]); }
+    if (field === 'platform') {
+      setPlatform(val);
+      setDiameter(val ? diameters[val][0] : '');
+    }
     if (field === 'diameter') setDiameter(val);
     if (field === 'length') setLen(val);
     console.log('[Popup] Updated: ', newVals);
@@ -456,7 +470,7 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
           ariaLabel={__('Platform', 'endoplanner')}
         />
       <SelectControl label={__('Diameter', 'endoplanner')} value={diameter}
-        options={diameters[platform].map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
+        options={(diameters[platform] || []).map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
       />
       <SelectControl
         label={__('Length (mm)', 'endoplanner')}
@@ -483,16 +497,26 @@ const stentDia = { '0.014':['2','3','4','5'], '0.018':['4','5','6','7'], '0.035'
 const stentLen = { '0.014':['20','40','60','80'], '0.018':['40','60','80','100'], '0.035':['40','60','80','100','120'] };
 
 function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [platform, setPlatform] = useState(values.platform || '0.014');
-  const [type, setType] = useState(values.type || 'self expandable');
-  const [mat, setMat] = useState(values.material || 'bare metal');
-  const [dia, setDia] = useState(values.diameter || stentDia[platform][0]);
-  const [len, setLen] = useState(values.length || stentLen[platform][0]);
-  useEffect(() => { setPlatform(values.platform || '0.014'); setType(values.type || 'self expandable'); setMat(values.material || 'bare metal'); setDia(values.diameter || stentDia[values.platform || '0.014'][0]); setLen(values.length || stentLen[values.platform || '0.014'][0]); }, [values]);
+  const [platform, setPlatform] = useState(values.platform || '');
+  const [type, setType] = useState(values.type || '');
+  const [mat, setMat] = useState(values.material || '');
+  const [dia, setDia] = useState(values.diameter || '');
+  const [len, setLen] = useState(values.length || '');
+  useEffect(() => {
+    setPlatform(values.platform || '');
+    setType(values.type || '');
+    setMat(values.material || '');
+    setDia(values.diameter || '');
+    setLen(values.length || '');
+  }, [values]);
   const handleChange = (field, val) => {
     const newVals = { platform, type, material: mat, diameter: dia, length: len, [field]: val };
     switch(field){
-      case 'platform': setPlatform(val); setDia(stentDia[val][0]); setLen(stentLen[val][0]); break;
+      case 'platform':
+        setPlatform(val);
+        setDia(val ? stentDia[val][0] : '');
+        setLen(val ? stentLen[val][0] : '');
+        break;
       case 'type': setType(val); break;
       case 'material': setMat(val); break;
       case 'diameter': setDia(val); break;
@@ -526,13 +550,13 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
       <SelectControl
         label={__('Diameter', 'endoplanner')}
         value={dia}
-        options={[{ label: __('Choose diameter', 'endoplanner'), value: '', disabled: true }, ...stentDia[platform].map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose diameter', 'endoplanner'), value: '', disabled: true }, ...(stentDia[platform] || []).map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('diameter', val)}
       />
       <SelectControl
         label={__('Length', 'endoplanner')}
         value={len}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...stentLen[platform].map(v => ({ label: v, value: v }))]}
+        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...(stentLen[platform] || []).map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
       />
       <div className="popup-close-row">
@@ -551,18 +575,23 @@ StentModal.propTypes = {
 };
 
 function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave, title = __('Special device', 'endoplanner'), options }) {
-  const optionList = options || ['Re-entry device','IVUS catheter','Vascular plug','Embolization coils','Closure device','Shockwave','Scoring balloon','Atherectomy device','Thrombectomy device','Custom'];
-  const initIsKnown = optionList.includes(value);
-  const [device, setDevice] = useState(initIsKnown ? value : 'Custom');
-  const [customText, setCustomText] = useState(initIsKnown ? '' : value || '');
+  const baseOptions = options || ['Re-entry device','IVUS catheter','Vascular plug','Embolization coils','Closure device','Shockwave','Scoring balloon','Atherectomy device','Thrombectomy device','Custom'];
+  const optionList = baseOptions[0] === 'Choose' ? baseOptions : ['Choose', ...baseOptions];
+  const initIsKnown = baseOptions.includes(value);
+  const [device, setDevice] = useState(initIsKnown ? value : value ? 'Custom' : 'Choose');
+  const [customText, setCustomText] = useState(initIsKnown || !value ? '' : value || '');
   useEffect(() => {
-    const known = optionList.includes(value);
-    setDevice(known ? value : 'Custom');
-    setCustomText(known ? '' : value || '');
+    const known = baseOptions.includes(value);
+    setDevice(known ? value : value ? 'Custom' : 'Choose');
+    setCustomText(known || !value ? '' : value || '');
   }, [value]);
   const handleSave = (val, customVal = customText) => {
     console.log('[Popup] Selected: ' + val);
     setDevice(val);
+    if (val === 'Choose') {
+      onSave('');
+      return;
+    }
     if (val !== 'Custom') {
       onSave(val);
       onRequestClose();
@@ -701,7 +730,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
       <div className="row-inner">
         <SegmentedControl
           options={[{ label: 'Antegrade', value: 'Antegrade' }, { label: 'Retrograde', value: 'Retrograde' }]}
-          value={data.approach || 'Antegrade'}
+          value={data.approach || ''}
           onChange={(val) => { console.log('Access approach', val); onChange({ ...data, approach: val }); }}
           ariaLabel={__('Approach', 'endoplanner')}
         />
@@ -1027,7 +1056,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [devOpen, setDevOpen] = useState(false);
   const [devAnchor, setDevAnchor] = useState(null);
   const data = values || {};
-  const method = data.method || 'Manual pressure';
+  const method = data.method || '';
   const devLabel3 = data.device || __('Device', 'endoplanner');
   return (
     <div className="intervention-row">
