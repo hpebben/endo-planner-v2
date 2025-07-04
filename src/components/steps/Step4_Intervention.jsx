@@ -23,6 +23,18 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
+const closureDeviceOptions = [
+  '6F AngioSeal',
+  '8F AngioSeal',
+  'Perclose ProStyle',
+  'Exoseal',
+  'Starclose',
+  '14F Manta',
+  '18F Manta',
+  'Mynx',
+  'Custom',
+];
+
 // Simple utility to generate unique ids for dynamic rows
 const uid = () => Math.random().toString(36).substr(2, 9);
 
@@ -538,8 +550,8 @@ StentModal.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
-function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave }) {
-  const optionList = ['Re-entry device','IVUS catheter','Vascular plug','Embolization coils','Closure device','Shockwave','Scoring balloon','Atherectomy device','Thrombectomy device','Custom'];
+function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave, title = __('Special device', 'endoplanner'), options }) {
+  const optionList = options || ['Re-entry device','IVUS catheter','Vascular plug','Embolization coils','Closure device','Shockwave','Scoring balloon','Atherectomy device','Thrombectomy device','Custom'];
   const initIsKnown = optionList.includes(value);
   const [device, setDevice] = useState(initIsKnown ? value : 'Custom');
   const [customText, setCustomText] = useState(initIsKnown ? '' : value || '');
@@ -560,7 +572,7 @@ function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave }) {
     }
   };
   return (
-    <SimpleModal title={__('Special device', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+    <SimpleModal title={title} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
       <SelectControl
         label={__('Device', 'endoplanner')}
         value={device}
@@ -589,6 +601,8 @@ DeviceModal.propTypes = {
   onRequestClose: PropTypes.func.isRequired,
   value: PropTypes.string,
   onSave: PropTypes.func.isRequired,
+  title: PropTypes.string,
+  options: PropTypes.arrayOf(PropTypes.string),
 };
 
 // --- Row components -------------------------------------------------------
@@ -1042,6 +1056,8 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
         <DeviceModal
           isOpen={devOpen}
           anchor={devAnchor}
+          title={__('Closure device', 'endoplanner')}
+          options={closureDeviceOptions}
         onRequestClose={() => {
           console.log('Close closure device modal');
           setDevOpen(false);

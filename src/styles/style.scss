@@ -598,6 +598,10 @@ svg .vessel-path:hover {
   gap: 1.5rem;
 }
 
+.row-inner > .segmented-control {
+  align-self: center;
+}
+
 .row-number {
   font-weight: 600;
   font-size: 0.95rem;
@@ -842,6 +846,10 @@ svg .vessel-path:hover {
   min-width: 200px;
   max-height: 90vh; /* scroll when content too tall */
   overflow-y: auto;
+}
+.inline-modal .components-base-control,
+.inline-modal .segmented-control {
+  margin-bottom: 0.75rem;
 }
 .inline-modal input:focus,
 .inline-modal select:focus {
