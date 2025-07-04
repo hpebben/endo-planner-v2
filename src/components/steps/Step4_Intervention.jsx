@@ -211,18 +211,22 @@ function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Needle', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl
-        label={__('Needle size', 'endoplanner')}
-        value={size}
-        options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...['19 Gauge', '21 Gauge'].map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('size', val)}
-      />
-      <SelectControl
-        label={__('Needle length', 'endoplanner')}
-        value={length}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...['4cm', '7cm', '9cm'].map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
+      <div className="modal-group">
+        <SelectControl
+          label={__('Needle size', 'endoplanner')}
+          value={size}
+          options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...['19 Gauge', '21 Gauge'].map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('size', val)}
+        />
+      </div>
+      <div className="modal-group">
+        <SelectControl
+          label={__('Needle length', 'endoplanner')}
+          value={length}
+          options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...['4cm', '7cm', '9cm'].map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('length', val)}
+        />
+      </div>
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
       </div>
@@ -253,18 +257,22 @@ function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Sheath', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl
-        label={__('French size', 'endoplanner')}
-        value={frSize}
-        options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('frSize', val)}
-      />
-      <SelectControl
-        label={__('Length', 'endoplanner')}
-        value={length}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
+      <div className="modal-group">
+        <SelectControl
+          label={__('French size', 'endoplanner')}
+          value={frSize}
+          options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('frSize', val)}
+        />
+      </div>
+      <div className="modal-group">
+        <SelectControl
+          label={__('Length', 'endoplanner')}
+          value={length}
+          options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('length', val)}
+        />
+      </div>
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
       </div>
@@ -303,24 +311,30 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Catheter', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl
-        label={__('Specific catheter', 'endoplanner')}
-        value={specific}
-        options={[{ label: __('Choose catheter', 'endoplanner'), value: '', disabled: true }, ...specifics.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('specific', val)}
-      />
-      <SelectControl
-        label={__('French size', 'endoplanner')}
-        value={size}
-        options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('size', val)}
-      />
-      <SelectControl
-        label={__('Length', 'endoplanner')}
-        value={length}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
+      <div className="modal-group">
+        <SelectControl
+          label={__('Specific catheter', 'endoplanner')}
+          value={specific}
+          options={[{ label: __('Choose catheter', 'endoplanner'), value: '', disabled: true }, ...specifics.map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('specific', val)}
+        />
+      </div>
+      <div className="modal-group">
+        <SelectControl
+          label={__('French size', 'endoplanner')}
+          value={size}
+          options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('size', val)}
+        />
+      </div>
+      <div className="modal-group">
+        <SelectControl
+          label={__('Length', 'endoplanner')}
+          value={length}
+          options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('length', val)}
+        />
+      </div>
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
       </div>
@@ -374,37 +388,49 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Wire', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-        <SegmentedControl
-          options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
-          value={platform}
-          onChange={(val)=>handleChange('platform', val)}
-          ariaLabel={__('Platform', 'endoplanner')}
+        <div className="modal-group">
+          <span className="modal-subtitle">{__('Platform', 'endoplanner').toUpperCase()}</span>
+          <SegmentedControl
+            options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
+            value={platform}
+            onChange={(val)=>handleChange('platform', val)}
+            ariaLabel={__('Platform', 'endoplanner')}
+          />
+        </div>
+      <div className="modal-group">
+        <SelectControl label={__('Length', 'endoplanner')} value={length}
+          options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
         />
-      <SelectControl label={__('Length', 'endoplanner')} value={length}
-        options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
-      />
+      </div>
+      <div className="modal-group">
         <SegmentedControl
           options={[{label:'Glidewire',value:'Glidewire'},{label:'CTO wire',value:'CTO wire'},{label:'Support wire',value:'Support wire'}]}
           value={type}
           onChange={(val)=>handleChange('type', val)}
           ariaLabel={__('Type', 'endoplanner')}
         />
+      </div>
       {type === 'CTO wire' && (
-        <SelectControl
-          label={__('Body type', 'endoplanner')}
-          value={body}
-          options={[{ label: __('Choose body', 'endoplanner'), value: '', disabled: true }, ...bodyOpts.map(v => ({ label: v, value: v }))]}
-          onChange={(val) => handleChange('body', val)}
-        />
+        <div className="modal-group">
+          <SelectControl
+            label={__('Body type', 'endoplanner')}
+            value={body}
+            options={[{ label: __('Choose body', 'endoplanner'), value: '', disabled: true }, ...bodyOpts.map(v => ({ label: v, value: v }))]}
+            onChange={(val) => handleChange('body', val)}
+          />
+        </div>
       )}
       {type === 'Support wire' && (
-        <SelectControl
-          label={__('Support wire', 'endoplanner')}
-          value={support}
-          options={[{ label: __('Choose wire', 'endoplanner'), value: '', disabled: true }, ...supportOpts.map(v => ({ label: v, value: v }))]}
-          onChange={(val) => handleChange('support', val)}
-        />
+        <div className="modal-group">
+          <SelectControl
+            label={__('Support wire', 'endoplanner')}
+            value={support}
+            options={[{ label: __('Choose wire', 'endoplanner'), value: '', disabled: true }, ...supportOpts.map(v => ({ label: v, value: v }))]}
+            onChange={(val) => handleChange('support', val)}
+          />
+        </div>
       )}
+      <div className="modal-group">
         <SegmentedControl
           options={[
             {label:'Intimal Tracking',value:'Intimal Tracking'},
@@ -414,15 +440,18 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
           onChange={(val)=>handleChange('technique', val)}
           ariaLabel={__('Technique', 'endoplanner')}
         />
-      <SelectControl
-        label={__('Product', 'endoplanner')}
-        value={product}
-        options={[
-          { label: __('Choose product', 'endoplanner'), value: '', disabled: true },
-          { label: __('None', 'endoplanner'), value: 'none' }
-        ]}
-        onChange={(val)=>handleChange('product', val)}
-      />
+      </div>
+      <div className="modal-group">
+        <SelectControl
+          label={__('Product', 'endoplanner')}
+          value={product}
+          options={[
+            { label: __('Choose product', 'endoplanner'), value: '', disabled: true },
+            { label: __('None', 'endoplanner'), value: 'none' }
+          ]}
+          onChange={(val)=>handleChange('product', val)}
+        />
+      </div>
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
       </div>
@@ -463,21 +492,28 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-        <SegmentedControl
-          options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
-          value={platform}
-          onChange={(val) => handleChange('platform', val)}
-          ariaLabel={__('Platform', 'endoplanner')}
+        <div className="modal-group">
+          <span className="modal-subtitle">{__('Platform', 'endoplanner').toUpperCase()}</span>
+          <SegmentedControl
+            options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
+            value={platform}
+            onChange={(val) => handleChange('platform', val)}
+            ariaLabel={__('Platform', 'endoplanner')}
+          />
+        </div>
+      <div className="modal-group">
+        <SelectControl label={__('Diameter', 'endoplanner')} value={diameter}
+          options={(diameters[platform] || []).map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
         />
-      <SelectControl label={__('Diameter', 'endoplanner')} value={diameter}
-        options={(diameters[platform] || []).map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
-      />
-      <SelectControl
-        label={__('Length (mm)', 'endoplanner')}
-        value={len}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
+      </div>
+      <div className="modal-group">
+        <SelectControl
+          label={__('Length (mm)', 'endoplanner')}
+          value={len}
+          options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('length', val)}
+        />
+      </div>
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
       </div>
@@ -529,36 +565,47 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SegmentedControl
-        options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
-        value={platform}
-        onChange={(val)=>handleChange('platform', val)}
-        ariaLabel={__('Platform', 'endoplanner')}
-      />
-      <SegmentedControl
-        options={[{label:'self expandable',value:'self expandable'},{label:'balloon expandable',value:'balloon expandable'}]}
-        value={type}
-        onChange={(val)=>handleChange('type', val)}
-        ariaLabel={__('Stent type', 'endoplanner')}
-      />
-      <SegmentedControl
-        options={[{label:'bare metal',value:'bare metal'},{label:'covered',value:'covered'}]}
-        value={mat}
-        onChange={(val)=>handleChange('material', val)}
-        ariaLabel={__('Stent material', 'endoplanner')}
-      />
-      <SelectControl
-        label={__('Diameter', 'endoplanner')}
-        value={dia}
-        options={[{ label: __('Choose diameter', 'endoplanner'), value: '', disabled: true }, ...(stentDia[platform] || []).map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('diameter', val)}
-      />
-      <SelectControl
-        label={__('Length', 'endoplanner')}
-        value={len}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...(stentLen[platform] || []).map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
+      <div className="modal-group">
+        <span className="modal-subtitle">{__('Platform', 'endoplanner').toUpperCase()}</span>
+        <SegmentedControl
+          options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
+          value={platform}
+          onChange={(val)=>handleChange('platform', val)}
+          ariaLabel={__('Platform', 'endoplanner')}
+        />
+      </div>
+      <div className="modal-group">
+        <SegmentedControl
+          options={[{label:'self expandable',value:'self expandable'},{label:'balloon expandable',value:'balloon expandable'}]}
+          value={type}
+          onChange={(val)=>handleChange('type', val)}
+          ariaLabel={__('Stent type', 'endoplanner')}
+        />
+      </div>
+      <div className="modal-group">
+        <SegmentedControl
+          options={[{label:'bare metal',value:'bare metal'},{label:'covered',value:'covered'}]}
+          value={mat}
+          onChange={(val)=>handleChange('material', val)}
+          ariaLabel={__('Stent material', 'endoplanner')}
+        />
+      </div>
+      <div className="modal-group">
+        <SelectControl
+          label={__('Diameter', 'endoplanner')}
+          value={dia}
+          options={[{ label: __('Choose diameter', 'endoplanner'), value: '', disabled: true }, ...(stentDia[platform] || []).map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('diameter', val)}
+        />
+      </div>
+      <div className="modal-group">
+        <SelectControl
+          label={__('Length', 'endoplanner')}
+          value={len}
+          options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...(stentLen[platform] || []).map(v => ({ label: v, value: v }))]}
+          onChange={(val) => handleChange('length', val)}
+        />
+      </div>
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
       </div>
@@ -602,20 +649,24 @@ function DeviceModal({ isOpen, anchor, onRequestClose, value, onSave, title = __
   };
   return (
     <SimpleModal title={title} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl
-        label={__('Device', 'endoplanner')}
-        value={device}
-        options={optionList.map(v => ({ label: v, value: v }))}
-        onChange={(val)=> handleSave(val)}
-      />
-      {device === 'Custom' && (
-        <input
-          type="text"
-          className="custom-device-input"
-          value={customText}
-          onChange={e => { setCustomText(e.target.value); console.log('[Popup] Custom text', e.target.value); handleSave('Custom', e.target.value); }}
-          placeholder={__('Enter custom device', 'endoplanner')}
+      <div className="modal-group">
+        <SelectControl
+          label={__('Device', 'endoplanner')}
+          value={device}
+          options={optionList.map(v => ({ label: v, value: v }))}
+          onChange={(val)=> handleSave(val)}
         />
+      </div>
+      {device === 'Custom' && (
+        <div className="modal-group">
+          <input
+            type="text"
+            className="custom-device-input"
+            value={customText}
+            onChange={e => { setCustomText(e.target.value); console.log('[Popup] Custom text', e.target.value); handleSave('Custom', e.target.value); }}
+            placeholder={__('Enter custom device', 'endoplanner')}
+          />
+        </div>
       )}
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
