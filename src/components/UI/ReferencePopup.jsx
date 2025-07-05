@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import InlineModal from './InlineModal';
 
 export default function ReferencePopup({ isOpen, onRequestClose, figure, title, highlight }) {
+  const [customImg, setCustomImg] = useState(null);
+  const handleUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setCustomImg(ev.target.result);
+    reader.readAsDataURL(file);
+  };
   const Table6 = () => {
     const rows = [
       { stage: 1, cat: "Very Low", amp: "1–3%", mort: "5–10%" },
@@ -145,7 +153,10 @@ export default function ReferencePopup({ isOpen, onRequestClose, figure, title, 
 
   return (
     <InlineModal title={title} isOpen={isOpen} onRequestClose={onRequestClose}>
-      {renderFigure()}
+      {customImg ? <img src={customImg} alt="custom" style={{ maxWidth: '100%' }} /> : renderFigure()}
+      <div className="figure-upload">
+        <input type="file" accept="image/*" onChange={handleUpload} />
+      </div>
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>
           &times;
