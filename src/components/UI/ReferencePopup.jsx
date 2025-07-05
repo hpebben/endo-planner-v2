@@ -13,7 +13,7 @@ const referenceMap = {
     'https://raw.githubusercontent.com/openvascular/endo-planner-assets/main/glass-table.png',
 };
 
-export default function ReferencePopup({ isOpen, onRequestClose, figure, title, highlight }) {
+export default function ReferencePopup({ isOpen, onRequestClose, figure, title, highlight, citation, page, link }) {
   const imgFile = referenceMap[figure];
   const [missing, setMissing] = React.useState(false);
 
@@ -22,7 +22,11 @@ export default function ReferencePopup({ isOpen, onRequestClose, figure, title, 
       {imgFile && !missing ? (
         <img src={imgFile} alt={title} onError={() => setMissing(true)} />
       ) : (
-        <div className="missing-ref">Coming soon – {title}</div>
+        <div className="missing-ref">
+          Please upload a screenshot of {title}
+          {page ? ` from page ${page}` : ''}
+          {citation ? ` of ${citation}` : ''} here.
+        </div>
       )}
     </figure>
   );
@@ -63,6 +67,7 @@ export default function ReferencePopup({ isOpen, onRequestClose, figure, title, 
   return (
     <InlineModal title={title} isOpen={isOpen} onRequestClose={onRequestClose}>
       {renderFigure()}
+      {citation && <div className="citation-text">{citation}</div>}
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>
           &times;
@@ -75,11 +80,14 @@ export default function ReferencePopup({ isOpen, onRequestClose, figure, title, 
 ReferencePopup.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired,
-  figure: PropTypes.oneOf(['table6', 'table5', 'table54', 'figure6', 'glass-table']).isRequired,
+  figure: PropTypes.oneOf(['table6', 'table5', 'table54', 'figure6', 'glass-table', 'tasc-table']).isRequired,
   title: PropTypes.string.isRequired,
   highlight: PropTypes.oneOfType([
     PropTypes.number,
     PropTypes.string,
     PropTypes.arrayOf(PropTypes.string),
   ]),
+  citation: PropTypes.string,
+  page: PropTypes.string,
+  link: PropTypes.string,
 };

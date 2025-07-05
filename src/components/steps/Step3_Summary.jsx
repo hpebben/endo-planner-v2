@@ -38,6 +38,8 @@ export default function StepSummary({ data, setStep }) {
   const [showRef1, setShowRef1] = useState(false);
   const [showRef2, setShowRef2] = useState(false);
   const [showRef3, setShowRef3] = useState(false);
+  const [showRefGlass, setShowRefGlass] = useState(false);
+  const [showRefTasc, setShowRefTasc] = useState(false);
 
   const wifiCode = `W${prog.wound}I${prog.ischemia}fI${prog.infection}`;
 
@@ -73,10 +75,11 @@ export default function StepSummary({ data, setStep }) {
     : '';
 
 
-  const renderSection = (title, items) =>
-    items.length ? (
+  const renderSection = (title, items, approachText = '') =>
+    items.length || approachText ? (
       <div className="plan-section">
         <div className="section-title subsection-title">{title}</div>
+        {approachText && <div className="approach-label">{approachText}</div>}
         <ul className="plan-list">
           {items.map((t, i) => (
             <li key={`${title}-${i}`} onClick={() => setStep && setStep(2)}>
@@ -125,16 +128,22 @@ export default function StepSummary({ data, setStep }) {
           <div>{__('WIfI', 'endoplanner')}: <b>{wifiCode} (WIfI Stage {prog.wifiStage})</b></div>
         </div>
         <div className="summary-card">
-          <div className="card-title">{__('Disease anatomy', 'endoplanner')}</div>
+          <div className="card-title">{__('Disease Anatomy', 'endoplanner')}</div>
           {vesselList}
           <div>
             {__('GLASS stage', 'endoplanner')} {glass.stage}{' '}
-            <span className="text-gray-500 text-xs">({glass.explanation}, see Table 5.4)</span>
+            <span className="row-add-label">
+              {glass.explanation}.{' '}
+              <a href="#" onClick={() => setShowRefGlass(true)}>Read more about GLASS</a>
+            </span>
           </div>
           {tasc && (
             <div>
               {`TASC II ${tasc.stage} `}
-              <span className="text-gray-500 text-xs">({tasc.explanation}, see TASC II)</span>
+              <span className="row-add-label">
+                {tasc.explanation}.{' '}
+                <a href="#" onClick={() => setShowRefTasc(true)}>Read more about TASC II</a>
+              </span>
             </div>
           )}
         </div>
@@ -148,19 +157,21 @@ export default function StepSummary({ data, setStep }) {
           <br />
           {`GLASS stage ${glass.stage} predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
           <ReferenceLink number={2} onClick={() => setShowRef2(true)} />
-          <br />
-          <b>{__('Notice:', 'endoplanner')}</b>{' '}
-          {__('If WIfI stage 3 or 4 and GLASS stage 3 are present, open bypass should be considered according to the Global Vascular Guidelines on CLTI Management.', 'endoplanner')}
-          <ReferenceLink number={3} onClick={() => setShowRef3(true)} />
+          {prog.wifiStage >= 3 && glass.stage === 'III' && (
+            <>
+              <br />
+              <span id="open-bypass-notice" className="row-add-label text-red-500">
+                {__('For WIfI stage 3 or 4 and GLASS stage 3, open bypass should be considered according to the Global Vascular Guidelines on CLTI Management.', 'endoplanner')}
+                <ReferenceLink number={3} onClick={() => setShowRef3(true)} />
+              </span>
+            </>
+          )}
         </div>
       </div>
 
       <div className="summary-card intervention-plan">
         <div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div>
-        {approachLabel && (
-          <div className="approach-chip">{approachLabel}</div>
-        )}
-        {renderSection(__('Access', 'endoplanner'), accessItems)}
+        {renderSection(__('Access', 'endoplanner'), accessItems, approachLabel)}
         {renderSection(__('Navigation', 'endoplanner'), navItems)}
         {renderSection(__('Crossing / Therapy', 'endoplanner'), therapyItems)}
         {renderSection(__('Closure', 'endoplanner'), closureItems)}
@@ -175,22 +186,48 @@ export default function StepSummary({ data, setStep }) {
         isOpen={showRef1}
         onRequestClose={() => setShowRef1(false)}
         figure="table6"
-        title="Global Vascular Guidelines, 2019 – Table 6"
+        title="Global Vascular Guidelines, 2019 – Table VI (p. S24)"
+        citation="Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. Eur J Vasc Endovasc Surg. 2019;58(1S):S1-S109."
+        page="S24"
+        link="https://esvs.org/wp-content/uploads/2021/08/CLTI-Guidelines-ESVS-SVS-WFVS.pdf"
         highlight={prog.wifiStage}
       />
       <ReferencePopup
         isOpen={showRef2}
         onRequestClose={() => setShowRef2(false)}
         figure="table5"
-        title="Global Vascular Guidelines, 2019 – Table 5"
+        title="Global Vascular Guidelines, 2019 – Table 5 (p. S44)"
+        citation="Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. Eur J Vasc Endovasc Surg. 2019;58(1S):S1-S109."
+        page="S44"
+        link="https://esvs.org/wp-content/uploads/2021/08/CLTI-Guidelines-ESVS-SVS-WFVS.pdf"
         highlight={table5Highlight}
       />
       <ReferencePopup
         isOpen={showRef3}
         onRequestClose={() => setShowRef3(false)}
         figure="table54"
-        title="Global Vascular Guidelines, 2019 – Table 5.4"
+        title="Global Vascular Guidelines, 2019 – Table 5.4 (p. S44)"
+        citation="Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. Eur J Vasc Endovasc Surg. 2019;58(1S):S1-S109."
+        page="S44"
+        link="https://esvs.org/wp-content/uploads/2021/08/CLTI-Guidelines-ESVS-SVS-WFVS.pdf"
         highlight={glass.stage}
+      />
+      <ReferencePopup
+        isOpen={showRefGlass}
+        onRequestClose={() => setShowRefGlass(false)}
+        figure="glass-table"
+        title="Global Vascular Guidelines, 2019 – Table 5.4 (p. S44)"
+        citation="Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. Eur J Vasc Endovasc Surg. 2019;58(1S):S1-S109."
+        page="S44"
+        link="https://esvs.org/wp-content/uploads/2021/08/CLTI-Guidelines-ESVS-SVS-WFVS.pdf"
+      />
+      <ReferencePopup
+        isOpen={showRefTasc}
+        onRequestClose={() => setShowRefTasc(false)}
+        figure="tasc-table"
+        title="TASC II – Figure 6"
+        citation="Norgren L, Hiatt WR, Dormandy JA, et al. Inter-Society Consensus for the Management of Peripheral Arterial Disease (TASC II). J Vasc Surg. 2007;45(Suppl S):S5-S67."
+        page="?"
       />
     </div>
   );
