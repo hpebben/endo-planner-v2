@@ -694,6 +694,7 @@ svg .vessel-path:hover {
   flex-wrap: wrap;
   gap: 1rem;
   width: 100%;
+  position: relative;
 }
 
 // layout holding one column per device type
@@ -910,15 +911,20 @@ svg .vessel-path:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
+  position: static;
 }
 
 .device-dropdown {
-  margin-top: 0.5rem;
+  position: absolute;
+  top: calc(100% + 2rem);
+  left: 0;
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  margin-top: 0;
+  z-index: 10;
 }
 
 /* Case summary layout */
