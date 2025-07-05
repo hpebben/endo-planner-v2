@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 export default function ReferenceLink({ number, onClick }) {
   return (
     <sup className="ref-link">
-      <button type="button" className="ref-btn" onClick={onClick}>
-        [{number}]
-      </button>
+      <a href="#" onClick={(e) => { e.preventDefault(); onClick?.(); }}>
+        {number}
+      </a>
     </sup>
   );
 }
