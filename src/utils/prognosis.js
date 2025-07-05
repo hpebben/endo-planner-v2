@@ -4,13 +4,14 @@ export default function computePrognosis(data = {}) {
   const wifiStage = Math.max(wound, ischemia, infection) + 1;
 
   const stageMap = {
-    1: { amp: 5, limb: 95 },
-    2: { amp: 10, limb: 90 },
-    3: { amp: 25, limb: 75 },
-    4: { amp: 40, limb: 60 },
+    1: { amp: [1, 3], limb: 95 },
+    2: { amp: [5, 10], limb: 90 },
+    3: { amp: [15, 25], limb: 75 },
+    4: { amp: [30, 55], limb: 60 },
   };
 
-  let ampRisk = stageMap[wifiStage]?.amp || 10;
+  const baseAmpRange = stageMap[wifiStage]?.amp || [5, 10];
+  let ampRange = [...baseAmpRange];
   let limbSalvage = stageMap[wifiStage]?.limb || 90;
 
   const segments = data.patencySegments || {};
@@ -25,14 +26,27 @@ export default function computePrognosis(data = {}) {
     else if (calcium === 'moderate' && maxCalcium !== 'heavy') maxCalcium = 'moderate';
   });
 
-  if (totalLength > 20) { ampRisk += 5; limbSalvage -= 5; }
-  else if (totalLength > 10) { ampRisk += 2; limbSalvage -= 2; }
-  if (hasOcclusion) { ampRisk += 5; limbSalvage -= 5; }
-  if (maxCalcium === 'heavy') { ampRisk += 5; limbSalvage -= 5; }
-  else if (maxCalcium === 'moderate') { ampRisk += 2; limbSalvage -= 2; }
+  let min = ampRange[0];
+  let max = ampRange[1];
+  if (totalLength > 20) { min += 5; max += 7; limbSalvage -= 5; }
+  else if (totalLength > 10) { min += 2; max += 5; limbSalvage -= 2; }
+  if (hasOcclusion) { min += 3; max += 5; limbSalvage -= 5; }
+  if (maxCalcium === 'heavy') { min += 3; max += 5; limbSalvage -= 5; }
+  else if (maxCalcium === 'moderate') { min += 1; max += 3; limbSalvage -= 2; }
 
-  ampRisk = Math.min(ampRisk, 90);
+  ampRange = [Math.min(min, 95), Math.min(max, 95)];
   limbSalvage = Math.max(0, limbSalvage);
 
-  return { wound, ischemia, infection, wifiStage, ampRisk, limbSalvage, totalLength, hasOcclusion, maxCalcium };
+  return {
+    wound,
+    ischemia,
+    infection,
+    wifiStage,
+    baseAmpRange,
+    ampRange,
+    limbSalvage,
+    totalLength,
+    hasOcclusion,
+    maxCalcium,
+  };
 }

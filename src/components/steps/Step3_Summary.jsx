@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import computePrognosis from '../../utils/prognosis';
+import computeGlass from '../../utils/glass';
+import ReferenceLink from '../UI/ReferenceLink';
+import ReferencePopup from '../UI/ReferencePopup';
 
 export default function StepSummary({ data }) {
   const { stage, clinical = {}, patencySegments = {}, accessRows = [], navRows = [], therapyRows = [], closureRows = [] } = data;
   const prog = computePrognosis(data);
+  const glass = computeGlass(patencySegments);
+  const [showRef1, setShowRef1] = useState(false);
+  const [showRef2, setShowRef2] = useState(false);
 
   return (
     <div className="case-summary">
@@ -52,25 +58,49 @@ export default function StepSummary({ data }) {
 
       <div className="literature-card">
         <h3>{__('Literature-based considerations', 'endoplanner')}</h3>
-        <p>{__('Based on the entered WiFi score:', 'endoplanner')}</p>
+        <p>{__('WiFi Score', 'endoplanner')}:</p>
         <ul>
           <li>{`Wound: ${prog.wound}`}</li>
           <li>{`Ischemia: ${prog.ischemia}`}</li>
           <li>{`Foot infection: ${prog.infection}`}</li>
         </ul>
-        <p>{__('And the selected disease characteristics:', 'endoplanner')}</p>
+        <p>
+          {__('Estimated 1-year major amputation risk', 'endoplanner')}: {`${prog.baseAmpRange[0]}–${prog.baseAmpRange[1]}% `}
+          <ReferenceLink number={1} onClick={() => setShowRef1(true)} />
+        </p>
+        <p>
+          {__('Adjusted for lesion length and calcification', 'endoplanner')}: {`${prog.ampRange[0]}–${prog.ampRange[1]}% `}
+          <ReferenceLink number={1} onClick={() => setShowRef1(true)} />
+        </p>
+        <p>{__('GLASS staging', 'endoplanner')}: {`GLASS ${glass.stage}`}</p>
         <ul>
-          <li>{`${__('Lesion length', 'endoplanner')}: ${prog.totalLength}cm`}</li>
-          <li>{`${__('Stenosis/occlusion', 'endoplanner')}: ${prog.hasOcclusion ? 'occlusion' : 'stenosis'}`}</li>
-          <li>{`${__('Calcification', 'endoplanner')}: ${prog.maxCalcium}`}</li>
+          <li>{`${__('Technical success', 'endoplanner')}: ${glass.successRange[0]}–${glass.successRange[1]}%`}</li>
+          <li>
+            {`${__('1-year patency', 'endoplanner')}: ${glass.patencyRange[0]}–${glass.patencyRange[1]}% `}
+            <ReferenceLink number={2} onClick={() => setShowRef2(true)} />
+          </li>
         </ul>
-        <p>{__('Prognosis:', 'endoplanner')}</p>
-        <ul>
-          <li>{`${__('Estimated 1-year amputation risk', 'endoplanner')}: ${prog.ampRisk}%`}</li>
-          <li>{`${__('Estimated 1-year limb salvage rate', 'endoplanner')}: ${prog.limbSalvage}%`}</li>
-        </ul>
-        <p>{__('Higher WiFi stage and longer, more calcified lesions are associated with poorer outcomes and higher risk, as described in both guidelines.', 'endoplanner')}</p>
-        <p><em>{__('References: CLTI Guidelines 2021, IWGDF Guidelines 2023', 'endoplanner')}</em></p>
+        <p>{__('References:', 'endoplanner')}</p>
+        <ol className="reference-list">
+          <li>
+            <ReferenceLink number={1} onClick={() => setShowRef1(true)} /> CLTI Guidelines 2021, Table 4
+          </li>
+          <li>
+            <ReferenceLink number={2} onClick={() => setShowRef2(true)} /> CLTI Guidelines 2021, Figure 6
+          </li>
+        </ol>
+        <ReferencePopup
+          isOpen={showRef1}
+          onRequestClose={() => setShowRef1(false)}
+          figure="table4"
+          title="CLTI Guidelines 2021 – Table 4"
+        />
+        <ReferencePopup
+          isOpen={showRef2}
+          onRequestClose={() => setShowRef2(false)}
+          figure="figure6"
+          title="CLTI Guidelines 2021 – Figure 6"
+        />
       </div>
     </div>
   );
