@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
 import Step1 from './steps/Step1_Clinical';
 import Step2 from './steps/Step2_Patency';
-import Step4 from './steps/Step4_Intervention';
-import Step5 from './steps/Step5_Export';
+import Step3 from './steps/Step4_Intervention';
+import Step4 from './steps/Step3_Summary';
 import { ProgressBar, Button } from '@wordpress/components';
 
 const steps = [
-  { title: __( 'Clinical Indication', 'endoplanner' ), component: Step1 },
-  { title: __( 'Vessel Patency', 'endoplanner' ),      component: Step2 },
-  { title: __( 'Intervention Plan', 'endoplanner' ),   component: Step4 },
-  { title: __( 'Export EndoPlan', 'endoplanner' ),     component: Step5 },
+  { title: __( 'Clinical indication', 'endoplanner' ), component: Step1 },
+  { title: __( 'Vessel patency', 'endoplanner' ),      component: Step2 },
+  { title: __( 'Intervention plan', 'endoplanner' ),   component: Step3 },
+  { title: __( 'Case summary', 'endoplanner' ),        component: Step4 },
 ];
 
 export default function Wizard() {
