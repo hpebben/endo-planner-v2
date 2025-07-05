@@ -41,6 +41,11 @@ export default function Wizard() {
   }, [current, data]);
 
   const StepComponent = steps[current].component;
+  const setStep = (idx) => {
+    if (typeof idx === 'number') {
+      setCurrent(Math.min(Math.max(idx, 0), steps.length - 1));
+    }
+  };
 
   const next = () => setCurrent( Math.min(current + 1, steps.length - 1) );
   const prev = () => setCurrent( Math.max(current - 1, 0) );
@@ -50,7 +55,7 @@ export default function Wizard() {
       <ProgressBar value={(current + 1) / steps.length} />
       <div className="wizard-content">
         <h2>{ steps[current].title }</h2>
-        <StepComponent data={data} setData={setData} />
+        <StepComponent data={data} setData={setData} setStep={setStep} />
       </div>
       <div className="wizard-nav">
         { current > 0 && (

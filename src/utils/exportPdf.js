@@ -34,7 +34,7 @@ export default function exportCaseSummary(data) {
   const clinical = data.clinical || {};
   [
     `Fontaine stage: ${formatStage(data.stage)}`,
-    `WiFi: W${prog.wound}I${prog.ischemia}fI${prog.infection}`,
+    `WIfI: W${prog.wound}I${prog.ischemia}fI${prog.infection}`,
     `Overall WIfI stage ${prog.wifiStage}`,
   ].forEach((line) => { doc.text(line, 60, (y += 16)); });
   y += 10;

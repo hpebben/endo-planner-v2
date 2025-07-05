@@ -20,7 +20,7 @@ const summarize = (obj) =>
 const summarizeList = (arr) =>
   Array.isArray(arr) ? arr.map(summarize).filter(Boolean).join('; ') : '';
 
-export default function StepSummary({ data }) {
+export default function StepSummary({ data, setStep }) {
   const {
     stage,
     clinical = {},
@@ -37,6 +37,14 @@ export default function StepSummary({ data }) {
   const [showRef3, setShowRef3] = useState(false);
 
   const wifiCode = `W${prog.wound}I${prog.ischemia}fI${prog.infection}`;
+
+  const riskInfoMap = {
+    1: { cat: 'Very Low', amp: [1, 3], mort: [5, 10] },
+    2: { cat: 'Low', amp: [5, 10], mort: [10, 15] },
+    3: { cat: 'Moderate', amp: [15, 25], mort: [15, 30] },
+    4: { cat: 'High', amp: [30, 55], mort: [25, 40] },
+  };
+  const riskInfo = riskInfoMap[prog.wifiStage] || {};
 
   const table5Highlight = [];
   if (prog.lengthCategory) table5Highlight.push(prog.lengthCategory);
@@ -61,11 +69,13 @@ export default function StepSummary({ data }) {
     const sheaths = summarizeList(row.sheaths);
     const cats = summarizeList(row.catheters);
     return (
-      <li key={`a${i}`}>
+      <li key={`a${i}`} onClick={() => setStep && setStep(2)}>
         <div>{`#${i + 1}: ${row.approach || ''} via ${row.side || ''} ${row.vessel || ''}`}</div>
-        {needles && <div>{`Needle(s): ${needles}`}</div>}
-        {sheaths && <div>{`Sheath(s): ${sheaths}`}</div>}
-        {cats && <div>{`Catheter(s): ${cats}`}</div>}
+        <ul>
+          {needles && <li>{`Needle(s): ${needles}`}</li>}
+          {sheaths && <li>{`Sheath(s): ${sheaths}`}</li>}
+          {cats && <li>{`Catheter(s): ${cats}`}</li>}
+        </ul>
       </li>
     );
   };
@@ -75,12 +85,14 @@ export default function StepSummary({ data }) {
     const cath = summarize(row.catheter);
     const device = row.device;
     return (
-      <li key={`n${i}`}>{
-        `#${i + 1}:` +
-        (wire ? ` Wire ${wire}` : '') +
-        (cath ? `; Catheter ${cath}` : '') +
-        (device ? `; Device ${device}` : '')
-      }</li>
+      <li key={`n${i}`} onClick={() => setStep && setStep(2)}>
+        <div>{`#${i + 1}`}</div>
+        <ul>
+          {wire && <li>{`Wire ${wire}`}</li>}
+          {cath && <li>{`Catheter ${cath}`}</li>}
+          {device && <li>{`Device ${device}`}</li>}
+        </ul>
+      </li>
     );
   };
 
@@ -89,18 +101,27 @@ export default function StepSummary({ data }) {
     const stent = summarize(row.stent);
     const device = row.device;
     return (
-      <li key={`t${i}`}>{
-        `#${i + 1}:` +
-        (balloon ? ` Balloon ${balloon}` : '') +
-        (stent ? `; Stent ${stent}` : '') +
-        (device ? `; Device ${device}` : '')
-      }</li>
+      <li key={`t${i}`} onClick={() => setStep && setStep(2)}>
+        <div>{`#${i + 1}`}</div>
+        <ul>
+          {balloon && <li>{`Balloon ${balloon}`}</li>}
+          {stent && <li>{`Stent ${stent}`}</li>}
+          {device && <li>{`Device ${device}`}</li>}
+        </ul>
+      </li>
     );
   };
 
   const renderClosure = (row, i) => {
-    const device = row.device ? `; Device ${row.device}` : '';
-    return <li key={`c${i}`}>{`#${i + 1}: ${row.method || ''}${device}`}</li>;
+    return (
+      <li key={`c${i}`} onClick={() => setStep && setStep(2)}>
+        <div>{`#${i + 1}`}</div>
+        <ul>
+          {row.method && <li>{row.method}</li>}
+          {row.device && <li>{`Device ${row.device}`}</li>}
+        </ul>
+      </li>
+    );
   };
 
   return (
@@ -110,7 +131,7 @@ export default function StepSummary({ data }) {
           <h3>{__('Clinical indication', 'endoplanner')}</h3>
           <ul>
             <li><strong>{__('Fontaine stage', 'endoplanner')}:</strong> {formatStage(stage)}</li>
-            <li><strong>{__('WiFi', 'endoplanner')}:</strong> {wifiCode}</li>
+            <li><strong>{__('WIfI', 'endoplanner')}:</strong> {wifiCode}</li>
             <li><strong>{__('Overall WIfI stage', 'endoplanner')}:</strong> {`WIfI stage ${prog.wifiStage}`}</li>
           </ul>
         </div>
@@ -131,19 +152,23 @@ export default function StepSummary({ data }) {
         </div>
         <div className="summary-card">
           <h3>{__('Evidence based considerations', 'endoplanner')}</h3>
-          <p>{`WiFi: ${wifiCode} → WiFi stage ${prog.wifiStage}`}</p>
           <p>
-            {`WiFi stage ${prog.wifiStage} is associated with a 1-year major amputation risk of ${prog.baseAmpRange[0]}–${prog.baseAmpRange[1]}% `}
+            {`Based on WIfI stage ${prog.wifiStage}, the estimated 1-year major amputation risk is ${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}% and mortality risk ${riskInfo.mort?.[0]}–${riskInfo.mort?.[1]}% (${riskInfo.cat}). `}
             <ReferenceLink number={1} onClick={() => setShowRef1(true)} />
           </p>
           <p>
-            {`Lesion length ${prog.totalLength > 10 ? (prog.totalLength > 20 ? '>20cm' : '10–15cm') : '<10cm'} (${lengthImpact}), ${prog.hasOcclusion ? 'occlusion' : 'stenosis'} (${occlImpact}), and ${prog.maxCalcium} calcification (${calcImpact}) adjust the risk estimate. Adjusted risk: ${prog.ampRange[0]}–${prog.ampRange[1]}% `}
+            {`Given a lesion length ${prog.totalLength > 20 ? '>20 cm' : prog.totalLength > 10 ? '10–20 cm' : '<10 cm'} (${lengthImpact}), ${prog.hasOcclusion ? 'occlusion' : 'stenosis'} (${occlImpact}), and ${prog.maxCalcium} calcification (${calcImpact}), the adjusted 1-year major amputation risk is ${prog.ampRange[0]}–${prog.ampRange[1]}% `}
             <ReferenceLink number={2} onClick={() => setShowRef2(true)} />
           </p>
           <p>
-            {`GLASS ${glass.stage} predicts ${glass.successRange[0]}–${glass.successRange[1]}% technical success and ${glass.patencyRange[0]}–${glass.patencyRange[1]}% 1-year primary patency after endovascular treatment `}
+            {`Based on vessel patency selections, GLASS stage ${glass.stage} predicts a technical failure rate of ${100 - glass.successRange[1]}–${100 - glass.successRange[0]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%. `}
             <ReferenceLink number={3} onClick={() => setShowRef3(true)} />
           </p>
+          {prog.wifiStage >= 3 && glass.stage === 'III' && (
+            <p className="notice">
+              {__('If WIfI stage 3 or 4 and GLASS stage III are present, an open bypass should be considered according to the Global (ESVS, SVS, WFVS) Vascular Guidelines on CLTI Management.', 'endoplanner')}<sup>[1]</sup>
+            </p>
+          )}
         </div>
       </div>
 
@@ -184,22 +209,22 @@ export default function StepSummary({ data }) {
       <ReferencePopup
         isOpen={showRef1}
         onRequestClose={() => setShowRef1(false)}
-        figure="table4"
-        title="CLTI Guidelines 2021 – Table 4"
+        figure="table6"
+        title="Global Vascular Guidelines, 2019 – Table 6"
         highlight={prog.wifiStage}
       />
       <ReferencePopup
         isOpen={showRef2}
         onRequestClose={() => setShowRef2(false)}
         figure="table5"
-        title="CLTI Guidelines 2021 – Table 5"
+        title="Global Vascular Guidelines, 2019 – Table 5"
         highlight={table5Highlight}
       />
       <ReferencePopup
         isOpen={showRef3}
         onRequestClose={() => setShowRef3(false)}
-        figure="figure6"
-        title="CLTI Guidelines 2021 – Figure 6"
+        figure="table54"
+        title="Global Vascular Guidelines, 2019 – Table 5.4"
         highlight={glass.stage}
       />
     </div>
