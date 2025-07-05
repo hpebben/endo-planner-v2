@@ -4,6 +4,7 @@ import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
 import ReferenceLink from '../UI/ReferenceLink';
 import ReferencePopup from '../UI/ReferencePopup';
+import exportCaseSummary from '../../utils/exportPdf';
 import { vesselSegments } from './Step2_Patency';
 
 // helper to format stage label using capital "I" characters
@@ -64,146 +65,94 @@ export default function StepSummary({ data, setStep }) {
   const vesselName = (id) =>
     vesselSegments.find((s) => s.id === id)?.name || id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
-  const renderAccess = (row, i) => {
-    const needles = summarizeList(row.needles);
-    const sheaths = summarizeList(row.sheaths);
-    const cats = summarizeList(row.catheters);
-    return (
-      <li key={`a${i}`} onClick={() => setStep && setStep(2)}>
-        <div>{`#${i + 1}: ${row.approach || ''} via ${row.side || ''} ${row.vessel || ''}`}</div>
-        <ul>
-          {needles && <li>{`Needle(s): ${needles}`}</li>}
-          {sheaths && <li>{`Sheath(s): ${sheaths}`}</li>}
-          {cats && <li>{`Catheter(s): ${cats}`}</li>}
-        </ul>
-      </li>
-    );
-  };
 
-  const renderNav = (row, i) => {
-    const wire = summarize(row.wire);
-    const cath = summarize(row.catheter);
-    const device = row.device;
-    return (
-      <li key={`n${i}`} onClick={() => setStep && setStep(2)}>
-        <div>{`#${i + 1}`}</div>
-        <ul>
-          {wire && <li>{`Wire ${wire}`}</li>}
-          {cath && <li>{`Catheter ${cath}`}</li>}
-          {device && <li>{`Device ${device}`}</li>}
-        </ul>
-      </li>
-    );
-  };
+  const approachLabel = accessRows[0]
+    ? `${accessRows[0].approach || ''} via ${accessRows[0].side || ''} ${accessRows[0].vessel || ''}`.trim()
+    : '';
 
-  const renderTherapy = (row, i) => {
-    const balloon = summarize(row.balloon);
-    const stent = summarize(row.stent);
-    const device = row.device;
-    return (
-      <li key={`t${i}`} onClick={() => setStep && setStep(2)}>
-        <div>{`#${i + 1}`}</div>
-        <ul>
-          {balloon && <li>{`Balloon ${balloon}`}</li>}
-          {stent && <li>{`Stent ${stent}`}</li>}
-          {device && <li>{`Device ${device}`}</li>}
-        </ul>
-      </li>
-    );
-  };
+  const pill = (text, key) => (
+    <span key={key} className="pill" onClick={() => setStep && setStep(2)}>
+      {text}
+    </span>
+  );
 
-  const renderClosure = (row, i) => {
-    return (
-      <li key={`c${i}`} onClick={() => setStep && setStep(2)}>
-        <div>{`#${i + 1}`}</div>
-        <ul>
-          {row.method && <li>{row.method}</li>}
-          {row.device && <li>{`Device ${row.device}`}</li>}
-        </ul>
-      </li>
-    );
-  };
+  const renderSection = (title, items) =>
+    items.length ? (
+      <div className="plan-section">
+        <span className="section-title">{title}</span>
+        {items.map((t, i) => pill(t, `${title}-${i}`))}
+      </div>
+    ) : null;
+
+  const accessItems = accessRows.flatMap((r) => [
+    ...((r.needles || []).map(summarize)),
+    ...((r.sheaths || []).map(summarize)),
+    ...((r.catheters || []).map(summarize)),
+  ]).filter(Boolean);
+  const navItems = navRows.flatMap((r) => [summarize(r.wire), summarize(r.catheter), r.device]).filter(Boolean);
+  const therapyItems = therapyRows.flatMap((r) => [summarize(r.balloon), summarize(r.stent), r.device]).filter(Boolean);
+  const closureItems = closureRows.flatMap((r) => [r.method, r.device]).filter(Boolean);
+
+  const vesselList = Object.keys(patencySegments).length ? (
+    <ul className="vessel-summary">
+      {Object.entries(patencySegments).map(([id, vals]) => {
+        const lengthMap = { '<3': '<3cm', '3-10': '3–10cm', '10-15': '10–15cm', '15-20': '15–20cm', '>20': '>20cm' };
+        const lengthLabel = lengthMap[vals.length] || vals.length;
+        const summary = `${vals.type}, ${lengthLabel}, ${vals.calcium}`;
+        return (
+          <li key={id} onClick={() => setStep && setStep(1)}>
+            <strong>{vesselName(id)}</strong> {summary}
+          </li>
+        );
+      })}
+    </ul>
+  ) : (
+    <p>{__('No vessel data entered.', 'endoplanner')}</p>
+  );
 
   return (
-    <div className="case-summary">
-      <div className="summary-cards">
+    <div className="case-summary-container">
+      <div className="summary-row row1">
         <div className="summary-card">
-          <h3>{__('Clinical indication', 'endoplanner')}</h3>
-          <ul>
-            <li><strong>{__('Fontaine stage', 'endoplanner')}:</strong> {formatStage(stage)}</li>
-            <li><strong>{__('WIfI', 'endoplanner')}:</strong> {wifiCode}</li>
-            <li><strong>{__('Overall WIfI stage', 'endoplanner')}:</strong> {`WIfI stage ${prog.wifiStage}`}</li>
-          </ul>
+          <div className="card-title">{__('Clinical indication', 'endoplanner')}</div>
+          <div>{__('Fontaine stage', 'endoplanner')}: <b>{formatStage(stage)}</b></div>
+          <div>{__('WIfI', 'endoplanner')}: <b>{wifiCode} (WIfI Stage {prog.wifiStage})</b></div>
         </div>
         <div className="summary-card">
-          <h3>{__('Vessel patency', 'endoplanner')}</h3>
-          {Object.keys(patencySegments).length ? (
-            <ul className="vessel-summary arrow-list">
-              {Object.entries(patencySegments).map(([id, vals]) => {
-                const lengthMap = { '<3': '<3cm', '3-10': '3–10cm', '10-15': '10–15cm', '15-20': '15–20cm', '>20': '>20cm' };
-                const lengthLabel = lengthMap[vals.length] || vals.length;
-                const summary = `${vals.type} | ${lengthLabel} | ${vals.calcium}`;
-                return <li key={id}><strong>{vesselName(id)}</strong> {summary}</li>;
-              })}
-            </ul>
-          ) : (
-            <p>{__('No vessel data entered.', 'endoplanner')}</p>
-          )}
-        </div>
-        <div className="summary-card">
-          <h3>{__('Evidence based considerations', 'endoplanner')}</h3>
-          <p>
-            {`Based on WIfI stage ${prog.wifiStage}, the 1-year major amputation risk falls into the ${riskInfo.cat} category (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%) with an estimated mortality of ${riskInfo.mort?.[0]}–${riskInfo.mort?.[1]}%. `}
-            <ReferenceLink number={1} onClick={() => setShowRef1(true)} />
-          </p>
-          <p>
-            {`Given a lesion length ${prog.totalLength > 20 ? '>20 cm' : prog.totalLength > 10 ? '10–20 cm' : '<10 cm'} (${lengthImpact}), ${prog.hasOcclusion ? 'occlusion' : 'stenosis'} (${occlImpact}), and ${prog.maxCalcium} calcification (${calcImpact}), the adjusted 1-year major amputation risk is ${prog.ampRange[0]}–${prog.ampRange[1]}% `}
-            <ReferenceLink number={2} onClick={() => setShowRef2(true)} />
-          </p>
-          <p>
-            {`Based on vessel patency selections, GLASS stage ${glass.stage} is categorized as ${glass.riskCategory} with a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%. `}
-            <ReferenceLink number={3} onClick={() => setShowRef3(true)} />
-          </p>
-          {prog.wifiStage >= 3 && glass.stage === 'III' && (
-            <p className="notice">
-              {__('If WIfI stage 3 or 4 and GLASS stage III are present, an open bypass should be considered according to the Global (ESVS, SVS, WFVS) Vascular Guidelines on CLTI Management.', 'endoplanner')}<sup>[1]</sup>
-            </p>
-          )}
+          <div className="card-title">{__('Vessel patency', 'endoplanner')}</div>
+          {vesselList}
         </div>
       </div>
 
-      <div className="summary-card intervention-plan-card">
-        <h3>{__('Intervention plan', 'endoplanner')}</h3>
-        {[accessRows, navRows, therapyRows, closureRows].every((arr) => !arr.length) ? (
-          <p>{__('No intervention details.', 'endoplanner')}</p>
-        ) : (
-          <>
-            {accessRows.length > 0 && (
-              <div>
-                <strong>{__('Access', 'endoplanner')}</strong>
-                <ul className="arrow-list">{accessRows.map(renderAccess)}</ul>
-              </div>
-            )}
-            {navRows.length > 0 && (
-              <div>
-                <strong>{__('Navigation & Crossing', 'endoplanner')}</strong>
-                <ul className="arrow-list">{navRows.map(renderNav)}</ul>
-              </div>
-            )}
-            {therapyRows.length > 0 && (
-              <div>
-                <strong>{__('Vessel preparation & therapy', 'endoplanner')}</strong>
-                <ul className="arrow-list">{therapyRows.map(renderTherapy)}</ul>
-              </div>
-            )}
-            {closureRows.length > 0 && (
-              <div>
-                <strong>{__('Closure', 'endoplanner')}</strong>
-                <ul className="arrow-list">{closureRows.map(renderClosure)}</ul>
-              </div>
-            )}
-          </>
+      <div className="summary-card evidence-card">
+        <div className="card-title">{__('Evidence based considerations', 'endoplanner')}</div>
+        <div>
+          {`Based on WIfI stage ${prog.wifiStage}, the 1-year major amputation risk falls into the ${riskInfo.cat} category (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%).`}
+          <ReferenceLink number={1} onClick={() => setShowRef1(true)} />
+          <br />
+          {`GLASS stage ${glass.stage} predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
+          <ReferenceLink number={2} onClick={() => setShowRef2(true)} />
+          <br />
+          <b>{__('Notice:', 'endoplanner')}</b>{' '}
+          {__('If WIfI stage 3 or 4 and GLASS stage 3 are present, open bypass should be considered according to the Global Vascular Guidelines on CLTI Management.', 'endoplanner')}
+          <ReferenceLink number={3} onClick={() => setShowRef3(true)} />
+        </div>
+      </div>
+
+      <div className="summary-card intervention-plan">
+        <div className="card-title">{__('Intervention plan', 'endoplanner')}</div>
+        {approachLabel && (
+          <div className="approach-chip">{approachLabel}</div>
         )}
+        {renderSection(__('Access', 'endoplanner'), accessItems)}
+        {renderSection(__('Navigation', 'endoplanner'), navItems)}
+        {renderSection(__('Crossing / Therapy', 'endoplanner'), therapyItems)}
+        {renderSection(__('Closure', 'endoplanner'), closureItems)}
+        <div className="export-row">
+          <button type="button" className="export-btn" onClick={() => exportCaseSummary(data)}>
+            {__('Export PDF', 'endoplanner')}
+          </button>
+        </div>
       </div>
 
       <ReferencePopup
