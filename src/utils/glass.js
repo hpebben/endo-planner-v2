@@ -52,11 +52,15 @@ export default function computeGlass(segments = {}) {
 
   const stage = fpGrade <= 1 && ipGrade <= 1 ? 'I' : fpGrade <= 2 && ipGrade <= 2 ? 'II' : 'III';
   const successMap = { I: [95, 98], II: [85, 90], III: [65, 80] };
-  const patencyMap = { I: [80, 90], II: [60, 70], III: [40, 55] };
+  const failureMap = { I: [2, 5], II: [6, 15], III: [16, 25] };
+  const patencyMap = { I: [85, 90], II: [75, 85], III: [0, 65] };
+  const riskCatMap = { I: 'Low', II: 'Moderate', III: 'High' };
 
   return {
     stage,
     successRange: successMap[stage],
+    failureRange: failureMap[stage],
     patencyRange: patencyMap[stage],
+    riskCategory: riskCatMap[stage],
   };
 }

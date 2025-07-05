@@ -61,8 +61,15 @@ export default function exportCaseSummary(data) {
 
   doc.text('Evidence based considerations', 40, y);
   y += 20;
+  const riskMap = {
+    1: 'Very Low',
+    2: 'Low',
+    3: 'Moderate',
+    4: 'Very High',
+  };
+
   doc.text(
-    `WIfI stage ${prog.wifiStage}: risk ${prog.baseAmpRange[0]}–${prog.baseAmpRange[1]}%`,
+    `WIfI stage ${prog.wifiStage} (${riskMap[prog.wifiStage]}): ${prog.baseAmpRange[0]}–${prog.baseAmpRange[1]}% major amputation risk`,
     60,
     y
   );
@@ -74,7 +81,7 @@ export default function exportCaseSummary(data) {
   );
   y += 16;
   doc.text(
-    `GLASS ${glass.stage} success ${glass.successRange[0]}–${glass.successRange[1]}%, patency ${glass.patencyRange[0]}–${glass.patencyRange[1]}%`,
+    `GLASS ${glass.stage} (${glass.riskCategory}) failure ${glass.failureRange[0]}–${glass.failureRange[1]}%, patency ${glass.patencyRange[0]}–${glass.patencyRange[1]}%`,
     60,
     y
   );

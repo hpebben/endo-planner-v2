@@ -42,7 +42,7 @@ export default function StepSummary({ data, setStep }) {
     1: { cat: 'Very Low', amp: [1, 3], mort: [5, 10] },
     2: { cat: 'Low', amp: [5, 10], mort: [10, 15] },
     3: { cat: 'Moderate', amp: [15, 25], mort: [15, 30] },
-    4: { cat: 'High', amp: [30, 55], mort: [25, 40] },
+    4: { cat: 'Very High', amp: [30, 55], mort: [25, 40] },
   };
   const riskInfo = riskInfoMap[prog.wifiStage] || {};
 
@@ -153,7 +153,7 @@ export default function StepSummary({ data, setStep }) {
         <div className="summary-card">
           <h3>{__('Evidence based considerations', 'endoplanner')}</h3>
           <p>
-            {`Based on WIfI stage ${prog.wifiStage}, the estimated 1-year major amputation risk is ${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}% and mortality risk ${riskInfo.mort?.[0]}–${riskInfo.mort?.[1]}% (${riskInfo.cat}). `}
+            {`Based on WIfI stage ${prog.wifiStage}, the 1-year major amputation risk falls into the ${riskInfo.cat} category (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%) with an estimated mortality of ${riskInfo.mort?.[0]}–${riskInfo.mort?.[1]}%. `}
             <ReferenceLink number={1} onClick={() => setShowRef1(true)} />
           </p>
           <p>
@@ -161,7 +161,7 @@ export default function StepSummary({ data, setStep }) {
             <ReferenceLink number={2} onClick={() => setShowRef2(true)} />
           </p>
           <p>
-            {`Based on vessel patency selections, GLASS stage ${glass.stage} predicts a technical failure rate of ${100 - glass.successRange[1]}–${100 - glass.successRange[0]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%. `}
+            {`Based on vessel patency selections, GLASS stage ${glass.stage} is categorized as ${glass.riskCategory} with a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%. `}
             <ReferenceLink number={3} onClick={() => setShowRef3(true)} />
           </p>
           {prog.wifiStage >= 3 && glass.stage === 'III' && (
