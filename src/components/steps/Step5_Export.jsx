@@ -28,7 +28,7 @@ export default function Step5({ data }) {
     y += 10;
 
     doc.setFontSize(14);
-    doc.text(__( '2. Vessel Patency', 'endoplanner' ), 40, y);
+    doc.text(__( '2. Disease Anatomy', 'endoplanner' ), 40, y);
     y += 10;
     if (data.patencySegments && Object.keys(data.patencySegments).length) {
       const rows = Object.entries(data.patencySegments).map(([id, v]) => [

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
+import computeTasc from '../../utils/tasc';
 import ReferenceLink from '../UI/ReferenceLink';
 import ReferencePopup from '../UI/ReferencePopup';
 import exportCaseSummary from '../../utils/exportPdf';
@@ -33,6 +34,7 @@ export default function StepSummary({ data, setStep }) {
   } = data;
   const prog = computePrognosis(data);
   const glass = computeGlass(patencySegments);
+  const tasc = computeTasc(patencySegments);
   const [showRef1, setShowRef1] = useState(false);
   const [showRef2, setShowRef2] = useState(false);
   const [showRef3, setShowRef3] = useState(false);
@@ -70,17 +72,18 @@ export default function StepSummary({ data, setStep }) {
     ? `${accessRows[0].approach || ''} via ${accessRows[0].side || ''} ${accessRows[0].vessel || ''}`.trim()
     : '';
 
-  const pill = (text, key) => (
-    <span key={key} className="pill" onClick={() => setStep && setStep(2)}>
-      {text}
-    </span>
-  );
 
   const renderSection = (title, items) =>
     items.length ? (
       <div className="plan-section">
-        <span className="section-title">{title}</span>
-        {items.map((t, i) => pill(t, `${title}-${i}`))}
+        <div className="section-title subsection-title">{title}</div>
+        <ul className="plan-list">
+          {items.map((t, i) => (
+            <li key={`${title}-${i}`} onClick={() => setStep && setStep(2)}>
+              {t}
+            </li>
+          ))}
+        </ul>
       </div>
     ) : null;
 
@@ -98,7 +101,10 @@ export default function StepSummary({ data, setStep }) {
       {Object.entries(patencySegments).map(([id, vals]) => {
         const lengthMap = { '<3': '<3cm', '3-10': '3–10cm', '10-15': '10–15cm', '15-20': '15–20cm', '>20': '>20cm' };
         const lengthLabel = lengthMap[vals.length] || vals.length;
-        const summary = `${vals.type}, ${lengthLabel}, ${vals.calcium}`;
+        const calcLabel = vals.calcium
+          ? `${vals.calcium.charAt(0).toUpperCase() + vals.calcium.slice(1)} calcium`
+          : '';
+        const summary = `${vals.type}, ${lengthLabel}, ${calcLabel}`;
         return (
           <li key={id} onClick={() => setStep && setStep(1)}>
             <strong>{vesselName(id)}</strong> {summary}
@@ -119,8 +125,18 @@ export default function StepSummary({ data, setStep }) {
           <div>{__('WIfI', 'endoplanner')}: <b>{wifiCode} (WIfI Stage {prog.wifiStage})</b></div>
         </div>
         <div className="summary-card">
-          <div className="card-title">{__('Vessel patency', 'endoplanner')}</div>
+          <div className="card-title">{__('Disease anatomy', 'endoplanner')}</div>
           {vesselList}
+          <div>
+            {__('GLASS stage', 'endoplanner')} {glass.stage}{' '}
+            <span className="text-gray-500 text-xs">({glass.explanation}, see Table 5.4)</span>
+          </div>
+          {tasc && (
+            <div>
+              {`TASC II ${tasc.stage} `}
+              <span className="text-gray-500 text-xs">({tasc.explanation}, see TASC II)</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -140,7 +156,7 @@ export default function StepSummary({ data, setStep }) {
       </div>
 
       <div className="summary-card intervention-plan">
-        <div className="card-title">{__('Intervention plan', 'endoplanner')}</div>
+        <div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div>
         {approachLabel && (
           <div className="approach-chip">{approachLabel}</div>
         )}

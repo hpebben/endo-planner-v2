@@ -2,36 +2,28 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import InlineModal from './InlineModal';
 
-const basePath = '/assets/guidelines';
+const referenceMap = {
+  table6:
+    'https://raw.githubusercontent.com/openvascular/endo-planner-assets/main/table_vi.png',
+  table5:
+    'https://raw.githubusercontent.com/openvascular/endo-planner-assets/main/table5.png',
+  table54:
+    'https://raw.githubusercontent.com/openvascular/endo-planner-assets/main/table5_4.png',
+  'glass-table':
+    'https://raw.githubusercontent.com/openvascular/endo-planner-assets/main/glass-table.png',
+};
 
 export default function ReferencePopup({ isOpen, onRequestClose, figure, title, highlight }) {
-  const Table6 = () => (
-    <div className="guideline-figure">
-      <figure>
-        <img src={`${basePath}/table_vi.png`} alt="Table VI" />
-      </figure>
-      <figure>
-        <img src={`${basePath}/figure7.png`} alt="Figure 7" />
-      </figure>
-      <figure>
-        <img src={`${basePath}/figure8.png`} alt="Figure 8" />
-        <figcaption>
-          Table VI and Kaplan–Meier curves (Figures 7 &amp; 8) from the CLTI guidelines. Percentages are visually estimated from the curves.
-          <br />
-          Table/Figure reproduced from: Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. J Vasc Surg. 2019;69(6S):3S-125S. PDF
-        </figcaption>
-      </figure>
-    </div>
-  );
+  const imgFile = referenceMap[figure];
+  const [missing, setMissing] = React.useState(false);
 
-  const Table5 = () => (
+  const ImageFigure = () => (
     <figure className="guideline-figure">
-      <img src={`${basePath}/table5.png`} alt="Table 5" />
-      <figcaption>
-        Table 5: Factors increasing amputation risk.
-        <br />
-        Table/Figure reproduced from: Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. J Vasc Surg. 2019;69(6S):3S-125S. PDF
-      </figcaption>
+      {imgFile && !missing ? (
+        <img src={imgFile} alt={title} onError={() => setMissing(true)} />
+      ) : (
+        <div className="missing-ref">Coming soon – {title}</div>
+      )}
     </figure>
   );
 
@@ -63,30 +55,9 @@ export default function ReferencePopup({ isOpen, onRequestClose, figure, title, 
     );
   };
 
-  const Table54 = () => (
-    <figure className="guideline-figure">
-      <img src={`${basePath}/table5_4.png`} alt="Table 5.4" />
-      <figcaption>
-        Table 5.4: Descriptive summary of GLASS stages.
-        <br />
-        Table/Figure reproduced from: Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. J Vasc Surg. 2019;69(6S):3S-125S. PDF
-      </figcaption>
-    </figure>
-  );
-
   const renderFigure = () => {
-    switch (figure) {
-      case 'table6':
-        return <Table6 />;
-      case 'table54':
-        return <Table54 />;
-      case 'table5':
-        return <Table5 />;
-      case 'figure6':
-        return <Figure6 />;
-      default:
-        return null;
-    }
+    if (figure === 'figure6') return <Figure6 />;
+    return <ImageFigure />;
   };
 
   return (
@@ -104,7 +75,7 @@ export default function ReferencePopup({ isOpen, onRequestClose, figure, title, 
 ReferencePopup.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired,
-  figure: PropTypes.oneOf(['table6', 'table5', 'table54', 'figure6']).isRequired,
+  figure: PropTypes.oneOf(['table6', 'table5', 'table54', 'figure6', 'glass-table']).isRequired,
   title: PropTypes.string.isRequired,
   highlight: PropTypes.oneOfType([
     PropTypes.number,
