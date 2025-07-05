@@ -26,6 +26,8 @@ export default function computePrognosis(data = {}) {
     else if (calcium === 'moderate' && maxCalcium !== 'heavy') maxCalcium = 'moderate';
   });
 
+  let lengthCategory = totalLength > 20 ? 'len20' : totalLength > 10 ? 'len10' : null;
+
   let min = ampRange[0];
   let max = ampRange[1];
   if (totalLength > 20) { min += 5; max += 7; limbSalvage -= 5; }
@@ -48,5 +50,6 @@ export default function computePrognosis(data = {}) {
     totalLength,
     hasOcclusion,
     maxCalcium,
+    lengthCategory,
   };
 }

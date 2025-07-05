@@ -38,6 +38,12 @@ export default function StepSummary({ data }) {
 
   const wifiCode = `W${prog.wound}I${prog.ischemia}fI${prog.infection}`;
 
+  const table5Highlight = [];
+  if (prog.lengthCategory) table5Highlight.push(prog.lengthCategory);
+  if (prog.hasOcclusion) table5Highlight.push('occl');
+  if (prog.maxCalcium === 'moderate') table5Highlight.push('modcalc');
+  if (prog.maxCalcium === 'heavy') table5Highlight.push('heavycalc');
+
   const lengthImpact = prog.totalLength > 20 ? '+5–7%' : prog.totalLength > 10 ? '+2–5%' : 'no increase';
   const occlImpact = prog.hasOcclusion ? '+3–5%' : 'no increase';
   const calcImpact =
@@ -55,12 +61,12 @@ export default function StepSummary({ data }) {
     const sheaths = summarizeList(row.sheaths);
     const cats = summarizeList(row.catheters);
     return (
-      <li key={`a${i}`}>{
-        `#${i + 1}: ${row.approach || ''} via ${row.vessel || ''}` +
-        (needles ? `; Needles: ${needles}` : '') +
-        (sheaths ? `; Sheaths: ${sheaths}` : '') +
-        (cats ? `; Catheters: ${cats}` : '')
-      }</li>
+      <li key={`a${i}`}>
+        <div>{`#${i + 1}: ${row.approach || ''} via ${row.side || ''} ${row.vessel || ''}`}</div>
+        {needles && <div>{`Needle(s): ${needles}`}</div>}
+        {sheaths && <div>{`Sheath(s): ${sheaths}`}</div>}
+        {cats && <div>{`Catheter(s): ${cats}`}</div>}
+      </li>
     );
   };
 
@@ -125,17 +131,17 @@ export default function StepSummary({ data }) {
         </div>
         <div className="summary-card">
           <h3>{__('Evidence based considerations', 'endoplanner')}</h3>
-          <p>{`WIfI stage: ${prog.wifiStage}`}</p>
+          <p>{`WiFi: ${wifiCode} → WiFi stage ${prog.wifiStage}`}</p>
           <p>
-            {`WIfI stage ${prog.wifiStage} indicates an intermediate risk for major amputation at 1 year, estimated at ${prog.baseAmpRange[0]}–${prog.baseAmpRange[1]}% `}
+            {`WiFi stage ${prog.wifiStage} is associated with a 1-year major amputation risk of ${prog.baseAmpRange[0]}–${prog.baseAmpRange[1]}% `}
             <ReferenceLink number={1} onClick={() => setShowRef1(true)} />
           </p>
           <p>
-            {`Given a lesion length ${prog.totalLength > 10 ? '>' : ''}${prog.totalLength}cm (increase ${lengthImpact}), ${prog.hasOcclusion ? 'occlusion' : 'stenosis'} (${occlImpact}), and ${prog.maxCalcium} calcification (${calcImpact}), the adjusted 1-year major amputation risk is ${prog.ampRange[0]}–${prog.ampRange[1]}% `}
+            {`Lesion length ${prog.totalLength > 10 ? (prog.totalLength > 20 ? '>20cm' : '10–15cm') : '<10cm'} (${lengthImpact}), ${prog.hasOcclusion ? 'occlusion' : 'stenosis'} (${occlImpact}), and ${prog.maxCalcium} calcification (${calcImpact}) adjust the risk estimate. Adjusted risk: ${prog.ampRange[0]}–${prog.ampRange[1]}% `}
             <ReferenceLink number={2} onClick={() => setShowRef2(true)} />
           </p>
           <p>
-            {`GLASS ${glass.stage} indicates a technical success of ${glass.successRange[0]}–${glass.successRange[1]}% and a 1-year primary patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}% following endovascular revascularization `}
+            {`GLASS ${glass.stage} predicts ${glass.successRange[0]}–${glass.successRange[1]}% technical success and ${glass.patencyRange[0]}–${glass.patencyRange[1]}% 1-year primary patency after endovascular treatment `}
             <ReferenceLink number={3} onClick={() => setShowRef3(true)} />
           </p>
         </div>
@@ -180,18 +186,21 @@ export default function StepSummary({ data }) {
         onRequestClose={() => setShowRef1(false)}
         figure="table4"
         title="CLTI Guidelines 2021 – Table 4"
+        highlight={prog.wifiStage}
       />
       <ReferencePopup
         isOpen={showRef2}
         onRequestClose={() => setShowRef2(false)}
         figure="table5"
         title="CLTI Guidelines 2021 – Table 5"
+        highlight={table5Highlight}
       />
       <ReferencePopup
         isOpen={showRef3}
         onRequestClose={() => setShowRef3(false)}
         figure="figure6"
         title="CLTI Guidelines 2021 – Figure 6"
+        highlight={glass.stage}
       />
     </div>
   );

@@ -885,6 +885,20 @@ svg .vessel-path:hover {
   color: #fff;
 }
 
+.guideline-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+.guideline-table th,
+.guideline-table td {
+  border: 1px solid #ccc;
+  padding: 0.25rem 0.5rem;
+}
+.guideline-table .highlight {
+  background: #fffa8b;
+}
+
 .vessel-dropdown {
   list-style: none;
   margin: 0;
