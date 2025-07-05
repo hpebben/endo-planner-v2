@@ -908,6 +908,21 @@ svg .vessel-path:hover {
   font-size: 0.75rem;
   margin-top: 0.5rem;
 }
+.reference-links {
+  list-style: none;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0.5rem 0;
+  font-size: 0.8rem;
+}
+.reference-links a {
+  color: #113195;
+  text-decoration: none;
+}
+.reference-links a:hover {
+  text-decoration: underline;
+}
 
 .vessel-dropdown {
   list-style: none;
@@ -1060,15 +1075,16 @@ svg .vessel-path:hover {
   }
 }
 
-.ref-link button {
+.ref-link a {
   background: none;
   border: none;
   color: #113195;
   cursor: pointer;
   padding: 0 2px;
   font-size: 0.8rem;
+  text-decoration: none;
 }
-.ref-link button:hover {
+.ref-link a:hover {
   text-decoration: underline;
 }
 .reference-list {

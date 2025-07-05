@@ -5,6 +5,8 @@ import computeGlass from '../../utils/glass';
 import computeTasc from '../../utils/tasc';
 import ReferenceLink from '../UI/ReferenceLink';
 import ReferencePopup from '../UI/ReferencePopup';
+import ReferenceModal from '../UI/ReferenceModal';
+import { getReference } from '../../utils/references';
 import exportCaseSummary from '../../utils/exportPdf';
 import { vesselSegments } from './Step2_Patency';
 
@@ -35,13 +37,15 @@ export default function StepSummary({ data, setStep }) {
   const prog = computePrognosis(data);
   const glass = computeGlass(patencySegments);
   const tasc = computeTasc(patencySegments);
-  const [showRef1, setShowRef1] = useState(false);
-  const [showRef2, setShowRef2] = useState(false);
-  const [showRef3, setShowRef3] = useState(false);
+  const [activeRef, setActiveRef] = useState(null);
   const [showRefGlass, setShowRefGlass] = useState(false);
   const [showRefTasc, setShowRefTasc] = useState(false);
 
   const wifiCode = `W${prog.wound}I${prog.ischemia}fI${prog.infection}`;
+
+  const showReference = (num) => {
+    setActiveRef(num);
+  };
 
   const riskInfoMap = {
     1: { cat: 'Very Low', amp: [1, 3], mort: [5, 10] },
@@ -51,11 +55,6 @@ export default function StepSummary({ data, setStep }) {
   };
   const riskInfo = riskInfoMap[prog.wifiStage] || {};
 
-  const table5Highlight = [];
-  if (prog.lengthCategory) table5Highlight.push(prog.lengthCategory);
-  if (prog.hasOcclusion) table5Highlight.push('occl');
-  if (prog.maxCalcium === 'moderate') table5Highlight.push('modcalc');
-  if (prog.maxCalcium === 'heavy') table5Highlight.push('heavycalc');
 
   const lengthImpact = prog.totalLength > 20 ? '+5–7%' : prog.totalLength > 10 ? '+2–5%' : 'no increase';
   const occlImpact = prog.hasOcclusion ? '+3–5%' : 'no increase';
@@ -133,7 +132,8 @@ export default function StepSummary({ data, setStep }) {
           <div>
             {__('GLASS stage', 'endoplanner')} {glass.stage}{' '}
             <span className="row-add-label">
-              {glass.explanation}.{' '}
+              {glass.explanation}
+              <ReferenceLink number={1} onClick={() => showReference(1)} />.{' '}
               <a href="#" onClick={() => setShowRefGlass(true)}>Read more about GLASS</a>
             </span>
           </div>
@@ -141,7 +141,8 @@ export default function StepSummary({ data, setStep }) {
             <div>
               {`TASC II ${tasc.stage} `}
               <span className="row-add-label">
-                {tasc.explanation}.{' '}
+                {tasc.explanation}
+                <ReferenceLink number={3} onClick={() => showReference(3)} />.{' '}
                 <a href="#" onClick={() => setShowRefTasc(true)}>Read more about TASC II</a>
               </span>
             </div>
@@ -153,16 +154,16 @@ export default function StepSummary({ data, setStep }) {
         <div className="card-title">{__('Evidence based considerations', 'endoplanner')}</div>
         <div>
           {`Based on WIfI stage ${prog.wifiStage}, the 1-year major amputation risk falls into the ${riskInfo.cat} category (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%).`}
-          <ReferenceLink number={1} onClick={() => setShowRef1(true)} />
+          <ReferenceLink number={1} onClick={() => showReference(1)} />
           <br />
           {`GLASS stage ${glass.stage} predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
-          <ReferenceLink number={2} onClick={() => setShowRef2(true)} />
+          <ReferenceLink number={1} onClick={() => showReference(1)} />
           {prog.wifiStage >= 3 && glass.stage === 'III' && (
             <>
               <br />
               <span id="open-bypass-notice" className="row-add-label text-red-500">
                 {__('For WIfI stage 3 or 4 and GLASS stage 3, open bypass should be considered according to the Global Vascular Guidelines on CLTI Management.', 'endoplanner')}
-                <ReferenceLink number={3} onClick={() => setShowRef3(true)} />
+                <ReferenceLink number={1} onClick={() => showReference(1)} />
               </span>
             </>
           )}
@@ -182,35 +183,10 @@ export default function StepSummary({ data, setStep }) {
         </div>
       </div>
 
-      <ReferencePopup
-        isOpen={showRef1}
-        onRequestClose={() => setShowRef1(false)}
-        figure="table6"
-        title="Global Vascular Guidelines, 2019 – Table VI (p. S24)"
-        citation="Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. Eur J Vasc Endovasc Surg. 2019;58(1S):S1-S109."
-        page="S24"
-        link="https://esvs.org/wp-content/uploads/2021/08/CLTI-Guidelines-ESVS-SVS-WFVS.pdf"
-        highlight={prog.wifiStage}
-      />
-      <ReferencePopup
-        isOpen={showRef2}
-        onRequestClose={() => setShowRef2(false)}
-        figure="table5"
-        title="Global Vascular Guidelines, 2019 – Table 5 (p. S44)"
-        citation="Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. Eur J Vasc Endovasc Surg. 2019;58(1S):S1-S109."
-        page="S44"
-        link="https://esvs.org/wp-content/uploads/2021/08/CLTI-Guidelines-ESVS-SVS-WFVS.pdf"
-        highlight={table5Highlight}
-      />
-      <ReferencePopup
-        isOpen={showRef3}
-        onRequestClose={() => setShowRef3(false)}
-        figure="table54"
-        title="Global Vascular Guidelines, 2019 – Table 5.4 (p. S44)"
-        citation="Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. Eur J Vasc Endovasc Surg. 2019;58(1S):S1-S109."
-        page="S44"
-        link="https://esvs.org/wp-content/uploads/2021/08/CLTI-Guidelines-ESVS-SVS-WFVS.pdf"
-        highlight={glass.stage}
+      <ReferenceModal
+        isOpen={!!activeRef}
+        reference={getReference(activeRef)}
+        onRequestClose={() => setActiveRef(null)}
       />
       <ReferencePopup
         isOpen={showRefGlass}
