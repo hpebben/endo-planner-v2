@@ -26,7 +26,7 @@ const wifiDescriptions = {
     3: 'ABI ≤ 0.39; TP < 30 mmHg',
   },
   infection: {
-    0: 'Uninfected',
+    0: 'No signs of infection',
     1: 'Mild local infection, erythema 0.5–2 cm',
     2: 'Moderate infection, >2 cm or deeper tissue',
     3: 'Severe infection with SIRS',
