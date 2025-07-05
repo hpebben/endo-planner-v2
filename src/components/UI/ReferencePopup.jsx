@@ -6,6 +6,8 @@ export default function ReferencePopup({ isOpen, onRequestClose, figure, title }
   const images = {
     table4:
       'https://raw.githubusercontent.com/scikit-image/scikit-image/main/skimage/data/camera.png',
+    table5:
+      'https://raw.githubusercontent.com/scikit-image/scikit-image/main/skimage/data/astronaut.png',
     figure6:
       'https://raw.githubusercontent.com/scikit-image/scikit-image/main/skimage/data/coins.png',
   };
@@ -24,6 +26,6 @@ export default function ReferencePopup({ isOpen, onRequestClose, figure, title }
 ReferencePopup.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired,
-  figure: PropTypes.oneOf(['table4', 'figure6']).isRequired,
+  figure: PropTypes.oneOf(['table4', 'table5', 'figure6']).isRequired,
   title: PropTypes.string.isRequired,
 };
