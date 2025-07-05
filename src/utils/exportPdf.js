@@ -39,7 +39,7 @@ export default function exportCaseSummary(data) {
   ].forEach((line) => { doc.text(line, 60, (y += 16)); });
   y += 10;
 
-  doc.text('Vessel patency', 40, y);
+  doc.text('Disease anatomy', 40, y);
   y += 10;
   if (data.patencySegments && Object.keys(data.patencySegments).length) {
     const rows = Object.entries(data.patencySegments).map(([id, v]) => [

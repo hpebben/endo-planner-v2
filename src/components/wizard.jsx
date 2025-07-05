@@ -9,7 +9,7 @@ import { ProgressBar, Button } from '@wordpress/components';
 
 const steps = [
   { title: __( 'Clinical indication', 'endoplanner' ), component: Step1 },
-  { title: __( 'Vessel patency', 'endoplanner' ),      component: Step2 },
+  { title: __( 'Disease anatomy', 'endoplanner' ),      component: Step2 },
   { title: __( 'Intervention plan', 'endoplanner' ),   component: Step3 },
   { title: __( 'Case summary', 'endoplanner' ),        component: Step4 },
 ];
