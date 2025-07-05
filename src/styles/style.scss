@@ -898,6 +898,16 @@ svg .vessel-path:hover {
 .guideline-table .highlight {
   background: #fffa8b;
 }
+.missing-ref {
+  font-size: 0.75rem;
+  color: #a00;
+  text-align: center;
+  padding: 1rem;
+}
+.citation-text {
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+}
 
 .vessel-dropdown {
   list-style: none;
@@ -980,6 +990,10 @@ svg .vessel-path:hover {
   font-weight: 600;
   margin-bottom: 0.75rem;
 }
+.approach-label {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
 .plan-section {
   margin-bottom: 0.5rem;
 }
@@ -996,8 +1010,9 @@ svg .vessel-path:hover {
   font-weight: 700;
 }
 .plan-list {
-  list-style: disc;
-  margin-left: 1.5rem;
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
 }
 .plan-list li {
   margin-bottom: 0.25rem;
