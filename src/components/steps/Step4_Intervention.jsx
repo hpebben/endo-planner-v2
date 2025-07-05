@@ -688,6 +688,12 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
           onChange={(val) => { console.log('Access approach', val); onChange({ ...data, approach: val }); }}
           ariaLabel={__('Approach', 'endoplanner')}
         />
+        <SegmentedControl
+          options={[{ label: 'Left', value: 'Left' }, { label: 'Right', value: 'Right' }]}
+          value={data.side || ''}
+          onChange={(val) => onChange({ ...data, side: val })}
+          ariaLabel="Side"
+        />
         <div className="device-grid">
           <div className="device-column">
             <DeviceButton
@@ -834,7 +840,14 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   );
 }
 
-AccessRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
+AccessRow.propTypes = {
+  index: PropTypes.number.isRequired,
+  values: PropTypes.object,
+  onChange: PropTypes.func.isRequired,
+  onAdd: PropTypes.func.isRequired,
+  onRemove: PropTypes.func.isRequired,
+  showRemove: PropTypes.bool,
+};
 
 function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [wireOpen, setWireOpen] = useState(false);
