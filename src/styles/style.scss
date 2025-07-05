@@ -958,3 +958,23 @@ svg .vessel-path:hover {
     flex: 1;
   }
 }
+
+.ref-link button {
+  background: none;
+  border: none;
+  color: #113195;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 0.8rem;
+}
+.ref-link button:hover {
+  text-decoration: underline;
+}
+.reference-list {
+  padding-left: 1rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+.reference-list li {
+  margin-bottom: 0.25rem;
+}
