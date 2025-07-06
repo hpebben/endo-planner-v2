@@ -5,7 +5,6 @@ import computeGlass from '../../utils/glass';
 import ReferenceLink from '../UI/ReferenceLink';
 import ReferenceModal from '../UI/ReferenceModal';
 import { getReference } from '../../utils/references';
-import exportCaseSummary from '../../utils/exportPdf';
 import { vesselSegments } from './Step2_Patency';
 import {
   NeedleModal,
@@ -192,11 +191,13 @@ export default function StepSummary({ data, setData, setStep }) {
           <div className="card-title">{__('Disease Anatomy', 'endoplanner')}</div>
           {vesselList}
           <div>
-            {__('GLASS stage', 'endoplanner')} {glass.stage}{' '}
-            <span className="row-add-label">
-              {glass.explanation}
-              <ReferenceLink number={1} onClick={() => showReference(1)} />
-            </span>
+            <div className="glass-line">
+              {__('GLASS stage', 'endoplanner')} {glass.stage}{' '}
+              <span className="glass-expl">
+                {glass.explanation}
+                <ReferenceLink number={1} onClick={() => showReference(1)} />
+              </span>
+            </div>
             <div className="row-add-label">
               {`GLASS stage ${glass.stage} predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
               <ReferenceLink number={1} onClick={() => showReference(1)} />
@@ -215,11 +216,6 @@ export default function StepSummary({ data, setData, setStep }) {
           {renderSection(__('Navigation', 'endoplanner'), navItems)}
           {renderSection(__('Crossing / Therapy', 'endoplanner'), therapyItems)}
           {renderSection(__('Closure', 'endoplanner'), closureItems)}
-          <div className="export-row">
-            <button type="button" className="export-btn" onClick={() => exportCaseSummary(data)}>
-              {__('Export PDF', 'endoplanner')}
-            </button>
-          </div>
         </div>
       </div>
 
