@@ -14,18 +14,10 @@ export default function ReferenceModal({ isOpen, onRequestClose, reference }) {
       <div className="citation-text">{reference.citation}</div>
       <ul className="reference-links">
         {reference.pdf && (
-          <li>
-            <a href={reference.pdf} target="_blank" rel="noopener noreferrer">
-              PDF <span className="dashicons dashicons-external" />
-            </a>
-          </li>
+          <li>PDF: {reference.pdf}</li>
         )}
         {reference.pubmed && (
-          <li>
-            <a href={reference.pubmed} target="_blank" rel="noopener noreferrer">
-              PubMed <span className="dashicons dashicons-external" />
-            </a>
-          </li>
+          <li>PubMed: {reference.pubmed}</li>
         )}
       </ul>
       <div className="popup-close-row">

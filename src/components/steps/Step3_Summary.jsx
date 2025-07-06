@@ -2,12 +2,19 @@ import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
-import computeTasc from '../../utils/tasc';
 import ReferenceLink from '../UI/ReferenceLink';
 import ReferenceModal from '../UI/ReferenceModal';
 import { getReference } from '../../utils/references';
 import exportCaseSummary from '../../utils/exportPdf';
 import { vesselSegments } from './Step2_Patency';
+import {
+  NeedleModal,
+  SheathModal,
+  CatheterModal,
+  WireModal,
+  BalloonModal,
+  StentModal,
+} from '../DeviceModals';
 
 // helper to format stage label using capital "I" characters
 const formatStage = (val) => {
@@ -23,7 +30,7 @@ const summarize = (obj) =>
 const summarizeList = (arr) =>
   Array.isArray(arr) ? arr.map(summarize).filter(Boolean).join('; ') : '';
 
-export default function StepSummary({ data, setStep }) {
+export default function StepSummary({ data, setData, setStep }) {
   const {
     stage,
     clinical = {},
@@ -35,8 +42,8 @@ export default function StepSummary({ data, setStep }) {
   } = data;
   const prog = computePrognosis(data);
   const glass = computeGlass(patencySegments);
-  const tasc = computeTasc(patencySegments);
   const [activeRef, setActiveRef] = useState(null);
+  const [modalInfo, setModalInfo] = useState(null);
 
   const wifiCode = `W${prog.wound}I${prog.ischemia}fI${prog.infection}`;
 
@@ -71,6 +78,11 @@ export default function StepSummary({ data, setStep }) {
     : '';
 
 
+  const openItem = (item) => {
+    if (!item.type) return;
+    setModalInfo(item);
+  };
+
   const renderSection = (title, items, approachText = '') =>
     items.length || approachText ? (
       <div className="plan-section">
@@ -78,22 +90,73 @@ export default function StepSummary({ data, setStep }) {
         {approachText && <div className="approach-label">{approachText}</div>}
         <ul className="plan-list">
           {items.map((t, i) => (
-            <li key={`${title}-${i}`} onClick={() => setStep && setStep(2)}>
-              {t}
+            <li key={`${title}-${i}`} onClick={() => openItem(t)}>
+              {t.label}
             </li>
           ))}
         </ul>
       </div>
     ) : null;
 
-  const accessItems = accessRows.flatMap((r) => [
-    ...((r.needles || []).map(summarize)),
-    ...((r.sheaths || []).map(summarize)),
-    ...((r.catheters || []).map(summarize)),
+  const accessItems = accessRows.flatMap((r, row) => [
+    ...((r.needles || []).map((n, i) => ({ label: summarize(n), type: 'needle', row, index: i }))),
+    ...((r.sheaths || []).map((s, i) => ({ label: summarize(s), type: 'sheath', row, index: i }))),
+    ...((r.catheters || []).map((c, i) => ({ label: summarize(c), type: 'access-catheter', row, index: i }))),
+  ]).filter((i) => i.label);
+  const navItems = navRows.flatMap((r, row) => [
+    summarize(r.wire) ? { label: summarize(r.wire), type: 'wire', row } : null,
+    summarize(r.catheter) ? { label: summarize(r.catheter), type: 'nav-catheter', row } : null,
   ]).filter(Boolean);
-  const navItems = navRows.flatMap((r) => [summarize(r.wire), summarize(r.catheter), r.device]).filter(Boolean);
-  const therapyItems = therapyRows.flatMap((r) => [summarize(r.balloon), summarize(r.stent), r.device]).filter(Boolean);
-  const closureItems = closureRows.flatMap((r) => [r.method, r.device]).filter(Boolean);
+  const therapyItems = therapyRows.flatMap((r, row) => [
+    summarize(r.balloon) ? { label: summarize(r.balloon), type: 'balloon', row } : null,
+    summarize(r.stent) ? { label: summarize(r.stent), type: 'stent', row } : null,
+  ]).filter(Boolean);
+  const closureItems = closureRows.flatMap((r) => [r.method ? { label: r.method } : null, r.device ? { label: r.device } : null]).filter(Boolean);
+
+  const handleSave = (val) => {
+    if (!modalInfo) return;
+    const { type, row, index } = modalInfo;
+    setData((prev) => {
+      const updated = { ...prev };
+      if (type === 'needle') {
+        const rows = [...(prev.accessRows || [])];
+        const arr = [...(rows[row].needles || [])];
+        arr[index] = val;
+        rows[row] = { ...rows[row], needles: arr };
+        updated.accessRows = rows;
+      } else if (type === 'sheath') {
+        const rows = [...(prev.accessRows || [])];
+        const arr = [...(rows[row].sheaths || [])];
+        arr[index] = val;
+        rows[row] = { ...rows[row], sheaths: arr };
+        updated.accessRows = rows;
+      } else if (type === 'access-catheter') {
+        const rows = [...(prev.accessRows || [])];
+        const arr = [...(rows[row].catheters || [])];
+        arr[index] = val;
+        rows[row] = { ...rows[row], catheters: arr };
+        updated.accessRows = rows;
+      } else if (type === 'wire') {
+        const rows = [...(prev.navRows || [])];
+        rows[row] = { ...rows[row], wire: val };
+        updated.navRows = rows;
+      } else if (type === 'nav-catheter') {
+        const rows = [...(prev.navRows || [])];
+        rows[row] = { ...rows[row], catheter: val };
+        updated.navRows = rows;
+      } else if (type === 'balloon') {
+        const rows = [...(prev.therapyRows || [])];
+        rows[row] = { ...rows[row], balloon: val };
+        updated.therapyRows = rows;
+      } else if (type === 'stent') {
+        const rows = [...(prev.therapyRows || [])];
+        rows[row] = { ...rows[row], stent: val };
+        updated.therapyRows = rows;
+      }
+      return updated;
+    });
+    setModalInfo(null);
+  };
 
   const vesselList = Object.keys(patencySegments).length ? (
     <ul className="vessel-summary">
@@ -120,6 +183,10 @@ export default function StepSummary({ data, setStep }) {
           <div className="card-title">{__('Clinical indication', 'endoplanner')}</div>
           <div>{__('Fontaine stage', 'endoplanner')}: <b>{formatStage(stage)}</b></div>
           <div>{__('WIfI', 'endoplanner')}: <b>{wifiCode} (WIfI Stage {prog.wifiStage})</b></div>
+          <div className="row-add-label">
+            {`WIfI stage ${prog.wifiStage} predicts a ${riskInfo.cat?.toLowerCase()} risk of 1-year major amputation (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%) and mortality (${riskInfo.mort?.[0]}–${riskInfo.mort?.[1]}%).`}
+            <ReferenceLink number={2} onClick={() => showReference(2)} />
+          </div>
         </div>
         <div className="summary-card">
           <div className="card-title">{__('Disease Anatomy', 'endoplanner')}</div>
@@ -130,49 +197,29 @@ export default function StepSummary({ data, setStep }) {
               {glass.explanation}
               <ReferenceLink number={1} onClick={() => showReference(1)} />
             </span>
-          </div>
-          {tasc && (
-            <div>
-              {`TASC II ${tasc.stage} `}
-              <span className="row-add-label">
-                {tasc.explanation}
-                <ReferenceLink number={3} onClick={() => showReference(3)} />
-              </span>
+            <div className="row-add-label">
+              {`GLASS stage ${glass.stage} predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
+              <ReferenceLink number={1} onClick={() => showReference(1)} />
             </div>
-          )}
-        </div>
-      </div>
-
-      <div className="summary-card evidence-card">
-        <div className="card-title">{__('Evidence based considerations', 'endoplanner')}</div>
-        <div>
-          {`Based on WIfI stage ${prog.wifiStage}, the patient falls into the ${riskInfo.cat.toLowerCase()} risk category for major amputation (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%) and mortality (${riskInfo.mort?.[0]}–${riskInfo.mort?.[1]}%).`}
-          <ReferenceLink number={2} onClick={() => showReference(2)} />
-          <br />
-          {`GLASS stage ${glass.stage} (${glass.explanation}) predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
-          <ReferenceLink number={1} onClick={() => showReference(1)} />
-          {prog.wifiStage >= 3 && glass.stage === 'III' && (
-            <>
-              <br />
-              <span id="open-bypass-notice" className="row-add-label text-red-500">
+            {prog.wifiStage >= 3 && glass.stage === 'III' && (
+              <div className="row-add-label text-red-500" id="open-bypass-notice">
                 {__('For WIfI stage 3 or 4 and GLASS stage 3, open bypass should be considered according to the Global Vascular Guidelines on CLTI Management.', 'endoplanner')}
                 <ReferenceLink number={1} onClick={() => showReference(1)} />
-              </span>
-            </>
-          )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-
-      <div className="summary-card intervention-plan">
-        <div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div>
-        {renderSection(__('Access', 'endoplanner'), accessItems, approachLabel)}
-        {renderSection(__('Navigation', 'endoplanner'), navItems)}
-        {renderSection(__('Crossing / Therapy', 'endoplanner'), therapyItems)}
-        {renderSection(__('Closure', 'endoplanner'), closureItems)}
-        <div className="export-row">
-          <button type="button" className="export-btn" onClick={() => exportCaseSummary(data)}>
-            {__('Export PDF', 'endoplanner')}
-          </button>
+        <div className="summary-card intervention-plan">
+          <div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div>
+          {renderSection(__('Access', 'endoplanner'), accessItems, approachLabel)}
+          {renderSection(__('Navigation', 'endoplanner'), navItems)}
+          {renderSection(__('Crossing / Therapy', 'endoplanner'), therapyItems)}
+          {renderSection(__('Closure', 'endoplanner'), closureItems)}
+          <div className="export-row">
+            <button type="button" className="export-btn" onClick={() => exportCaseSummary(data)}>
+              {__('Export PDF', 'endoplanner')}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -181,6 +228,69 @@ export default function StepSummary({ data, setStep }) {
         reference={getReference(activeRef)}
         onRequestClose={() => setActiveRef(null)}
       />
+      {modalInfo?.type === 'needle' && (
+        <NeedleModal
+          isOpen={true}
+          anchor={null}
+          values={accessRows[modalInfo.row].needles[modalInfo.index] || {}}
+          onRequestClose={() => setModalInfo(null)}
+          onSave={handleSave}
+        />
+      )}
+      {modalInfo?.type === 'sheath' && (
+        <SheathModal
+          isOpen={true}
+          anchor={null}
+          values={accessRows[modalInfo.row].sheaths[modalInfo.index] || {}}
+          onRequestClose={() => setModalInfo(null)}
+          onSave={handleSave}
+        />
+      )}
+      {modalInfo?.type === 'access-catheter' && (
+        <CatheterModal
+          isOpen={true}
+          anchor={null}
+          values={accessRows[modalInfo.row].catheters[modalInfo.index] || {}}
+          onRequestClose={() => setModalInfo(null)}
+          onSave={handleSave}
+        />
+      )}
+      {modalInfo?.type === 'nav-catheter' && (
+        <CatheterModal
+          isOpen={true}
+          anchor={null}
+          values={navRows[modalInfo.row].catheter || {}}
+          onRequestClose={() => setModalInfo(null)}
+          onSave={handleSave}
+        />
+      )}
+      {modalInfo?.type === 'wire' && (
+        <WireModal
+          isOpen={true}
+          anchor={null}
+          values={navRows[modalInfo.row].wire || {}}
+          onRequestClose={() => setModalInfo(null)}
+          onSave={handleSave}
+        />
+      )}
+      {modalInfo?.type === 'balloon' && (
+        <BalloonModal
+          isOpen={true}
+          anchor={null}
+          values={therapyRows[modalInfo.row].balloon || {}}
+          onRequestClose={() => setModalInfo(null)}
+          onSave={handleSave}
+        />
+      )}
+      {modalInfo?.type === 'stent' && (
+        <StentModal
+          isOpen={true}
+          anchor={null}
+          values={therapyRows[modalInfo.row].stent || {}}
+          onRequestClose={() => setModalInfo(null)}
+          onSave={handleSave}
+        />
+      )}
     </div>
   );
 }
