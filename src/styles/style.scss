@@ -367,6 +367,9 @@
   .selected-segments {
     min-width: 0; /* responsive override */
   }
+  .ref-image {
+    width: 40vw;
+  }
 }
 
 svg .vessel-path {
@@ -815,11 +818,12 @@ svg .vessel-path:hover {
   font-size: 0.7rem;
   text-transform: uppercase;
   color: #666;
-  margin-top: 0.5rem;
+  margin-top: 1.5rem;
 }
 
 .glass-line {
   font-size: 1rem;
+  margin-top: 1.5rem;
   margin-bottom: 0.25rem;
 }
 
@@ -936,10 +940,23 @@ svg .vessel-path:hover {
 
 .ref-image {
   display: block;
-  max-width: 20vw;
-  width: auto;
+  width: 20vw;
+  max-width: 100%;
   height: auto;
   margin: 0.5rem auto;
+}
+.ref-image.wifi-img {
+  max-width: 350px;
+}
+.ref-image.glass-img {
+  max-width: 200px;
+}
+.ref-images-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
 }
 .ref-iframe {
   display: block;
@@ -1040,7 +1057,7 @@ svg .vessel-path:hover {
   cursor: pointer;
 }
 .plan-section {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 .section-title {
   font-weight: 600;
@@ -1048,7 +1065,10 @@ svg .vessel-path:hover {
   margin-bottom: 0.5rem;
 }
 .subsection-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #2563eb;
 }
 .main-plan-title {
   font-size: 1.5rem;
@@ -1058,8 +1078,14 @@ svg .vessel-path:hover {
   list-style: none;
   margin-left: 0;
   padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .plan-list li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   margin-bottom: 0.75rem;
   cursor: pointer;
 }
@@ -1072,7 +1098,8 @@ svg .vessel-path:hover {
   text-transform: uppercase;
 }
 .plan-item-detail {
-  margin-left: 0.75rem;
+  margin-left: 0;
+  font-weight: bold;
 }
 .pill {
   display: inline-block;

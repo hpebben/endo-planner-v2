@@ -11,23 +11,45 @@ export default function ReferenceModal({ isOpen, onRequestClose, reference }) {
       isOpen={isOpen}
       onRequestClose={onRequestClose}
     >
-      <div className="citation-text">
-        {reference.citation}
+      <ul className="reference-links">
         {reference.pubmed && (
-          <> <a href={reference.pubmed} target="_blank" rel="noopener noreferrer">PubMed</a></>
+          <li>
+            <a href={reference.pubmed} target="_blank" rel="noopener noreferrer">
+              PubMed
+            </a>
+          </li>
         )}
         {reference.fulltext && (
-          <> <a href={reference.fulltext} target="_blank" rel="noopener noreferrer">Full text</a></>
+          <li>
+            <a href={reference.fulltext} target="_blank" rel="noopener noreferrer">
+              Full text
+            </a>
+          </li>
         )}
-      </div>
-      {Array.isArray(reference.iframes) &&
-        reference.iframes.map((src, i) => (
-          <iframe key={`f${i}`} src={src} title="Reference table" className="ref-iframe" />
-        ))}
-      {Array.isArray(reference.images) &&
-        reference.images.map((src, i) => (
-          <img key={`i${i}`} src={src} alt="Reference figure" className="ref-image" />
-        ))}
+      </ul>
+      {reference.html && (
+        <div
+          className="guideline-table-wrapper"
+          dangerouslySetInnerHTML={{ __html: reference.html }}
+        />
+      )}
+      {Array.isArray(reference.images) && (
+        <div className="ref-images-row">
+          {reference.images.map((src, i) => (
+            <figure key={`i${i}`}>
+              <img
+                src={src}
+                alt="Reference figure"
+                className={`ref-image ${reference.imageClass || ''}`}
+              />
+              {reference.captions && reference.captions[i] && (
+                <figcaption>{reference.captions[i]}</figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+      )}
+      <div className="citation-text">{reference.citation}</div>
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>
           &times;
@@ -45,7 +67,9 @@ ReferenceModal.propTypes = {
     citation: PropTypes.string,
     pubmed: PropTypes.string,
     fulltext: PropTypes.string,
-    iframes: PropTypes.arrayOf(PropTypes.string),
+    html: PropTypes.string,
     images: PropTypes.arrayOf(PropTypes.string),
+    captions: PropTypes.arrayOf(PropTypes.string),
+    imageClass: PropTypes.string,
   }),
 };

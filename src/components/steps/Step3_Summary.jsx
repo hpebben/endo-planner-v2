@@ -4,7 +4,7 @@ import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
 import ReferenceLink from '../UI/ReferenceLink';
 import ReferenceModal from '../UI/ReferenceModal';
-import { getReference } from '../../utils/references';
+import { getReference, references } from '../../utils/references';
 import { vesselSegments } from './Step2_Patency';
 import SegmentedControl from '../UI/SegmentedControl';
 import InlineDeviceSelect from '../UI/InlineDeviceSelect';
@@ -364,15 +364,14 @@ export default function StepSummary({ data, setData, setStep }) {
           {vesselList}
           <div>
             <div className="glass-line">
-              {__('GLASS stage', 'endoplanner')} {glass.stage}{' '}
-              <span className="glass-expl">
-                {glass.explanation}
-                <ReferenceLink number={2} onClick={() => showReference(2)} />
-              </span>
+              {__('GLASS stage', 'endoplanner')} {glass.stage}
+            </div>
+            <div className="row-add-label">
+              {glass.explanation}
+              <ReferenceLink number={2} onClick={() => showReference(2)} />
             </div>
             <div className="row-add-label">
               {`GLASS stage ${glass.stage} predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
-              <ReferenceLink number={2} onClick={() => showReference(2)} />
             </div>
             {prog.wifiStage >= 3 && glass.stage === 'III' && (
               <div className="row-add-label text-red-500" id="open-bypass-notice">
@@ -481,6 +480,26 @@ export default function StepSummary({ data, setData, setStep }) {
           }
         />
       )}
+      <ul className="reference-list">
+        {references.map((r) => (
+          <li key={r.number}>
+            [{r.number}] {r.citation}{' '}
+            {r.pubmed && (
+              <a href={r.pubmed} target="_blank" rel="noopener noreferrer">
+                PubMed
+              </a>
+            )}
+            {r.fulltext && (
+              <>
+                {' '}
+                <a href={r.fulltext} target="_blank" rel="noopener noreferrer">
+                  Full text
+                </a>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
