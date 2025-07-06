@@ -6,6 +6,9 @@ import ReferenceLink from '../UI/ReferenceLink';
 import ReferenceModal from '../UI/ReferenceModal';
 import { getReference } from '../../utils/references';
 import { vesselSegments } from './Step2_Patency';
+import SegmentedControl from '../UI/SegmentedControl';
+import InlineDeviceSelect from '../UI/InlineDeviceSelect';
+import InlineModal from '../UI/InlineModal';
 import {
   NeedleModal,
   SheathModal,
@@ -14,6 +17,149 @@ import {
   BalloonModal,
   StentModal,
 } from '../DeviceModals';
+
+const closureDeviceOptions = [
+  '6F AngioSeal',
+  '8F AngioSeal',
+  'Perclose ProStyle',
+  'Exoseal',
+  'Starclose',
+  '14F Manta',
+  '18F Manta',
+  'Mynx',
+  'Custom',
+];
+
+function AccessModal({ isOpen, values, onSave, onRequestClose }) {
+  const [approach, setApproach] = useState(values.approach || '');
+  const [side, setSide] = useState(values.side || '');
+  const [vessel, setVessel] = useState(values.vessel || '');
+  const [vesselOpen, setVesselOpen] = useState(false);
+
+  return (
+    <InlineModal
+      title={__('Edit access', 'endoplanner')}
+      isOpen={isOpen}
+      onRequestClose={() => {
+        onSave({ approach, side, vessel });
+        onRequestClose();
+      }}
+    >
+      <SegmentedControl
+        options={[
+          { label: 'Antegrade', value: 'Antegrade' },
+          { label: 'Retrograde', value: 'Retrograde' },
+        ]}
+        value={approach}
+        onChange={setApproach}
+        ariaLabel={__('Approach', 'endoplanner')}
+      />
+      <SegmentedControl
+        options={[
+          { label: 'Left', value: 'Left' },
+          { label: 'Right', value: 'Right' },
+        ]}
+        value={side}
+        onChange={setSide}
+        ariaLabel={__('Side', 'endoplanner')}
+      />
+      <button
+        type="button"
+        className="device-button"
+        onClick={() => setVesselOpen(true)}
+      >
+        {vessel || __('Vessel', 'endoplanner')}
+      </button>
+      {vesselOpen && (
+        <InlineModal
+          title={__('Select Vessel', 'endoplanner')}
+          isOpen={vesselOpen}
+          onRequestClose={() => setVesselOpen(false)}
+        >
+          <ul className="vessel-dropdown">
+            <li>
+              <button type="button" className="dropdown-item" disabled>
+                {__('Choose vessel', 'endoplanner')}
+              </button>
+            </li>
+            {['CFA', 'SFA', 'ATA', 'TTP', 'ATP', 'ADP'].map((v) => (
+              <li key={v}>
+                <button
+                  type="button"
+                  className={`dropdown-item${vessel === v ? ' selected' : ''}`}
+                  onClick={() => {
+                    setVessel(v);
+                    setVesselOpen(false);
+                  }}
+                >
+                  {v}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="popup-close-row">
+            <button
+              type="button"
+              className="circle-btn close-modal-btn"
+              onClick={() => setVesselOpen(false)}
+            >
+              &times;
+            </button>
+          </div>
+        </InlineModal>
+      )}
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={() => {
+          onSave({ approach, side, vessel });
+          onRequestClose();
+        }}>
+          &times;
+        </button>
+      </div>
+    </InlineModal>
+  );
+}
+
+function ClosureModal({ isOpen, values, onSave, onRequestClose }) {
+  const [method, setMethod] = useState(values.method || '');
+  const [device, setDevice] = useState(values.device || '');
+
+  return (
+    <InlineModal
+      title={__('Edit closure', 'endoplanner')}
+      isOpen={isOpen}
+      onRequestClose={() => {
+        onSave({ method, device });
+        onRequestClose();
+      }}
+    >
+      <SegmentedControl
+        options={[
+          { label: 'Manual pressure', value: 'Manual pressure' },
+          { label: 'Closure device', value: 'Closure device' },
+        ]}
+        value={method}
+        onChange={setMethod}
+        ariaLabel={__('Method', 'endoplanner')}
+      />
+      {method === 'Closure device' && (
+        <InlineDeviceSelect
+          options={closureDeviceOptions}
+          value={device}
+          onChange={setDevice}
+        />
+      )}
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={() => {
+          onSave({ method, device });
+          onRequestClose();
+        }}>
+          &times;
+        </button>
+      </div>
+    </InlineModal>
+  );
+}
 
 // helper to format stage label using capital "I" characters
 const formatStage = (val) => {
@@ -76,21 +222,37 @@ export default function StepSummary({ data, setData, setStep }) {
     ? `${accessRows[0].approach || ''} via ${accessRows[0].side || ''} ${accessRows[0].vessel || ''}`.trim()
     : '';
 
+  const [editAccess, setEditAccess] = useState(false);
+
 
   const openItem = (item) => {
     if (!item.type) return;
     setModalInfo(item);
   };
 
-  const renderSection = (title, items, approachText = '') =>
+  const renderSection = (title, items, approachText = '', editApproach = false) =>
     items.length || approachText ? (
       <div className="plan-section">
         <div className="section-title subsection-title">{title}</div>
-        {approachText && <div className="approach-label">{approachText}</div>}
+        {approachText && (
+          <div
+            className="approach-label"
+            onClick={() => editApproach && setEditAccess(true)}
+          >
+            {approachText}
+          </div>
+        )}
         <ul className="plan-list">
           {items.map((t, i) => (
             <li key={`${title}-${i}`} onClick={() => openItem(t)}>
-              {t.label}
+              {t.type ? (
+                <>
+                  <div className="plan-item-subtitle">{t.type.toUpperCase()}</div>
+                  <div className="plan-item-detail">{t.label}</div>
+                </>
+              ) : (
+                t.label
+              )}
             </li>
           ))}
         </ul>
@@ -110,7 +272,13 @@ export default function StepSummary({ data, setData, setStep }) {
     summarize(r.balloon) ? { label: summarize(r.balloon), type: 'balloon', row } : null,
     summarize(r.stent) ? { label: summarize(r.stent), type: 'stent', row } : null,
   ]).filter(Boolean);
-  const closureItems = closureRows.flatMap((r) => [r.method ? { label: r.method } : null, r.device ? { label: r.device } : null]).filter(Boolean);
+  const closureItems = closureRows
+    .map((r, row) => ({
+      label: `${r.method || ''}${r.device ? ' ' + r.device : ''}`.trim(),
+      type: 'closure',
+      row,
+    }))
+    .filter((i) => i.label);
 
   const handleSave = (val) => {
     if (!modalInfo) return;
@@ -151,6 +319,10 @@ export default function StepSummary({ data, setData, setStep }) {
         const rows = [...(prev.therapyRows || [])];
         rows[row] = { ...rows[row], stent: val };
         updated.therapyRows = rows;
+      } else if (type === 'closure') {
+        const rows = [...(prev.closureRows || [])];
+        rows[row] = { ...rows[row], ...val };
+        updated.closureRows = rows;
       }
       return updated;
     });
@@ -184,7 +356,7 @@ export default function StepSummary({ data, setData, setStep }) {
           <div>{__('WIfI', 'endoplanner')}: <b>{wifiCode} (WIfI Stage {prog.wifiStage})</b></div>
           <div className="row-add-label">
             {`WIfI stage ${prog.wifiStage} predicts a ${riskInfo.cat?.toLowerCase()} risk of 1-year major amputation (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%) and mortality (${riskInfo.mort?.[0]}–${riskInfo.mort?.[1]}%).`}
-            <ReferenceLink number={2} onClick={() => showReference(2)} />
+            <ReferenceLink number={1} onClick={() => showReference(1)} />
           </div>
         </div>
         <div className="summary-card">
@@ -195,24 +367,24 @@ export default function StepSummary({ data, setData, setStep }) {
               {__('GLASS stage', 'endoplanner')} {glass.stage}{' '}
               <span className="glass-expl">
                 {glass.explanation}
-                <ReferenceLink number={1} onClick={() => showReference(1)} />
+                <ReferenceLink number={2} onClick={() => showReference(2)} />
               </span>
             </div>
             <div className="row-add-label">
               {`GLASS stage ${glass.stage} predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
-              <ReferenceLink number={1} onClick={() => showReference(1)} />
+              <ReferenceLink number={2} onClick={() => showReference(2)} />
             </div>
             {prog.wifiStage >= 3 && glass.stage === 'III' && (
               <div className="row-add-label text-red-500" id="open-bypass-notice">
                 {__('For WIfI stage 3 or 4 and GLASS stage 3, open bypass should be considered according to the Global Vascular Guidelines on CLTI Management.', 'endoplanner')}
-                <ReferenceLink number={1} onClick={() => showReference(1)} />
+                <ReferenceLink number={2} onClick={() => showReference(2)} />
               </div>
             )}
           </div>
         </div>
         <div className="summary-card intervention-plan">
           <div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div>
-          {renderSection(__('Access', 'endoplanner'), accessItems, approachLabel)}
+          {renderSection(__('Access', 'endoplanner'), accessItems, approachLabel, true)}
           {renderSection(__('Navigation', 'endoplanner'), navItems)}
           {renderSection(__('Crossing / Therapy', 'endoplanner'), therapyItems)}
           {renderSection(__('Closure', 'endoplanner'), closureItems)}
@@ -285,6 +457,28 @@ export default function StepSummary({ data, setData, setStep }) {
           values={therapyRows[modalInfo.row].stent || {}}
           onRequestClose={() => setModalInfo(null)}
           onSave={handleSave}
+        />
+      )}
+      {modalInfo?.type === 'closure' && (
+        <ClosureModal
+          isOpen={true}
+          values={closureRows[modalInfo.row] || {}}
+          onRequestClose={() => setModalInfo(null)}
+          onSave={handleSave}
+        />
+      )}
+      {editAccess && (
+        <AccessModal
+          isOpen={true}
+          values={accessRows[0] || {}}
+          onRequestClose={() => setEditAccess(false)}
+          onSave={(val) =>
+            setData((prev) => {
+              const rows = [...(prev.accessRows || [{}])];
+              rows[0] = { ...rows[0], ...val };
+              return { ...prev, accessRows: rows };
+            })
+          }
         />
       )}
     </div>

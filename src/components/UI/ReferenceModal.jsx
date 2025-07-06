@@ -16,10 +16,18 @@ export default function ReferenceModal({ isOpen, onRequestClose, reference }) {
         {reference.pubmed && (
           <> <a href={reference.pubmed} target="_blank" rel="noopener noreferrer">PubMed</a></>
         )}
+        {reference.fulltext && (
+          <> <a href={reference.fulltext} target="_blank" rel="noopener noreferrer">Full text</a></>
+        )}
       </div>
-      {Array.isArray(reference.images) && reference.images.map((src, i) => (
-        <img key={i} src={src} alt="Reference figure" className="ref-image" />
-      ))}
+      {Array.isArray(reference.iframes) &&
+        reference.iframes.map((src, i) => (
+          <iframe key={`f${i}`} src={src} title="Reference table" className="ref-iframe" />
+        ))}
+      {Array.isArray(reference.images) &&
+        reference.images.map((src, i) => (
+          <img key={`i${i}`} src={src} alt="Reference figure" className="ref-image" />
+        ))}
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>
           &times;
@@ -36,6 +44,8 @@ ReferenceModal.propTypes = {
     number: PropTypes.number,
     citation: PropTypes.string,
     pubmed: PropTypes.string,
+    fulltext: PropTypes.string,
+    iframes: PropTypes.arrayOf(PropTypes.string),
     images: PropTypes.arrayOf(PropTypes.string),
   }),
 };
