@@ -4,7 +4,6 @@ import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
 import computeTasc from '../../utils/tasc';
 import ReferenceLink from '../UI/ReferenceLink';
-import ReferencePopup from '../UI/ReferencePopup';
 import ReferenceModal from '../UI/ReferenceModal';
 import { getReference } from '../../utils/references';
 import exportCaseSummary from '../../utils/exportPdf';
@@ -38,8 +37,6 @@ export default function StepSummary({ data, setStep }) {
   const glass = computeGlass(patencySegments);
   const tasc = computeTasc(patencySegments);
   const [activeRef, setActiveRef] = useState(null);
-  const [showRefGlass, setShowRefGlass] = useState(false);
-  const [showRefTasc, setShowRefTasc] = useState(false);
 
   const wifiCode = `W${prog.wound}I${prog.ischemia}fI${prog.infection}`;
 
@@ -103,10 +100,8 @@ export default function StepSummary({ data, setStep }) {
       {Object.entries(patencySegments).map(([id, vals]) => {
         const lengthMap = { '<3': '<3cm', '3-10': '3–10cm', '10-15': '10–15cm', '15-20': '15–20cm', '>20': '>20cm' };
         const lengthLabel = lengthMap[vals.length] || vals.length;
-        const calcLabel = vals.calcium
-          ? `${vals.calcium.charAt(0).toUpperCase() + vals.calcium.slice(1)} calcium`
-          : '';
-        const summary = `${vals.type}, ${lengthLabel}, ${calcLabel}`;
+        const calcLabel = vals.calcium ? `calcium: ${vals.calcium}` : '';
+        const summary = `${vals.type}, ${lengthLabel}${calcLabel ? ', ' + calcLabel : ''}`;
         return (
           <li key={id} onClick={() => setStep && setStep(1)}>
             <strong>{vesselName(id)}</strong> {summary}
@@ -133,8 +128,7 @@ export default function StepSummary({ data, setStep }) {
             {__('GLASS stage', 'endoplanner')} {glass.stage}{' '}
             <span className="row-add-label">
               {glass.explanation}
-              <ReferenceLink number={1} onClick={() => showReference(1)} />.{' '}
-              <a href="#" onClick={() => setShowRefGlass(true)}>Read more about GLASS</a>
+              <ReferenceLink number={1} onClick={() => showReference(1)} />
             </span>
           </div>
           {tasc && (
@@ -142,8 +136,7 @@ export default function StepSummary({ data, setStep }) {
               {`TASC II ${tasc.stage} `}
               <span className="row-add-label">
                 {tasc.explanation}
-                <ReferenceLink number={3} onClick={() => showReference(3)} />.{' '}
-                <a href="#" onClick={() => setShowRefTasc(true)}>Read more about TASC II</a>
+                <ReferenceLink number={3} onClick={() => showReference(3)} />
               </span>
             </div>
           )}
@@ -153,10 +146,10 @@ export default function StepSummary({ data, setStep }) {
       <div className="summary-card evidence-card">
         <div className="card-title">{__('Evidence based considerations', 'endoplanner')}</div>
         <div>
-          {`Based on WIfI stage ${prog.wifiStage}, the 1-year major amputation risk falls into the ${riskInfo.cat} category (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%).`}
-          <ReferenceLink number={1} onClick={() => showReference(1)} />
+          {`Based on WIfI stage ${prog.wifiStage}, the patient falls into the ${riskInfo.cat.toLowerCase()} risk category for major amputation (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%) and mortality (${riskInfo.mort?.[0]}–${riskInfo.mort?.[1]}%).`}
+          <ReferenceLink number={2} onClick={() => showReference(2)} />
           <br />
-          {`GLASS stage ${glass.stage} predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
+          {`GLASS stage ${glass.stage} (${glass.explanation}) predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
           <ReferenceLink number={1} onClick={() => showReference(1)} />
           {prog.wifiStage >= 3 && glass.stage === 'III' && (
             <>
@@ -187,23 +180,6 @@ export default function StepSummary({ data, setStep }) {
         isOpen={!!activeRef}
         reference={getReference(activeRef)}
         onRequestClose={() => setActiveRef(null)}
-      />
-      <ReferencePopup
-        isOpen={showRefGlass}
-        onRequestClose={() => setShowRefGlass(false)}
-        figure="glass-table"
-        title="Global Vascular Guidelines, 2019 – Table 5.4 (p. S44)"
-        citation="Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. Eur J Vasc Endovasc Surg. 2019;58(1S):S1-S109."
-        page="S44"
-        link="https://esvs.org/wp-content/uploads/2021/08/CLTI-Guidelines-ESVS-SVS-WFVS.pdf"
-      />
-      <ReferencePopup
-        isOpen={showRefTasc}
-        onRequestClose={() => setShowRefTasc(false)}
-        figure="tasc-table"
-        title="TASC II – Figure 6"
-        citation="Norgren L, Hiatt WR, Dormandy JA, et al. Inter-Society Consensus for the Management of Peripheral Arterial Disease (TASC II). J Vasc Surg. 2007;45(Suppl S):S5-S67."
-        page="?"
       />
     </div>
   );
