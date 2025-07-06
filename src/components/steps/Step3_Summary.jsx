@@ -197,10 +197,10 @@ export default function StepSummary({ data, setData, setStep }) {
   };
 
   const riskInfoMap = {
-    1: { cat: 'Very Low', amp: [1, 3], mort: [5, 10] },
-    2: { cat: 'Low', amp: [5, 10], mort: [10, 15] },
-    3: { cat: 'Moderate', amp: [15, 25], mort: [15, 30] },
-    4: { cat: 'Very High', amp: [30, 55], mort: [25, 40] },
+    0: { cat: 'Very Low', amp: [1, 3], mort: [5, 10] },
+    1: { cat: 'Low', amp: [5, 10], mort: [10, 15] },
+    2: { cat: 'Moderate', amp: [15, 25], mort: [15, 30] },
+    3: { cat: 'Very High', amp: [30, 55], mort: [25, 40] },
   };
   const riskInfo = riskInfoMap[prog.wifiStage] || {};
 
@@ -242,43 +242,80 @@ export default function StepSummary({ data, setData, setStep }) {
             {approachText}
           </div>
         )}
-        <ul className="plan-list">
+        <div className="plan-grid">
           {items.map((t, i) => (
-            <li key={`${title}-${i}`} onClick={() => openItem(t)}>
-              {t.type ? (
-                <>
-                  <div className="plan-item-subtitle">{t.type.toUpperCase()}</div>
-                  <div className="plan-item-detail">{t.label}</div>
-                </>
-              ) : (
-                t.label
-              )}
-            </li>
+            <React.Fragment key={`${title}-${i}`}>
+              <div
+                className="plan-label"
+                onClick={() => openItem(t)}
+              >
+                {t.label}
+              </div>
+              <div
+                className="plan-value"
+                onClick={() => openItem(t)}
+              >
+                {t.value}
+              </div>
+            </React.Fragment>
           ))}
-        </ul>
+        </div>
       </div>
     ) : null;
 
-  const accessItems = accessRows.flatMap((r, row) => [
-    ...((r.needles || []).map((n, i) => ({ label: summarize(n), type: 'needle', row, index: i }))),
-    ...((r.sheaths || []).map((s, i) => ({ label: summarize(s), type: 'sheath', row, index: i }))),
-    ...((r.catheters || []).map((c, i) => ({ label: summarize(c), type: 'access-catheter', row, index: i }))),
-  ]).filter((i) => i.label);
-  const navItems = navRows.flatMap((r, row) => [
-    summarize(r.wire) ? { label: summarize(r.wire), type: 'wire', row } : null,
-    summarize(r.catheter) ? { label: summarize(r.catheter), type: 'nav-catheter', row } : null,
-  ]).filter(Boolean);
-  const therapyItems = therapyRows.flatMap((r, row) => [
-    summarize(r.balloon) ? { label: summarize(r.balloon), type: 'balloon', row } : null,
-    summarize(r.stent) ? { label: summarize(r.stent), type: 'stent', row } : null,
-  ]).filter(Boolean);
+  const accessItems = accessRows
+    .flatMap((r, row) => [
+      ...((r.needles || []).map((n, i) => ({
+        label: 'NEEDLE(S)',
+        value: summarize(n),
+        type: 'needle',
+        row,
+        index: i,
+      }))),
+      ...((r.sheaths || []).map((s, i) => ({
+        label: 'SHEATH(S)',
+        value: summarize(s),
+        type: 'sheath',
+        row,
+        index: i,
+      }))),
+      ...((r.catheters || []).map((c, i) => ({
+        label: 'CATHETER(S)',
+        value: summarize(c),
+        type: 'access-catheter',
+        row,
+        index: i,
+      }))),
+    ])
+    .filter((i) => i.value);
+  const navItems = navRows
+    .flatMap((r, row) => [
+      summarize(r.wire)
+        ? { label: 'WIRE', value: summarize(r.wire), type: 'wire', row }
+        : null,
+      summarize(r.catheter)
+        ? { label: 'CATHETER', value: summarize(r.catheter), type: 'nav-catheter', row }
+        : null,
+    ])
+    .filter(Boolean);
+  const therapyItems = therapyRows
+    .flatMap((r, row) => [
+      summarize(r.balloon)
+        ? { label: 'BALLOON', value: summarize(r.balloon), type: 'balloon', row }
+        : null,
+      summarize(r.stent)
+        ? { label: 'STENT', value: summarize(r.stent), type: 'stent', row }
+        : null,
+    ])
+    .filter(Boolean);
   const closureItems = closureRows
     .map((r, row) => ({
-      label: `${r.method || ''}${r.device ? ' ' + r.device : ''}`.trim(),
+      label: 'CLOSURE',
+      value: `${r.method || ''}${r.device ? ' ' + r.device : ''}`.trim(),
       type: 'closure',
       row,
     }))
-    .filter((i) => i.label);
+    .filter((i) => i.value);
 
   const handleSave = (val) => {
     if (!modalInfo) return;
@@ -329,16 +366,34 @@ export default function StepSummary({ data, setData, setStep }) {
     setModalInfo(null);
   };
 
+  const segmentIcon = (id) => {
+    const low = id.toLowerCase();
+    if (low.includes('aorta') || low.includes('iliac'))
+      return 'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/aorto-iliac.png';
+    if (low.includes('femoral') || low.includes('popliteal'))
+      return 'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/fem-pop.png';
+    return 'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/btk.png';
+  };
+
   const vesselList = Object.keys(patencySegments).length ? (
     <ul className="vessel-summary">
       {Object.entries(patencySegments).map(([id, vals]) => {
-        const lengthMap = { '<3': '<3cm', '3-10': '3–10cm', '10-15': '10–15cm', '15-20': '15–20cm', '>20': '>20cm' };
+        const lengthMap = {
+          '<3': '<3cm',
+          '3-10': '3–10cm',
+          '10-15': '10–15cm',
+          '15-20': '15–20cm',
+          '>20': '>20cm',
+        };
         const lengthLabel = lengthMap[vals.length] || vals.length;
         const calcLabel = vals.calcium ? `calcium: ${vals.calcium}` : '';
         const summary = `${vals.type}, ${lengthLabel}${calcLabel ? ', ' + calcLabel : ''}`;
         return (
           <li key={id} onClick={() => setStep && setStep(1)}>
-            <strong>{vesselName(id)}</strong> {summary}
+            <img src={segmentIcon(id)} alt="" className="segment-icon" />
+            <span>
+              <strong>{vesselName(id)}</strong> {summary}
+            </span>
           </li>
         );
       })}
@@ -354,7 +409,7 @@ export default function StepSummary({ data, setData, setStep }) {
           <div className="card-title">{__('Clinical indication', 'endoplanner')}</div>
           <div>{__('Fontaine stage', 'endoplanner')}: <b>{formatStage(stage)}</b></div>
           <div>{__('WIfI', 'endoplanner')}: <b>{wifiCode} (WIfI Stage {prog.wifiStage})</b></div>
-          <div className="row-add-label">
+          <div className="row-add-label wifi-prediction">
             {`WIfI stage ${prog.wifiStage} predicts a ${riskInfo.cat?.toLowerCase()} risk of 1-year major amputation (${riskInfo.amp?.[0]}–${riskInfo.amp?.[1]}%) and mortality (${riskInfo.mort?.[0]}–${riskInfo.mort?.[1]}%).`}
             <ReferenceLink number={1} onClick={() => showReference(1)} />
           </div>
@@ -366,12 +421,9 @@ export default function StepSummary({ data, setData, setStep }) {
             <div className="glass-line">
               {__('GLASS stage', 'endoplanner')} {glass.stage}
             </div>
-            <div className="row-add-label">
-              {glass.explanation}
-              <ReferenceLink number={2} onClick={() => showReference(2)} />
-            </div>
-            <div className="row-add-label">
+            <div className="row-add-label glass-prediction">
               {`GLASS stage ${glass.stage} predicts a technical failure rate of ${glass.failureRange[0]}–${glass.failureRange[1]}% and a 1-year limb-based patency of ${glass.patencyRange[0]}–${glass.patencyRange[1]}%.`}
+              <ReferenceLink number={2} onClick={() => showReference(2)} />
             </div>
             {prog.wifiStage >= 3 && glass.stage === 'III' && (
               <div className="row-add-label text-red-500" id="open-bypass-notice">

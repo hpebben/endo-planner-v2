@@ -62,10 +62,10 @@ export default function exportCaseSummary(data) {
   doc.text('Evidence based considerations', 40, y);
   y += 20;
   const riskMap = {
-    1: 'Very Low',
-    2: 'Low',
-    3: 'Moderate',
-    4: 'Very High',
+    0: 'Very Low',
+    1: 'Low',
+    2: 'Moderate',
+    3: 'Very High',
   };
 
   doc.text(

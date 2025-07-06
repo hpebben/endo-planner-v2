@@ -1,13 +1,15 @@
 export default function computePrognosis(data = {}) {
   const clinical = data.clinical || {};
   const { wound = 0, ischemia = 0, infection = 0 } = clinical;
-  const wifiStage = Math.max(wound, ischemia, infection) + 1;
+  // WIfI stage is determined by the highest score among wound, ischemia
+  // and infection without the previous +1 offset.
+  const wifiStage = Math.max(wound, ischemia, infection);
 
   const stageMap = {
-    1: { amp: [1, 3], limb: 95 },
-    2: { amp: [5, 10], limb: 90 },
-    3: { amp: [15, 25], limb: 75 },
-    4: { amp: [30, 55], limb: 60 },
+    0: { amp: [1, 3], limb: 95 },
+    1: { amp: [5, 10], limb: 90 },
+    2: { amp: [15, 25], limb: 75 },
+    3: { amp: [30, 55], limb: 60 },
   };
 
   const baseAmpRange = stageMap[wifiStage]?.amp || [5, 10];

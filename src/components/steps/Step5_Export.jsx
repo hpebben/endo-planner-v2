@@ -81,9 +81,6 @@ export default function Step5({ data }) {
   return (
     <div className="step5-export">
       <h3>{ __( '5. Review & Export', 'endoplanner' ) }</h3>
-      <Button isPrimary onClick={handleExport}>
-        { __( 'Download PDF', 'endoplanner' ) }
-      </Button>
     </div>
   );
 }
