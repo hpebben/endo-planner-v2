@@ -2,7 +2,7 @@
 /**
  * Plugin Name:     Endo Planner v2
  * Description:     EndoPlanner Wizard block
- * Version:         1.6.129
+ * Version:         1.6.130
  * Author:          hpebben
  * Text Domain:     endoplanner
  */
