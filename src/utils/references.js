@@ -4,7 +4,7 @@ export const references = [
     citation:
       'Conte MS, Bradbury AW, Kolh P, et al. Global vascular guidelines on the management of chronic limb-threatening ischemia. Eur J Vasc Endovasc Surg. 2019;58(1S):S1–S109.',
     pdf: 'https://esvs.org/wp-content/uploads/2021/08/CLTI-Guidelines-ESVS-SVS-WFVS.pdf',
-    pubmed: 'https://pubmed.ncbi.nlm.nih.gov/31182334//',
+    pubmed: 'https://pubmed.ncbi.nlm.nih.gov/31182334/',
   },
   {
     number: 2,
