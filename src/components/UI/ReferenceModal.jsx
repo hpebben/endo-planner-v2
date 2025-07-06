@@ -11,15 +11,15 @@ export default function ReferenceModal({ isOpen, onRequestClose, reference }) {
       isOpen={isOpen}
       onRequestClose={onRequestClose}
     >
-      <div className="citation-text">{reference.citation}</div>
-      <ul className="reference-links">
-        {reference.pdf && (
-          <li>PDF: {reference.pdf}</li>
-        )}
+      <div className="citation-text">
+        {reference.citation}
         {reference.pubmed && (
-          <li>PubMed: {reference.pubmed}</li>
+          <> <a href={reference.pubmed} target="_blank" rel="noopener noreferrer">PubMed</a></>
         )}
-      </ul>
+      </div>
+      {Array.isArray(reference.images) && reference.images.map((src, i) => (
+        <img key={i} src={src} alt="Reference figure" className="ref-image" />
+      ))}
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>
           &times;
@@ -35,7 +35,7 @@ ReferenceModal.propTypes = {
   reference: PropTypes.shape({
     number: PropTypes.number,
     citation: PropTypes.string,
-    pdf: PropTypes.string,
     pubmed: PropTypes.string,
+    images: PropTypes.arrayOf(PropTypes.string),
   }),
 };
