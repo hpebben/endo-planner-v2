@@ -236,7 +236,7 @@ export default function StepSummary({ data, setData, setStep }) {
         <div className="section-title subsection-title">{title}</div>
         {approachText && (
           <div
-            className="approach-label"
+            className="approach-label clickable"
             onClick={() => editApproach && setEditAccess(true)}
           >
             {approachText}
@@ -246,13 +246,13 @@ export default function StepSummary({ data, setData, setStep }) {
           {items.map((t, i) => (
             <React.Fragment key={`${title}-${i}`}>
               <div
-                className="plan-label"
+                className="plan-label clickable"
                 onClick={() => openItem(t)}
               >
                 {t.label}
               </div>
               <div
-                className="plan-value"
+                className="plan-value clickable"
                 onClick={() => openItem(t)}
               >
                 {t.value}
@@ -366,14 +366,6 @@ export default function StepSummary({ data, setData, setStep }) {
     setModalInfo(null);
   };
 
-  const segmentIcon = (id) => {
-    const low = id.toLowerCase();
-    if (low.includes('aorta') || low.includes('iliac'))
-      return 'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/aorto-iliac.png';
-    if (low.includes('femoral') || low.includes('popliteal'))
-      return 'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/fem-pop.png';
-    return 'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/btk.png';
-  };
 
   const vesselList = Object.keys(patencySegments).length ? (
     <ul className="vessel-summary">
@@ -390,7 +382,7 @@ export default function StepSummary({ data, setData, setStep }) {
         const summary = `${vals.type}, ${lengthLabel}${calcLabel ? ', ' + calcLabel : ''}`;
         return (
           <li key={id} onClick={() => setStep && setStep(1)}>
-            <img src={segmentIcon(id)} alt="" className="segment-icon" />
+            <span className="dash-bullet">&ndash;</span>
             <span>
               <strong>{vesselName(id)}</strong> {summary}
             </span>
@@ -532,26 +524,6 @@ export default function StepSummary({ data, setData, setStep }) {
           }
         />
       )}
-      <ul className="reference-list">
-        {references.map((r) => (
-          <li key={r.number}>
-            [{r.number}] {r.citation}{' '}
-            {r.pubmed && (
-              <a href={r.pubmed} target="_blank" rel="noopener noreferrer">
-                PubMed
-              </a>
-            )}
-            {r.fulltext && (
-              <>
-                {' '}
-                <a href={r.fulltext} target="_blank" rel="noopener noreferrer">
-                  Full text
-                </a>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

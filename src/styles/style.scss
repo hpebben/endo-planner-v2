@@ -103,9 +103,10 @@
 .vessel-summary li:hover {
   text-decoration: underline;
 }
-.segment-icon {
-  width: 18px;
-  height: 18px;
+
+.dash-bullet {
+  color: #1e40af;
+  font-weight: bold;
   margin-right: 0.5rem;
 }
 .selected-segments li,
@@ -841,6 +842,7 @@ svg .vessel-path:hover {
 }
 .wifi-prediction {
   margin-top: 1rem;
+  margin-bottom: 30px;
 }
 .glass-prediction {
   margin-top: 1rem;
@@ -974,7 +976,9 @@ svg .vessel-path:hover {
   max-width: 350px;
 }
 .ref-image.glass-img {
-  max-width: 200px;
+  max-width: 40vw;
+  height: auto;
+  margin: 0 10px;
 }
 .ref-images-row {
   display: flex;
@@ -1133,6 +1137,11 @@ svg .vessel-path:hover {
 }
 .plan-value {
   text-align: left;
+}
+
+.clickable:hover {
+  color: #1e40af;
+  cursor: pointer;
 }
 .plan-item-subtitle {
   color: #2563eb;
