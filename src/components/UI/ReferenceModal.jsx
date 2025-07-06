@@ -5,6 +5,45 @@ import InlineModal from './InlineModal';
 export default function ReferenceModal({ isOpen, onRequestClose, reference }) {
   if (!isOpen || !reference) return null;
 
+  // Special layout for the Mills (WIfI) reference
+  if (reference.number === 1) {
+    return (
+      <InlineModal title="" isOpen={isOpen} onRequestClose={onRequestClose}>
+        {reference.images && reference.images[0] && (
+          <img
+            src={reference.images[0]}
+            alt="Reference figure"
+            style={{ maxWidth: '300px', display: 'block', margin: '0 auto' }}
+          />
+        )}
+        <div className="citation-text" style={{ marginTop: '0.75rem' }}>
+          {reference.citation}
+        </div>
+        <ul className="reference-links">
+          {reference.pubmed && (
+            <li>
+              <a href={reference.pubmed} target="_blank" rel="noopener noreferrer">
+                PubMed
+              </a>
+            </li>
+          )}
+          {reference.fulltext && (
+            <li>
+              <a href={reference.fulltext} target="_blank" rel="noopener noreferrer">
+                Full text
+              </a>
+            </li>
+          )}
+        </ul>
+        <div className="popup-close-row">
+          <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>
+            &times;
+          </button>
+        </div>
+      </InlineModal>
+    );
+  }
+
   return (
     <InlineModal
       title={`Reference ${reference.number}`}

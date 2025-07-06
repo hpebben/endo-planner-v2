@@ -680,7 +680,6 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   };
   return (
     <div className="intervention-row">
-      <div className="row-number">{index + 1}</div>
       <div className="row-inner">
         <SegmentedControl
           options={[{ label: 'Antegrade', value: 'Antegrade' }, { label: 'Retrograde', value: 'Retrograde' }]}
@@ -860,7 +859,6 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const devLabel = data.device || __('Choose', 'endoplanner');
   return (
     <div className="intervention-row">
-      <div className="row-number">{index + 1}</div>
       <div className="row-inner">
         <div className="device-row">
         <DeviceButton
@@ -930,7 +928,6 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const devLabel = data.device || __('Choose', 'endoplanner');
   return (
     <div className="intervention-row">
-      <div className="row-number">{index + 1}</div>
       <div className="row-inner">
         <div className="device-row">
         <DeviceButton
@@ -995,7 +992,6 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const devLabel3 = data.device || __('Choose', 'endoplanner');
   return (
     <div className="intervention-row">
-      <div className="row-number">{index + 1}</div>
       <div className="row-inner">
         <SegmentedControl
           options={[{ label: 'Manual pressure', value: 'Manual pressure' }, { label: 'Closure device', value: 'Closure device' }]}
