@@ -75,7 +75,7 @@ export default function Wizard() {
           <button
             type="button"
             className="stage-btn wizard-finish"
-            onClick={() => exportCaseSummary(data)}
+            onClick={() => exportCaseSummary()}
           >
             { __( 'Export PDF', 'endoplanner' ) }
           </button>
