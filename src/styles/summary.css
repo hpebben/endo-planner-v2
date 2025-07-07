@@ -1,0 +1,178 @@
+#case-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+#case-summary .summary-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+#case-summary .summary-card {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+#case-summary .summary-card > div + div {
+  margin-top: 0.5rem;
+}
+
+#case-summary .summary-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+#case-summary .card-title {
+  font-weight: bold;
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+#case-summary .approach-chip {
+  display: inline-block;
+  background: #2563eb;
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+#case-summary .approach-label {
+  margin: 0.5rem 0;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+#case-summary .plan-section {
+  margin-bottom: 1.25rem;
+}
+
+#case-summary .section-title {
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+#case-summary .subsection-title {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+#case-summary .main-plan-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+#case-summary .plan-list {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#case-summary .plan-list li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+}
+
+#case-summary .plan-list li:hover {
+  text-decoration: underline;
+}
+
+#case-summary .plan-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  column-gap: 1rem;
+  row-gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+#case-summary .plan-label {
+  text-align: right;
+  font-weight: 700;
+  color: #000;
+  padding-right: 0.25rem;
+}
+
+#case-summary .plan-value {
+  text-align: left;
+}
+
+#case-summary .clickable:hover {
+  color: #1e40af;
+  cursor: pointer;
+}
+
+#case-summary .plan-item-subtitle {
+  color: #2563eb;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#case-summary .plan-item-detail {
+  margin-left: 0;
+  font-weight: bold;
+}
+
+#case-summary .pill {
+  display: inline-block;
+  background: #f0f0f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  margin: 0 0.25rem 0.25rem 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+
+#case-summary .pill:hover {
+  background: #e2e8f0;
+}
+
+.row-add-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #666;
+  margin-top: 1.5rem;
+}
+
+.wifi-prediction {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.glass-prediction {
+  margin-top: 30px;
+}
+
+.glass-line {
+  font-size: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+@media (min-width: 992px) {
+  #case-summary .summary-row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  #case-summary .summary-card {
+    flex: 1;
+  }
+}

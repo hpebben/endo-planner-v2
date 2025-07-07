@@ -1,48 +1,41 @@
 import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
-import '../styles/style.scss';
+import summaryCss from './summaryCss';
 
-export default function exportCaseSummary() {
-  const source = document.querySelector('.case-summary-container');
+export async function exportCaseSummary() {
+  const source = document.getElementById('case-summary') || document.querySelector('.case-summary-container');
   if (!source) return;
 
+  const printFrame = document.createElement('iframe');
+  printFrame.style.position = 'absolute';
+  printFrame.style.left = '-10000px';
+  printFrame.style.top = '0';
+  document.body.appendChild(printFrame);
+
+  const doc = printFrame.contentDocument;
+  doc.open();
+  doc.write('<!DOCTYPE html><html><head></head><body></body></html>');
+  doc.close();
+
   const clone = source.cloneNode(true);
+  doc.body.appendChild(clone);
 
-  const wrapper = document.createElement('div');
-  wrapper.className = 'pdf-wrapper';
+  const style = doc.createElement('style');
+  style.textContent = summaryCss;
+  doc.head.appendChild(style);
 
-  const header = document.createElement('div');
-  const headerBtn = document.createElement('button');
-  headerBtn.className = 'stage-btn';
-  headerBtn.textContent = 'Case Summary';
-  header.appendChild(headerBtn);
-  wrapper.appendChild(header);
+  await doc.fonts.ready;
+  const images = Array.from(doc.images);
+  await Promise.all(images.map((img) => img.decode().catch(() => {})));
 
-  wrapper.appendChild(clone);
-
-  const footer = document.createElement('div');
-  const footerBtn = document.createElement('button');
-  footerBtn.className = 'stage-btn';
-  footerBtn.textContent = 'Export PDF';
-  footer.appendChild(footerBtn);
-  wrapper.appendChild(footer);
-
-  wrapper.style.position = 'fixed';
-  wrapper.style.left = '0';
-  wrapper.style.top = '0';
-  wrapper.style.width = '100%';
-  wrapper.style.visibility = 'hidden';
-
-  document.body.appendChild(wrapper);
-
-  const options = {
-    filename: 'EndoPlanner_Report.pdf',
-    jsPDF: { format: 'a4' },
+  const opt = {
+    margin: 10,
+    filename: 'CaseSummary.pdf',
     html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
   };
 
-  document.fonts.ready
-    .then(() => html2pdf().set(options).from(wrapper).save())
-    .finally(() => {
-      document.body.removeChild(wrapper);
-    });
+  await html2pdf().set(opt).from(doc.body).save();
+  printFrame.remove();
 }
+
+export default exportCaseSummary;
