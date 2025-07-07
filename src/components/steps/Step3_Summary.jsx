@@ -63,13 +63,15 @@ function AccessModal({ isOpen, values, onSave, onRequestClose }) {
         onChange={setSide}
         ariaLabel={__('Side', 'endoplanner')}
       />
-      <button
-        type="button"
-        className="device-button"
-        onClick={() => setVesselOpen(true)}
-      >
-        {vessel || __('Vessel', 'endoplanner')}
-      </button>
+      <div className="vessel-btn-container">
+        <button
+          type="button"
+          className="device-button"
+          onClick={() => setVesselOpen(true)}
+        >
+          {vessel || __('Vessel', 'endoplanner')}
+        </button>
+      </div>
       {vesselOpen && (
         <InlineModal
           title={__('Select Vessel', 'endoplanner')}
@@ -174,6 +176,14 @@ const summarize = (obj) =>
 
 const summarizeList = (arr) =>
   Array.isArray(arr) ? arr.map(summarize).filter(Boolean).join('; ') : '';
+
+const formatTherapy = (obj) => {
+  if (!obj || typeof obj !== 'object') return '';
+  if (obj.diameter && obj.length) {
+    return `${obj.diameter} \u00D7 ${obj.length} mm`;
+  }
+  return summarize(obj);
+};
 
 export default function StepSummary({ data, setData, setStep }) {
   const {
@@ -301,10 +311,10 @@ export default function StepSummary({ data, setData, setStep }) {
   const therapyItems = therapyRows
     .flatMap((r, row) => [
       summarize(r.balloon)
-        ? { label: 'BALLOON', value: summarize(r.balloon), type: 'balloon', row }
+        ? { label: 'BALLOON', value: formatTherapy(r.balloon), type: 'balloon', row }
         : null,
       summarize(r.stent)
-        ? { label: 'STENT', value: summarize(r.stent), type: 'stent', row }
+        ? { label: 'STENT', value: formatTherapy(r.stent), type: 'stent', row }
         : null,
     ])
     .filter(Boolean);
@@ -427,10 +437,10 @@ export default function StepSummary({ data, setData, setStep }) {
         </div>
         <div className="summary-card intervention-plan">
           <div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div>
-          {renderSection(__('Access', 'endoplanner'), accessItems, approachLabel, true)}
-          {renderSection(__('Navigation', 'endoplanner'), navItems)}
-          {renderSection(__('Crossing / Therapy', 'endoplanner'), therapyItems)}
-          {renderSection(__('Closure', 'endoplanner'), closureItems)}
+          {renderSection(__('ACCESS', 'endoplanner'), accessItems, approachLabel, true)}
+          {renderSection(__('NAVIGATION & CROSSING', 'endoplanner'), navItems)}
+          {renderSection(__('VESSEL PREPARATION & THERAPY', 'endoplanner'), therapyItems)}
+          {renderSection(__('CLOSURE', 'endoplanner'), closureItems)}
         </div>
       </div>
 
