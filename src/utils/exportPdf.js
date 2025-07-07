@@ -1,4 +1,4 @@
-import html2pdf from 'html2pdf.js';
+import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
 import '../styles/style.scss';
 
 export default function exportCaseSummary() {
@@ -27,15 +27,21 @@ export default function exportCaseSummary() {
   wrapper.appendChild(footer);
 
   wrapper.style.position = 'fixed';
-  wrapper.style.left = '-9999px';
+  wrapper.style.left = '0';
   wrapper.style.top = '0';
+  wrapper.style.width = '100%';
+  wrapper.style.visibility = 'hidden';
 
   document.body.appendChild(wrapper);
 
-  html2pdf()
-    .from(wrapper)
-    .set({ jsPDF: { format: 'a4' }, html2canvas: { scale: 2 } })
-    .save('EndoPlanner_Report.pdf')
+  const options = {
+    filename: 'EndoPlanner_Report.pdf',
+    jsPDF: { format: 'a4' },
+    html2canvas: { scale: 2, useCORS: true },
+  };
+
+  document.fonts.ready
+    .then(() => html2pdf().set(options).from(wrapper).save())
     .finally(() => {
       document.body.removeChild(wrapper);
     });
