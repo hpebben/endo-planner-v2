@@ -1,111 +1,48 @@
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import computePrognosis from './prognosis';
-import computeGlass from './glass';
-import { vesselSegments } from '../components/steps/Step2_Patency';
+import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
+import '../styles/style.scss';
 
-const formatStage = (val) => {
-  const map = { i: 'I', iia: 'IIa', iib: 'IIb', iii: 'III', iv: 'IV' };
-  return map[val] || val || '';
-};
+export default function exportCaseSummary() {
+  const source = document.querySelector('.case-summary-container');
+  if (!source) return;
 
-const vesselName = (id) =>
-  vesselSegments.find((s) => s.id === id)?.name || id.replace(/_/g, ' ');
+  const clone = source.cloneNode(true);
 
-const summarize = (obj) =>
-  obj && typeof obj === 'object' ? Object.values(obj).filter(Boolean).join(' ') : '';
+  const wrapper = document.createElement('div');
+  wrapper.className = 'pdf-wrapper';
 
-const summarizeList = (arr) =>
-  Array.isArray(arr) ? arr.map(summarize).filter(Boolean).join('; ') : '';
+  const header = document.createElement('div');
+  const headerBtn = document.createElement('button');
+  headerBtn.className = 'stage-btn';
+  headerBtn.textContent = 'Case Summary';
+  header.appendChild(headerBtn);
+  wrapper.appendChild(header);
 
-export default function exportCaseSummary(data) {
-  const prog = computePrognosis(data);
-  const glass = computeGlass(data.patencySegments || {});
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  let y = 40;
+  wrapper.appendChild(clone);
 
-  doc.setFontSize(18);
-  doc.text('EndoPlanner Case Summary', 40, y);
-  y += 30;
+  const footer = document.createElement('div');
+  const footerBtn = document.createElement('button');
+  footerBtn.className = 'stage-btn';
+  footerBtn.textContent = 'Export PDF';
+  footer.appendChild(footerBtn);
+  wrapper.appendChild(footer);
 
-  doc.setFontSize(14);
-  doc.text('Clinical indication', 40, y);
-  y += 20;
-  const clinical = data.clinical || {};
-  [
-    `Fontaine stage: ${formatStage(data.stage)}`,
-    `WIfI: W${prog.wound}I${prog.ischemia}fI${prog.infection}`,
-    `Overall WIfI stage ${prog.wifiStage}`,
-  ].forEach((line) => { doc.text(line, 60, (y += 16)); });
-  y += 10;
+  wrapper.style.position = 'fixed';
+  wrapper.style.left = '0';
+  wrapper.style.top = '0';
+  wrapper.style.width = '100%';
+  wrapper.style.visibility = 'hidden';
 
-  doc.text('Disease anatomy', 40, y);
-  y += 10;
-  if (data.patencySegments && Object.keys(data.patencySegments).length) {
-    const rows = Object.entries(data.patencySegments).map(([id, v]) => [
-      vesselName(id),
-      v.type,
-      v.length,
-      v.calcium,
-    ]);
-    autoTable(doc, {
-      startY: y,
-      head: [['Segment', 'Type', 'Length', 'Calcification']],
-      body: rows,
-    });
-    y = doc.lastAutoTable.finalY + 10;
-  } else {
-    doc.text('- No data entered', 60, (y += 16));
-    y += 10;
-  }
+  document.body.appendChild(wrapper);
 
-  doc.text('Evidence based considerations', 40, y);
-  y += 20;
-  const riskMap = {
-    0: 'Very Low',
-    1: 'Low',
-    2: 'Moderate',
-    3: 'Very High',
+  const options = {
+    filename: 'EndoPlanner_Report.pdf',
+    jsPDF: { format: 'a4' },
+    html2canvas: { scale: 2, useCORS: true },
   };
 
-  doc.text(
-    `WIfI stage ${prog.wifiStage} (${riskMap[prog.wifiStage]}): ${prog.baseAmpRange[0]}–${prog.baseAmpRange[1]}% major amputation risk`,
-    60,
-    y
-  );
-  y += 16;
-  doc.text(
-    `Adjusted risk ${prog.ampRange[0]}–${prog.ampRange[1]}%`,
-    60,
-    y
-  );
-  y += 16;
-  doc.text(
-    `GLASS ${glass.stage} (${glass.riskCategory}) failure ${glass.failureRange[0]}–${glass.failureRange[1]}%, patency ${glass.patencyRange[0]}–${glass.patencyRange[1]}%`,
-    60,
-    y
-  );
-  y += 20;
-
-  doc.text('Intervention plan', 40, y);
-  y += 20;
-  const sections = [
-    ['Access', data.accessRows || [], (r) => `via ${r.vessel} ${summarizeList(r.needles)} ${summarizeList(r.sheaths)}`],
-    ['Navigation & Crossing', data.navRows || [], (r) => `${summarize(r.wire)} ${summarize(r.catheter)} ${r.device || ''}`],
-    ['Vessel preparation & therapy', data.therapyRows || [], (r) => `${summarize(r.balloon)} ${summarize(r.stent)} ${r.device || ''}`],
-    ['Closure', data.closureRows || [], (r) => `${r.method || ''} ${r.device || ''}`],
-  ];
-  sections.forEach(([title, rows, fn]) => {
-    if (rows.length) {
-      doc.text(title, 60, y);
-      y += 16;
-      rows.forEach((row, i) => {
-        doc.text(`- ${fn(row)}`, 80, y);
-        y += 14;
-      });
-      y += 10;
-    }
-  });
-
-  doc.save('EndoPlanner_Report.pdf');
+  document.fonts.ready
+    .then(() => html2pdf().set(options).from(wrapper).save())
+    .finally(() => {
+      document.body.removeChild(wrapper);
+    });
 }
