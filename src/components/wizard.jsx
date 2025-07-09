@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import exportCaseSummaryToPDF from '../utils/exportCaseSummaryToPDF';
 import { __ } from '@wordpress/i18n';
 import Step1 from './steps/Step1_Clinical';
 import Step2 from './steps/Step2_Patency';
@@ -75,6 +76,7 @@ export default function Wizard() {
             type="button"
             id="export-pdf-btn"
             className="stage-btn wizard-finish"
+            onClick={ exportCaseSummaryToPDF }
           >
             { __( 'Export PDF', 'endoplanner' ) }
           </button>
