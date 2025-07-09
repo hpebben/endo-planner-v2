@@ -28,3 +28,8 @@
 /* 4 – Ensure there’s no leftover centring on lists */
 .summary-card ul,
 .summary-card li { margin-left: 0; padding-left: 0; }
+
+/* 5 – Override flex alignment for PDF */
+.case-summary-container,#case-summary{margin:0!important;}
+.plan-list{align-items:flex-start!important;}
+.plan-grid{justify-content:flex-start!important;}
