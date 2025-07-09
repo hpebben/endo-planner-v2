@@ -19,6 +19,11 @@ export async function exportPDF() {
   link.href = "/assets/css/summary.css";
   clone.prepend(link);
 
+  const pdfLink = document.createElement("link");
+  pdfLink.rel = "stylesheet";
+  pdfLink.href = "/assets/css/pdf-summary.css";
+  clone.prepend(pdfLink);
+
   document.body.appendChild(clone);
 
   await html2pdf()

@@ -1,0 +1,28 @@
+/* pdf-summary.css  (only for the hidden <iframe> / virtual page used by the PDF generator) */
+
+/* 1 – Reset any inherited centring */
+.pdf-wrapper,
+.pdf-wrapper * {
+    text-align: left !important;
+}
+
+/* 2 – Intervention-plan grid */
+.intervention-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    row-gap: 0.25rem;
+    column-gap: 1rem;
+}
+.intervention-grid .label  { font-weight: 600; }
+.intervention-grid .value  { font-weight: 400; }
+
+/* 3 – Card headers & section titles */
+.summary-card h3,
+.section-title {
+    margin-bottom: 0.5rem;
+    text-align: left !important;
+}
+
+/* 4 – Ensure there’s no leftover centring on lists */
+.summary-card ul,
+.summary-card li { margin-left: 0; padding-left: 0; }
