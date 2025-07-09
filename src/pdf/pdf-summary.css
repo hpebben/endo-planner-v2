@@ -33,3 +33,17 @@
 .case-summary-container,#case-summary{margin:0!important;}
 .plan-list{align-items:flex-start!important;}
 .plan-grid{justify-content:flex-start!important;}
+
+/* 6 – Center intervention plan content except the main title */
+#print-summary .intervention-plan * {
+    text-align: center !important;
+}
+#print-summary .intervention-plan .main-plan-title {
+    text-align: left !important;
+}
+#print-summary .intervention-plan .plan-list {
+    align-items: center !important;
+}
+#print-summary .intervention-plan .plan-grid {
+    justify-content: center !important;
+}
