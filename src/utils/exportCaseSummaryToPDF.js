@@ -1,5 +1,5 @@
 export default async function exportCaseSummaryToPDF() {
-  const summary = document.querySelector('.case-summary');
+  const summary = document.querySelector('#case-summary');
   if (!summary) {
     alert('Case Summary not found');
     return;
