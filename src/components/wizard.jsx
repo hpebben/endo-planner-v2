@@ -4,7 +4,6 @@ import Step1 from './steps/Step1_Clinical';
 import Step2 from './steps/Step2_Patency';
 import Step3 from './steps/Step4_Intervention';
 import Step4 from './steps/Step3_Summary';
-import exportPDF from '../utils/exportPdf';
 import { ProgressBar, Button } from '@wordpress/components';
 
 const steps = [
@@ -74,8 +73,8 @@ export default function Wizard() {
         ) : (
           <button
             type="button"
+            id="export-pdf-btn"
             className="stage-btn wizard-finish"
-            onClick={() => exportPDF()}
           >
             { __( 'Export PDF', 'endoplanner' ) }
           </button>

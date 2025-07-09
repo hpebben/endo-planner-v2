@@ -178,3 +178,12 @@
     flex: 1;
   }
 }
+
+@media print {
+  body { -webkit-print-color-adjust: exact; }
+  .summary-card   { break-inside: avoid; }
+  .wifi-block,
+  .glass-block    { margin-bottom: 30px !important; }
+  /* force ALL text left-aligned inside PDF */
+  .summary-card * { text-align: left !important; }
+}
