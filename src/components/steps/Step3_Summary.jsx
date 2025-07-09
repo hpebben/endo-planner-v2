@@ -405,7 +405,8 @@ export default function StepSummary({ data, setData, setStep }) {
   );
 
   return (
-    <div className="case-summary-container">
+    <div id="case-summary" className="summary-card-wrapper">
+      <div className="case-summary-container">
       <div className="summary-row row1">
         <div className="summary-card">
           <div className="card-title">{__('Clinical indication', 'endoplanner')}</div>
@@ -534,6 +535,7 @@ export default function StepSummary({ data, setData, setStep }) {
           }
         />
       )}
+      </div>
     </div>
   );
 }
