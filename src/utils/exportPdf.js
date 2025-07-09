@@ -42,6 +42,7 @@ export const pdfTemplate = `
     a.supref           { text-decoration:none; color:#0a66ff; }
   </style>
 
+  <div id="summary">
   <!-- ───────────── Clinical indication ───────────── -->
   <section class="card">
     <h1>Clinical indication</h1>
@@ -108,6 +109,7 @@ export const pdfTemplate = `
       </table>
     </article>
   </section>
+  </div>
 </template>`;
 
 // ---------------------------------------------------------------------------
@@ -273,7 +275,8 @@ export async function exportCaseSummary() {
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
   };
 
-  await html2pdf().set(opt).from(frame.contentDocument.body.firstElementChild).save();
+  const source = frame.contentDocument.getElementById('summary') || frame.contentDocument.body.firstElementChild;
+  await html2pdf().set(opt).from(source).save();
   document.body.removeChild(frame);
 }
 
