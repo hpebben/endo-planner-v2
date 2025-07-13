@@ -180,7 +180,8 @@ const summarizeList = (arr) =>
 const formatTherapy = (obj) => {
   if (!obj || typeof obj !== 'object') return '';
   if (obj.diameter && obj.length) {
-    return `${obj.diameter} \u00D7 ${obj.length} mm`;
+    const shaft = obj.shaft ? ` \u00B7 shaft ${obj.shaft}` : '';
+    return `${obj.diameter} \u00D7 ${obj.length} mm${shaft}`;
   }
   return summarize(obj);
 };
