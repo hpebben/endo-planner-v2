@@ -455,6 +455,7 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   const [platform, setPlatform] = useState(values.platform || '');
   const [diameter, setDiameter] = useState(values.diameter || '');
   const [len, setLen] = useState(values.length || '');
+  const [shaft, setShaft] = useState(values.shaft || '80 cm');
   useEffect(() => {
     setPlatform(values.platform || '');
     setDiameter(values.diameter || '');
@@ -463,16 +464,17 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   const diameters = { '0.014':['1.5','2','2.5','3.5','4'], '0.018':['2','2.5','3','4','5','5.5','6','7'], '0.035':['3','4','5','6','7','8','9','10','12','14'] };
   const lengths = ['10','12','15','18','20','30','40','50','60','70','80','90','100','110','120'];
   const handleChange = (field, val) => {
-    const newVals = { platform, diameter, length: len, [field]: val };
+    const newVals = { platform, diameter, length: len, shaft, [field]: val };
     if (field === 'platform') {
       setPlatform(val);
       setDiameter(val ? diameters[val][0] : '');
     }
     if (field === 'diameter') setDiameter(val);
     if (field === 'length') setLen(val);
+    if (field === 'shaft') setShaft(val);
     console.log('[Popup] Updated: ', newVals);
-    onSave({ platform: newVals.platform, diameter: newVals.diameter, length: newVals.length });
-    if (newVals.platform && newVals.diameter && newVals.length) onRequestClose();
+    onSave({ platform: newVals.platform, diameter: newVals.diameter, length: newVals.length, shaft: newVals.shaft });
+    if (newVals.platform && newVals.diameter && newVals.length && newVals.shaft) onRequestClose();
   };
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -490,6 +492,16 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
         value={len}
         options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
+      />
+      <SelectControl
+        label={__('Shaft length', 'endoplanner')}
+        value={shaft}
+        className="selector--sm"
+        options={[
+          { label: '80 cm', value: '80 cm' },
+          { label: '135 cm', value: '135 cm' },
+        ]}
+        onChange={(val) => handleChange('shaft', val)}
       />
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
@@ -515,6 +527,7 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   const [mat, setMat] = useState(values.material || '');
   const [dia, setDia] = useState(values.diameter || '');
   const [len, setLen] = useState(values.length || '');
+  const [shaft, setShaft] = useState(values.shaft || '80 cm');
   useEffect(() => {
     setPlatform(values.platform || '');
     setType(values.type || '');
@@ -523,7 +536,7 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     setLen(values.length || '');
   }, [values]);
   const handleChange = (field, val) => {
-    const newVals = { platform, type, material: mat, diameter: dia, length: len, [field]: val };
+    const newVals = { platform, type, material: mat, diameter: dia, length: len, shaft, [field]: val };
     switch(field){
       case 'platform':
         setPlatform(val);
@@ -534,11 +547,12 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
       case 'material': setMat(val); break;
       case 'diameter': setDia(val); break;
       case 'length': setLen(val); break;
+      case 'shaft': setShaft(val); break;
       default: break;
     }
     console.log('[Popup] Updated: ', newVals);
-    onSave({ platform: newVals.platform, type: newVals.type, material: newVals.material, diameter: newVals.diameter, length: newVals.length });
-    if (newVals.platform && newVals.type && newVals.material && newVals.diameter && newVals.length) onRequestClose();
+    onSave({ platform: newVals.platform, type: newVals.type, material: newVals.material, diameter: newVals.diameter, length: newVals.length, shaft: newVals.shaft });
+    if (newVals.platform && newVals.type && newVals.material && newVals.diameter && newVals.length && newVals.shaft) onRequestClose();
   };
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -571,6 +585,16 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
         value={len}
         options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...(stentLen[platform] || []).map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
+      />
+      <SelectControl
+        label={__('Shaft length', 'endoplanner')}
+        value={shaft}
+        className="selector--sm"
+        options={[
+          { label: '80 cm', value: '80 cm' },
+          { label: '135 cm', value: '135 cm' },
+        ]}
+        onChange={(val) => handleChange('shaft', val)}
       />
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>

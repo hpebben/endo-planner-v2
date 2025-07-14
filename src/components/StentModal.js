@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { SelectControl } from "@wordpress/components";
 import InlineModal from "./UI/InlineModal";
 import SegmentedControl from "./UI/SegmentedControl";
-import { DEFAULTS } from "./defaults";
+import { useWizard } from "./WizardContext";
 
 const stentDia = {
   0.014: ["2", "3", "4", "5"],
@@ -16,33 +16,16 @@ const stentLen = {
   0.035: ["40", "60", "80", "100", "120"],
 };
 
-export default function StentModal({
-  isOpen,
-  anchor,
-  onRequestClose,
-  values,
-  onSave,
-}) {
-  const def = DEFAULTS.therapy.stent;
-  const [form, setForm] = useState(() => ({
-    platform: values.platform ?? "",
-    type: values.type ?? "",
-    material: values.material ?? "",
-    diameter: values.diameter ?? "",
-    length: values.length ?? "",
-    shaft: values.shaft ?? def.shaft,
-  }));
-
-  useEffect(() => {
-    setForm({
-      platform: values.platform ?? "",
-      type: values.type ?? "",
-      material: values.material ?? "",
-      diameter: values.diameter ?? "",
-      length: values.length ?? "",
-      shaft: values.shaft ?? def.shaft,
-    });
-  }, [values]);
+export default function StentModal({ isOpen, anchor, onRequestClose }) {
+  const { state, setState } = useWizard();
+  const form = state.vesselPrep?.stent || {
+    platform: '',
+    type: '',
+    material: '',
+    diameter: '',
+    length: '',
+    shaft: ''
+  };
 
   const handleChange = (field, val) => {
     const newVals = { ...form, [field]: val };
@@ -50,8 +33,10 @@ export default function StentModal({
       newVals.diameter = val ? stentDia[val][0] : "";
       newVals.length = val ? stentLen[val][0] : "";
     }
-    setForm(newVals);
-    onSave(newVals);
+    setState(prev => ({
+      ...prev,
+      vesselPrep: { ...prev.vesselPrep, stent: newVals }
+    }));
     if (
       newVals.platform &&
       newVals.type &&
@@ -148,6 +133,4 @@ StentModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   anchor: PropTypes.object,
   onRequestClose: PropTypes.func.isRequired,
-  values: PropTypes.object,
-  onSave: PropTypes.func.isRequired,
 };
