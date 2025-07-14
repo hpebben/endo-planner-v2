@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import DEFAULTS from './Defaults';
 import exportCaseSummaryToPDF from '../utils/exportCaseSummaryToPDF';
 import { __ } from '@wordpress/i18n';
 import Step1 from './steps/Step1_Clinical';
@@ -17,7 +18,7 @@ const steps = [
 
 export default function Wizard() {
   const [ current, setCurrent ] = useState( 0 );
-  const [ data, setData ] = useState({}); // gather all selections
+  const [ data, setData ] = useState(DEFAULTS); // gather all selections
 
   // Load saved progress
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function Wizard() {
     if (saved) {
       try {
         const { step, data: savedData } = JSON.parse(saved);
-        if (savedData) setData(savedData);
+        if (savedData) setData({ ...DEFAULTS, ...savedData });
         if (typeof step === 'number') setCurrent(step);
       } catch (e) {
         /* ignore */

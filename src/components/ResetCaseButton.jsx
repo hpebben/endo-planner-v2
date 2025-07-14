@@ -10,6 +10,8 @@ export default function ResetCaseButton() {
       className="reset-case"
       onClick={() => {
         resetCase();
+        localStorage.removeItem('endoplannerState');
+        window.location.reload();
       }}
     >
       RESET CASE

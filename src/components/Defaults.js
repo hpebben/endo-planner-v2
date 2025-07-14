@@ -1,23 +1,26 @@
 // centralised defaults – tweak anytime
 export default {
+  // Default selections used when starting a new case
   access: {
-    needle:   { gauge: '19 G', length: '7 cm' },
-    sheath:   { fr: '6 F',    length: '12 cm' },
-    catheter: { model: 'BER2', fr: '4 F', length: '65 cm' }
+    needle:   { size: '19 Gauge', length: '7cm' },
+    sheath:   { frSize: '6 Fr', length: '12 cm' },
+    catheter: { specific: 'BER2', size: '4 Fr', length: '65 cm' },
   },
   navigation: {
     wire: {
-      core: '0.018', length: '180 cm',
-      coating: 'Glidewire', tip: 'Intimal tracking'
-    }
+      platform: '0.018',
+      length: '180 cm',
+      type: 'Glidewire',
+      technique: 'Intimal Tracking',
+    },
   },
   vesselPrep: {
     balloon: {
       platform: '0.018',
-      diameter: '5 mm',
-      length: '100 mm',
-      shaft: '80 cm'
-    }
+      diameter: '5',
+      length: '100',
+      shaft: '80 cm',
+    },
   },
-  closure: { method: 'Manual' }
+  closure: { method: 'Manual pressure' },
 };
