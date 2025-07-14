@@ -1,25 +1,30 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import Wizard from './components/wizard';
-import { WizardProvider } from './components/WizardContext';
+// Import default and named exports in case the file exports differently
+import * as WizardContextModule from './components/WizardContext';
 
-const mount = () => {
-  document.querySelectorAll('.endoplanner-root').forEach((container) => {
-    try {
-      ReactDOM.render(
-        <WizardProvider>
-          <Wizard />
-        </WizardProvider>,
-        container
-      );
-    } catch (err) {
-      console.error('Error rendering Endoplanner wizard:', err);
-    }
-  });
-};
+// Support both default and named export styles
+const WizardProvider =
+        WizardContextModule?.WizardProvider   // named export
+     || WizardContextModule?.default          // default export
+     || (() => { throw new Error('WizardProvider not found'); });
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', mount);
+const mount = document.querySelector('.endoplanner-root');
+
+if (mount) {
+  try {
+    createRoot(mount).render(
+      <WizardProvider>
+        <Wizard />
+      </WizardProvider>
+    );
+  } catch (err) {
+    console.error('Error rendering Endoplanner wizard:', err);
+  }
 } else {
-  mount();
+  console.error(
+    '[EndoPlanner] .endoplanner-root not found – ' +
+    'ensure the div exists **after** the block markup is rendered.'
+  );
 }
