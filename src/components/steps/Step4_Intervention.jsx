@@ -4,6 +4,7 @@ import { Button, SelectControl } from '@wordpress/components';
 import SegmentedControl from '../UI/SegmentedControl';
 import InlineDeviceSelect from '../UI/InlineDeviceSelect';
 import { __ } from '@wordpress/i18n';
+import DEFAULTS from '../Defaults';
 // miniature arterial tree icon used for vessel selector
 import vesselTreeIcon from '../../assets/vessel-map.svg';
 // device images for selector buttons
@@ -1044,12 +1045,24 @@ ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.o
 
 // --- Main Step Component --------------------------------------------------
 export default function Step4({ data, setData }) {
-  const initRows = (arr) =>
-    arr && arr.length ? arr.map((r) => ({ id: r.id || uid(), ...r })) : [{ id: uid() }];
-  const [accessRows, setAccessRows] = useState(initRows(data.accessRows));
-  const [navRows, setNavRows] = useState(initRows(data.navRows));
-  const [therapyRows, setTherapyRows] = useState(initRows(data.therapyRows));
-  const [closureRows, setClosureRows] = useState(initRows(data.closureRows));
+  const initRows = (arr, def) =>
+    arr && arr.length
+      ? arr.map((r) => ({ id: r.id || uid(), ...r }))
+      : [{ id: uid(), ...def }];
+
+  const defaultAccess = {
+    needles: [DEFAULTS.access.needle],
+    sheaths: [DEFAULTS.access.sheath],
+    catheters: [DEFAULTS.access.catheter],
+  };
+  const defaultNav = { wire: DEFAULTS.navigation.wire };
+  const defaultTherapy = { balloon: DEFAULTS.vesselPrep.balloon };
+  const defaultClosure = { method: DEFAULTS.closure.method };
+
+  const [accessRows, setAccessRows] = useState(initRows(data.accessRows, defaultAccess));
+  const [navRows, setNavRows] = useState(initRows(data.navRows, defaultNav));
+  const [therapyRows, setTherapyRows] = useState(initRows(data.therapyRows, defaultTherapy));
+  const [closureRows, setClosureRows] = useState(initRows(data.closureRows, defaultClosure));
 
   useEffect(() => {
     setData({ ...data, accessRows, navRows, therapyRows, closureRows });
@@ -1072,7 +1085,12 @@ export default function Step4({ data, setData }) {
           />
         ))}
         <RowControls
-          onAdd={() => setAccessRows((prev) => [...prev, { id: uid() }])}
+          onAdd={() =>
+            setAccessRows((prev) => [
+              ...prev,
+              { id: uid(), ...defaultAccess },
+            ])
+          }
           onRemove={() => {}}
           showRemove={false}
           label={__('Add another approach', 'endoplanner')}
@@ -1087,7 +1105,9 @@ export default function Step4({ data, setData }) {
             index={i}
             values={row}
             onChange={(val) => setNavRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
-            onAdd={() => setNavRows((prev) => [...prev, { id: uid() }])}
+            onAdd={() =>
+              setNavRows((prev) => [...prev, { id: uid(), ...defaultNav }])
+            }
             onRemove={() => setNavRows((prev) => prev.filter((r) => r.id !== row.id))}
             showRemove={navRows.length > 1}
           />
@@ -1102,7 +1122,12 @@ export default function Step4({ data, setData }) {
             index={i}
             values={row}
             onChange={(val) => setTherapyRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
-            onAdd={() => setTherapyRows((prev) => [...prev, { id: uid() }])}
+            onAdd={() =>
+              setTherapyRows((prev) => [
+                ...prev,
+                { id: uid(), ...defaultTherapy },
+              ])
+            }
             onRemove={() => setTherapyRows((prev) => prev.filter((r) => r.id !== row.id))}
             showRemove={therapyRows.length > 1}
           />
@@ -1117,7 +1142,12 @@ export default function Step4({ data, setData }) {
             index={i}
             values={row}
             onChange={(val) => setClosureRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
-            onAdd={() => setClosureRows((prev) => [...prev, { id: uid() }])}
+            onAdd={() =>
+              setClosureRows((prev) => [
+                ...prev,
+                { id: uid(), ...defaultClosure },
+              ])
+            }
             onRemove={() => setClosureRows((prev) => prev.filter((r) => r.id !== row.id))}
             showRemove={closureRows.length > 1}
           />

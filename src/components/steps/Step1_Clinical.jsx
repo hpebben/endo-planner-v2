@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import { useBlockProps } from '@wordpress/block-editor';
@@ -35,9 +35,15 @@ const wifiDescriptions = {
 
 export default function Step1({ data, setData }) {
   const blockProps = useBlockProps({ className: 'clinical-center' });
-  const [wound, setWound] = useState(0);
-  const [ischemia, setIschemia] = useState(0);
-  const [infection, setInfection] = useState(0);
+  const [wound, setWound] = useState(data.clinical?.wound ?? 0);
+  const [ischemia, setIschemia] = useState(data.clinical?.ischemia ?? 0);
+  const [infection, setInfection] = useState(data.clinical?.infection ?? 0);
+
+  useEffect(() => {
+    setWound(data.clinical?.wound ?? 0);
+    setIschemia(data.clinical?.ischemia ?? 0);
+    setInfection(data.clinical?.infection ?? 0);
+  }, [data.clinical]);
 
   const onChangeSection = (key, newVal) => {
     if (key === 'wound') setWound(newVal);
