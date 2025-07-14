@@ -1,0 +1,6 @@
+.reset-case{
+  position:fixed; top:1rem; right:1rem; z-index:9999;
+  padding:.5rem 1rem; background:#0066cc; color:#fff; border:0;
+  border-radius:4px; font-weight:600; cursor:pointer;
+}
+.reset-case:hover{background:#0051a8}

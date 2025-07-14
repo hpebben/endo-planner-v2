@@ -6,6 +6,7 @@ import Step2 from './steps/Step2_Patency';
 import Step3 from './steps/Step4_Intervention';
 import Step4 from './steps/Step3_Summary';
 import { ProgressBar, Button } from '@wordpress/components';
+import ResetCaseButton from './ResetCaseButton';
 
 const steps = [
   { title: __( 'Clinical indication', 'endoplanner' ), component: Step1 },
@@ -82,6 +83,7 @@ export default function Wizard() {
           </button>
         ) }
       </div>
+      <ResetCaseButton />
     </div>
   );
 }

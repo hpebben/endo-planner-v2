@@ -1,32 +1,22 @@
-import React, { useEffect } from "react";
-import { SelectControl } from "@wordpress/components";
-import { DEFAULTS } from "./defaults";
+import { SelectControl } from '@wordpress/components';
+import { useWizard } from './WizardContext';
 
-export default function AccessSelector({
-  needle = {},
-  sheath = {},
-  catheter = {},
-  setNeedle,
-  setSheath,
-  setCatheter,
-}) {
-  useEffect(() => {
-    const empty = !needle.gauge && !sheath.fr && !catheter.model;
-    if (empty) {
-      setNeedle?.(DEFAULTS.access.needle);
-      setSheath?.(DEFAULTS.access.sheath);
-      setCatheter?.(DEFAULTS.access.catheter);
-    }
-  }, []);
+export default function AccessSelector() {
+  const { state, setState } = useWizard();
+  const form = state.access;
+
+  const handleChange = (field, value) =>
+    setState(prev => ({
+      ...prev,
+      access: { ...prev.access, [field]: value }
+    }));
 
   return (
-    <>
-      <SelectControl
-        label="Gauge"
-        options={["18 G", "19 G", "21 G"].map((v) => ({ label: v, value: v }))}
-        value={needle.gauge || DEFAULTS.access.needle.gauge}
-        onChange={(v) => setNeedle?.({ ...needle, gauge: v })}
-      />
-    </>
+    <SelectControl
+      label="Gauge"
+      options={["18 G", "19 G", "21 G"].map(v => ({ label: v, value: v }))}
+      value={form.needle.gauge}
+      onChange={v => handleChange('needle', { ...form.needle, gauge: v })}
+    />
   );
 }

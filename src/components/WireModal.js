@@ -1,39 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { SelectControl } from "@wordpress/components";
 import InlineModal from "./UI/InlineModal";
 import SegmentedControl from "./UI/SegmentedControl";
-import { DEFAULTS } from "./defaults";
+import { useWizard } from "./WizardContext";
 
-export default function WireModal({
-  isOpen,
-  anchor,
-  onRequestClose,
-  values,
-  onSave,
-}) {
-  const defaults = DEFAULTS.navigation.wire;
-  const [form, setForm] = useState(() => ({
-    platform: values.platform ?? defaults.size,
-    length: values.length ?? defaults.length,
-    type: values.type ?? defaults.brand,
-    body: values.body ?? "",
-    support: values.support ?? "",
-    technique: values.technique ?? defaults.track,
-    product: values.product ?? "",
-  }));
-
-  useEffect(() => {
-    setForm({
-      platform: values.platform ?? defaults.size,
-      length: values.length ?? defaults.length,
-      type: values.type ?? defaults.brand,
-      body: values.body ?? "",
-      support: values.support ?? "",
-      technique: values.technique ?? defaults.track,
-      product: values.product ?? "",
-    });
-  }, [values]);
+export default function WireModal({ isOpen, anchor, onRequestClose }) {
+  const { state, setState } = useWizard();
+  const defaults = state.navigation.wire;
+  const form = state.navigation.wire;
 
   const lengths = ["180 cm", "260 cm", "300 cm"];
   const bodyOpts = ["Light bodied", "Intermediate bodied", "Heavy bodied"];
@@ -47,8 +22,10 @@ export default function WireModal({
   ];
   const handleChange = (field, val) => {
     const newVals = { ...form, [field]: val };
-    setForm(newVals);
-    onSave(newVals);
+    setState(prev => ({
+      ...prev,
+      navigation: { ...prev.navigation, wire: newVals }
+    }));
     if (newVals.platform && newVals.length && newVals.type && newVals.technique)
       onRequestClose();
   };
@@ -144,6 +121,4 @@ WireModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   anchor: PropTypes.object,
   onRequestClose: PropTypes.func.isRequired,
-  values: PropTypes.object,
-  onSave: PropTypes.func.isRequired,
 };

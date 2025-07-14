@@ -1,33 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { SelectControl } from "@wordpress/components";
 import InlineModal from "./UI/InlineModal";
 import SegmentedControl from "./UI/SegmentedControl";
-import { DEFAULTS } from "./defaults";
+import { useWizard } from "./WizardContext";
 
-export default function BalloonModal({
-  isOpen,
-  anchor,
-  onRequestClose,
-  values,
-  onSave,
-}) {
-  const def = DEFAULTS.therapy.balloon;
-  const [form, setForm] = useState(() => ({
-    platform: values.platform ?? def.platform,
-    diameter: values.diameter ?? def.diameter,
-    length: values.length ?? def.length,
-    shaft: values.shaft ?? def.shaft,
-  }));
-
-  useEffect(() => {
-    setForm({
-      platform: values.platform ?? def.platform,
-      diameter: values.diameter ?? def.diameter,
-      length: values.length ?? def.length,
-      shaft: values.shaft ?? def.shaft,
-    });
-  }, [values]);
+export default function BalloonModal({ isOpen, anchor, onRequestClose }) {
+  const { state, setState } = useWizard();
+  const form = state.vesselPrep.balloon;
 
   const diameters = {
     0.014: ["1.5", "2", "2.5", "3.5", "4"],
@@ -57,8 +37,10 @@ export default function BalloonModal({
     if (field === "platform") {
       newVals.diameter = val ? diameters[val][0] : "";
     }
-    setForm(newVals);
-    onSave(newVals);
+    setState(prev => ({
+      ...prev,
+      vesselPrep: { ...prev.vesselPrep, balloon: newVals }
+    }));
     if (newVals.platform && newVals.diameter && newVals.length && newVals.shaft)
       onRequestClose();
   };
@@ -124,6 +106,4 @@ BalloonModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   anchor: PropTypes.object,
   onRequestClose: PropTypes.func.isRequired,
-  values: PropTypes.object,
-  onSave: PropTypes.func.isRequired,
 };
