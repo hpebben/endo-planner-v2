@@ -1,14 +1,32 @@
-import { useEffect } from 'react';
-import { DEFAULTS } from './defaults';
+import React, { useEffect } from "react";
+import { SelectControl } from "@wordpress/components";
+import { DEFAULTS } from "./defaults";
 
-export default function AccessSelector({ dispatch, state, setNeedle, setSheath, setCatheter, children }) {
+export default function AccessSelector({
+  needle = {},
+  sheath = {},
+  catheter = {},
+  setNeedle,
+  setSheath,
+  setCatheter,
+}) {
   useEffect(() => {
-    if (state && !state.needles && !state.sheaths && !state.catheters) {
-      if (setNeedle)  dispatch ? dispatch(setNeedle(DEFAULTS.access.needle)) : setNeedle(DEFAULTS.access.needle);
-      if (setSheath)  dispatch ? dispatch(setSheath(DEFAULTS.access.sheath)) : setSheath(DEFAULTS.access.sheath);
-      if (setCatheter) dispatch ? dispatch(setCatheter(DEFAULTS.access.catheter)) : setCatheter(DEFAULTS.access.catheter);
+    const empty = !needle.gauge && !sheath.fr && !catheter.model;
+    if (empty) {
+      setNeedle?.(DEFAULTS.access.needle);
+      setSheath?.(DEFAULTS.access.sheath);
+      setCatheter?.(DEFAULTS.access.catheter);
     }
-  }, []); // run once
+  }, []);
 
-  return children || null;
+  return (
+    <>
+      <SelectControl
+        label="Gauge"
+        options={["18 G", "19 G", "21 G"].map((v) => ({ label: v, value: v }))}
+        value={needle.gauge || DEFAULTS.access.needle.gauge}
+        onChange={(v) => setNeedle?.({ ...needle, gauge: v })}
+      />
+    </>
+  );
 }
