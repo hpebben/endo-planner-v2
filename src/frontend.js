@@ -11,9 +11,9 @@ const WizardProvider =
      || (() => { throw new Error('WizardProvider not found'); });
 
 const mount = () => {
-  const container = document.querySelector('.endoplanner-root');
+  const containers = document.querySelectorAll('.endoplanner-root');
 
-  if (!container) {
+  if (!containers.length) {
     console.error(
       '[EndoPlanner] .endoplanner-root not found – ' +
         'ensure the div exists **after** the block markup is rendered.'
@@ -21,15 +21,19 @@ const mount = () => {
     return;
   }
 
-  try {
-    createRoot(container).render(
-      <WizardProvider>
-        <Wizard />
-      </WizardProvider>
-    );
-  } catch (err) {
-    console.error('Error rendering EndoPlanner wizard:', err);
-  }
+  containers.forEach((container) => {
+    if (container.dataset.epInitialized) return;
+    try {
+      createRoot(container).render(
+        <WizardProvider>
+          <Wizard />
+        </WizardProvider>
+      );
+      container.dataset.epInitialized = 'true';
+    } catch (err) {
+      console.error('Error rendering EndoPlanner wizard:', err);
+    }
+  });
 };
 
 if (document.readyState === 'loading') {
