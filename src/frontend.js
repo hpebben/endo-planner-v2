@@ -10,21 +10,30 @@ const WizardProvider =
      || WizardContextModule?.default          // default export
      || (() => { throw new Error('WizardProvider not found'); });
 
-const mount = document.querySelector('.endoplanner-root');
+const mount = () => {
+  const container = document.querySelector('.endoplanner-root');
 
-if (mount) {
+  if (!container) {
+    console.error(
+      '[EndoPlanner] .endoplanner-root not found – ' +
+        'ensure the div exists **after** the block markup is rendered.'
+    );
+    return;
+  }
+
   try {
-    createRoot(mount).render(
+    createRoot(container).render(
       <WizardProvider>
         <Wizard />
       </WizardProvider>
     );
   } catch (err) {
-    console.error('Error rendering Endoplanner wizard:', err);
+    console.error('Error rendering EndoPlanner wizard:', err);
   }
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', mount);
 } else {
-  console.error(
-    '[EndoPlanner] .endoplanner-root not found – ' +
-    'ensure the div exists **after** the block markup is rendered.'
-  );
+  mount();
 }
