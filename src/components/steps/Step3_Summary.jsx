@@ -189,11 +189,9 @@ const summarizeList = (arr) =>
 
 const formatTherapy = (obj) => {
   if (!obj || typeof obj !== "object") return "";
-  if (obj.diameter && obj.length && obj.shaft) {
-    return `${obj.diameter} \u00D7 ${obj.length} \u00B7 shaft ${obj.shaft}`;
-  }
   if (obj.diameter && obj.length) {
-    return `${obj.diameter} \u00D7 ${obj.length}`;
+    // Only show diameter \u00D7 length in mm, omit shaft length from the summary
+    return `${obj.diameter} \u00D7 ${obj.length} mm`;
   }
   return summarize(obj);
 };
