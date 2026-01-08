@@ -22,11 +22,7 @@ add_action( 'init', function() {
  * Enqueue Intervention Planning assets for Elementor-based pages.
  * (No build step; shipped as plain JS/CSS in assets/.)
  */
-add_action( 'wp_enqueue_scripts', function() {
-    if ( is_admin() ) {
-        return;
-    }
-
+function endoplanner_v2_enqueue_intervention_assets() {
     // TEMPORARILY: load on all frontend pages to validate it works.
     // After validation, restrict via is_front_page()/is_page()/slug/page-id.
     $base_url  = plugin_dir_url( __FILE__ );
@@ -56,4 +52,16 @@ add_action( 'wp_enqueue_scripts', function() {
             true
         );
     }
+}
+
+add_action( 'wp_enqueue_scripts', function() {
+    if ( is_admin() ) {
+        return;
+    }
+
+    endoplanner_v2_enqueue_intervention_assets();
 }, 20 );
+
+add_action( 'elementor/editor/before_enqueue_scripts', 'endoplanner_v2_enqueue_intervention_assets' );
+add_action( 'elementor/preview/enqueue_scripts', 'endoplanner_v2_enqueue_intervention_assets' );
+add_action( 'elementor/preview/enqueue_styles', 'endoplanner_v2_enqueue_intervention_assets' );
