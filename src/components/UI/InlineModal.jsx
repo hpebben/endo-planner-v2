@@ -1,39 +1,66 @@
 import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { createPortal } from 'react-dom';
 
 export default function InlineModal({ title, isOpen, onRequestClose, children }) {
-  const ref = useRef(null);
-  const prevFocus = useRef(null);
+  const modalRef = useRef(null);
+  const prevFocusRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen) {
-      prevFocus.current = document.activeElement;
-      setTimeout(() => ref.current?.focus(), 0);
-    }
-    return () => {
-      if (isOpen) prevFocus.current?.focus();
+    if (!isOpen) return undefined;
+
+    prevFocusRef.current = document.activeElement;
+
+    const focusTimer = setTimeout(() => {
+      if (modalRef.current) modalRef.current.focus();
+    }, 0);
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onRequestClose();
+      }
     };
-  }, [isOpen]);
+
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      clearTimeout(focusTimer);
+      document.removeEventListener('keydown', onKeyDown);
+      if (prevFocusRef.current && typeof prevFocusRef.current.focus === 'function') {
+        prevFocusRef.current.focus();
+      }
+    };
+  }, [isOpen, onRequestClose]);
 
   if (!isOpen) return null;
 
-  return (
-    <div className="inline-modal-overlay" onClick={onRequestClose}>
+  const modal = (
+    <div
+      className="inline-modal-overlay"
+      onMouseDown={onRequestClose}
+      onClick={onRequestClose}
+    >
       <div
         className="inline-modal centered"
-        onClick={(e) => e.stopPropagation()}
-        ref={ref}
+        role="dialog"
+        aria-modal="true"
         tabIndex="-1"
+        ref={modalRef}
+        onMouseDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
-        <div className="modal-header">{title}</div>
+        {title ? <div className="modal-header">{title}</div> : null}
         {children}
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
 
 InlineModal.propTypes = {
-  title: PropTypes.string.isRequired,
+  title: PropTypes.string,
   isOpen: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,

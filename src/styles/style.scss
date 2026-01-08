@@ -877,14 +877,14 @@ svg .vessel-path:hover {
 /* Inline popup modal */
 .inline-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
-  display: flex; /* center modal in viewport */
+  inset: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2147483647;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1rem;
+  box-sizing: border-box;
 }
 .inline-modal {
   position: relative; /* centered via flexbox */
