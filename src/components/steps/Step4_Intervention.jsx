@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Button, SelectControl } from '@wordpress/components';
 import SegmentedControl from '../UI/SegmentedControl';
 import InlineDeviceSelect from '../UI/InlineDeviceSelect';
+import InlineModal from '../UI/InlineModal';
 import { __ } from '@wordpress/i18n';
 import DEFAULTS from '../Defaults';
 // miniature arterial tree icon used for vessel selector
@@ -53,55 +54,12 @@ const specialDeviceOptions = [
 // Simple utility to generate unique ids for dynamic rows
 const uid = () => Math.random().toString(36).substr(2, 9);
 
-// Accessible inline modal centered in the viewport. Previously this was anchored
-// to the triggering element, but UX testing showed the popup should appear
-// centered and scroll independently of the page.  The `anchor` prop is kept so
-// existing calls do not break, but it is ignored.
-const InlineModal = ({ title, isOpen, onRequestClose, children }) => {
-  const ref = useRef(null);
-  const prevFocus = useRef(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      console.log(`[Popup] Opened: ${title}`);
-      prevFocus.current = document.activeElement;
-      setTimeout(() => ref.current?.focus(), 0);
-    }
-
-    return () => {
-      if (isOpen) {
-        console.log(`[Popup] Closed: ${title}`);
-        prevFocus.current?.focus();
-      }
-    };
-  }, [isOpen, title]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="inline-modal-overlay" onClick={onRequestClose}>
-      <div
-        className="inline-modal centered"
-        onClick={(e) => e.stopPropagation()}
-        ref={ref}
-        tabIndex="-1"
-      >
-        <div className="modal-header">{title}</div>
-        {children}
-      </div>
-    </div>
-  );
-};
-
-InlineModal.propTypes = {
-  title: PropTypes.string.isRequired,
-  isOpen: PropTypes.bool.isRequired,
-  onRequestClose: PropTypes.func.isRequired,
-  children: PropTypes.node.isRequired,
-};
-
-// Simple wrapper using InlineModal
-const SimpleModal = (props) => <InlineModal {...props} />;
+// Simple wrapper using shared InlineModal (portal-based)
+const SimpleModal = ({ title, isOpen, onRequestClose, children }) => (
+  <InlineModal title={title} isOpen={isOpen} onRequestClose={onRequestClose}>
+    {children}
+  </InlineModal>
+);
 
 SimpleModal.propTypes = {
   title: PropTypes.string.isRequired,
