@@ -38,3 +38,12 @@ npm run build
 
 The build may emit warnings from `sass-loader` and Webpack about large bundle
 size, which do not prevent the build from finishing.
+
+## Elementor cleanup checklist (Interventional planning)
+
+- Remove all Elementor HTML widgets that include `<script>` tags for the intervention UI.
+- Keep only the required IDs/classes in the layout:
+  - `.endo-device-trigger`
+  - `.endo-newcase-trigger`
+  - `.endo-summarize-trigger`
+  - `#summaryText`, `#summary1`, `#summary2`, `#summary3`
