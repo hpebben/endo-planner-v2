@@ -79,11 +79,20 @@
 }
 
 .endo-device-row {
+  background: #fff;
+  border: 1px solid #d7dff7;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+}
+
+.endo-device-row-header {
   align-items: center;
-  display: grid;
-  gap: 0.5rem;
-  grid-template-columns: 1fr 2fr auto;
-  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
 }
 
 .endo-device-label {
@@ -95,6 +104,45 @@
   border: 1px solid #ccd5f3;
   border-radius: 6px;
   padding: 0.35rem 0.5rem;
+}
+
+.endo-device-fields {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.endo-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.endo-field-label {
+  color: #5a6478;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.endo-select,
+.endo-text-input {
+  border: 1px solid #ccd5f3;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+}
+
+.endo-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.endo-radio-option {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+  font-size: 0.85rem;
 }
 
 .endo-device-remove {
@@ -110,8 +158,11 @@
 .endo-slider {
   background: #f0f5ff;
   border-radius: 8px;
-  margin: 0.35rem 0;
-  padding: 0.4rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.75rem;
 }
 
 .endo-slider-label {
