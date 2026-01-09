@@ -610,6 +610,16 @@
       return '';
     }
 
+    const dataDevice =
+      trigger.dataset.device ||
+      trigger.dataset.deviceId ||
+      trigger.dataset.deviceKey ||
+      trigger.dataset.panel ||
+      trigger.getAttribute('data-device');
+    if (dataDevice) {
+      return dataDevice;
+    }
+
     const directId = trigger.id || '';
     if (directId) {
       return directId;
@@ -849,20 +859,51 @@
     return cleaned.replace(/\b\w/g, (match) => match.toUpperCase());
   };
 
+  const normalizeSegmentKey = (value) =>
+    String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+
+  const findMappedSegmentName = (value) => {
+    const normalized = normalizeSegmentKey(value);
+    if (!normalized) {
+      return '';
+    }
+    if (segmentNameMap[normalized]) {
+      return segmentNameMap[normalized];
+    }
+    const match = Object.keys(segmentNameMap).find((abbr) => normalized.includes(abbr));
+    return match ? segmentNameMap[match] : '';
+  };
+
   const resolveSegmentName = (segment) => {
-    const datasetName = segment.dataset.name;
-    if (datasetName) {
+    const datasetName = segment.dataset.name || segment.dataset.segmentName || segment.dataset.fullName;
+    const mappedDatasetName = findMappedSegmentName(datasetName);
+    if (mappedDatasetName) {
+      return mappedDatasetName;
+    }
+    if (datasetName && datasetName.length > 3) {
       return datasetName;
     }
-    const key = (segment.dataset.key || segment.id || '').toLowerCase();
-    if (segmentNameMap[key]) {
-      return segmentNameMap[key];
+
+    const labelElement = segment.querySelector('[data-segment-name], .segment-name, .segment-title, .segment-label, .arterial-segment-title, .arterial-segment-name');
+    if (labelElement) {
+      const labelText = labelElement.dataset.segmentName || labelElement.textContent?.trim();
+      const mappedLabel = findMappedSegmentName(labelText);
+      if (mappedLabel) {
+        return mappedLabel;
+      }
+      if (labelText && labelText.length > 3) {
+        return labelText;
+      }
     }
-    const match = Object.keys(segmentNameMap).find((abbr) => key.includes(abbr));
-    if (match) {
-      return segmentNameMap[match];
+
+    const key = segment.dataset.key || segment.id || '';
+    const mappedKey = findMappedSegmentName(key);
+    if (mappedKey) {
+      return mappedKey;
     }
-    return humanizeKey(segment.dataset.key || segment.id || '');
+    return humanizeKey(key);
   };
 
   const resolveSegmentLevel = (segment) => {
@@ -1206,7 +1247,7 @@
 
   const resetCase = () => {
     const now = Date.now();
-    if (now - state.lastResetAt < 400) {
+    if (now - state.lastResetAt < 1000) {
       return;
     }
     state.lastResetAt = now;
@@ -1233,12 +1274,12 @@
     document.addEventListener('click', (event) => {
       const deviceTrigger = event.target.closest('.endo-device-trigger');
       if (deviceTrigger) {
+        event.preventDefault();
         const targetSelector = deviceTrigger.getAttribute('data-target') || deviceTrigger.getAttribute('href');
         if (targetSelector && targetSelector.startsWith('#')) {
           const target = document.querySelector(targetSelector);
           if (target) {
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            return;
           }
         }
         const deviceId = resolveDeviceId(deviceTrigger);
@@ -1249,6 +1290,7 @@
       const newCaseTrigger =
         event.target.closest('.endo-newcase-trigger') || event.target.closest('#startnewcase');
       if (newCaseTrigger) {
+        event.preventDefault();
         resetCase();
         return;
       }
@@ -1256,6 +1298,7 @@
       const summarizeTrigger =
         event.target.closest('.endo-summarize-trigger') || event.target.closest('#jsonlog');
       if (summarizeTrigger) {
+        event.preventDefault();
         buildSummary();
         updateClinicalSummary(summarizeTrigger);
       }
