@@ -19,16 +19,18 @@
     modalClose: null,
     modalOverlay: null,
     boundClick: false,
+    lastResetAt: 0,
+    toastTimer: null,
   };
 
   const deviceConfigs = {
-    needle: { label: 'Needle', builder: 'addAnotherNeedle' },
-    sheath: { label: 'Sheath', builder: 'addAnotherSheath' },
-    catheter: { label: 'Catheter', builder: 'addAnotherCatheter' },
-    wire: { label: 'Wire', builder: 'addAnotherWire' },
-    pta: { label: 'PTA Balloon', builder: 'addAnotherPta' },
-    stent: { label: 'Stent', builder: 'addAnotherStent' },
-    special: { label: 'Special Device', builder: 'addAnotherSpecial' },
+    needle: { label: 'Needle', builder: 'buildNeedleFields' },
+    sheath: { label: 'Sheath', builder: 'buildSheathFields' },
+    catheter: { label: 'Catheter', builder: 'buildCatheterFields' },
+    wire: { label: 'Wire', builder: 'buildWireFields' },
+    pta: { label: 'PTA Balloon', builder: 'buildPtaFields' },
+    stent: { label: 'Stent', builder: 'buildStentFields' },
+    special: { label: 'Special Device', builder: 'buildSpecialFields' },
   };
 
   const segmentNameMap = {
@@ -92,19 +94,171 @@
     return panel;
   };
 
+  const createFieldGroup = (labelText, input) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'endo-field-group';
+
+    if (labelText) {
+      const label = document.createElement('label');
+      label.className = 'endo-field-label';
+      label.textContent = labelText;
+      wrapper.appendChild(label);
+    }
+
+    wrapper.appendChild(input);
+    return wrapper;
+  };
+
+  const createSelect = (options, placeholder, className) => {
+    const select = document.createElement('select');
+    if (className) {
+      select.className = className;
+    }
+    select.dataset.placeholder = placeholder;
+    const defaultOption = document.createElement('option');
+    defaultOption.textContent = placeholder;
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    select.appendChild(defaultOption);
+    options.forEach((optionValue) => {
+      const option = document.createElement('option');
+      option.textContent = optionValue;
+      option.value = optionValue;
+      select.appendChild(option);
+    });
+    return select;
+  };
+
+  const populateSelect = (select, options) => {
+    if (!select) {
+      return;
+    }
+    const placeholder = select.dataset.placeholder || 'Choose an option';
+    select.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.textContent = placeholder;
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    select.appendChild(defaultOption);
+    options.forEach((optionValue) => {
+      const option = document.createElement('option');
+      option.textContent = optionValue;
+      option.value = optionValue;
+      select.appendChild(option);
+    });
+  };
+
+  const createRadioGroup = (name, options, onChange, className) => {
+    const container = document.createElement('div');
+    container.className = className || 'endo-radio-group';
+    options.forEach((optionValue) => {
+      const label = document.createElement('label');
+      label.className = 'endo-radio-option';
+
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = name;
+      input.value = optionValue;
+      input.addEventListener('change', () => {
+        if (onChange) {
+          onChange(optionValue);
+        }
+      });
+
+      const text = document.createElement('span');
+      text.textContent = optionValue;
+
+      label.appendChild(input);
+      label.appendChild(text);
+      container.appendChild(label);
+    });
+    return container;
+  };
+
+  const getSelectedRadioValue = (row, name) =>
+    row.querySelector(`input[name="${name}"]:checked`)?.value || '';
+
+  const getStentDiameterOptions = (platform, stentType, stentMaterial) => {
+    if (platform === '0.018' && stentMaterial === 'bare metal' && stentType === 'self expandable') {
+      return ['4.5', '5', '5.5', '6', '6.5', '7', '7.5'];
+    }
+    if (platform === '0.035' && stentMaterial === 'bare metal' && stentType === 'self expandable') {
+      return ['5', '6', '7', '8', '9', '10'];
+    }
+    if (platform === '0.014' && stentMaterial === 'bare metal' && stentType === 'self expandable') {
+      return ['4', '4.5', '5', '5.5', '6', '6.5', '7'];
+    }
+    if (platform === '0.035' && stentMaterial === 'bare metal' && stentType === 'balloon expandable') {
+      return ['4', '5', '6', '7', '8', '9', '10'];
+    }
+    if (platform === '0.035' && stentMaterial === 'covered' && stentType === 'balloon expandable') {
+      return ['5', '6', '7', '8', '9', '10', '12', '14', '16', '18', '20', '22', '24'];
+    }
+    return [];
+  };
+
+  const getStentLengthOptions = (platform, stentType, stentMaterial) => {
+    if (platform === '0.035' && stentMaterial === 'bare metal' && stentType === 'self expandable') {
+      return ['20', '30', '40', '60', '80', '100'];
+    }
+    if (platform === '0.018' && stentMaterial === 'bare metal' && stentType === 'self expandable') {
+      return ['20', '30', '40', '60', '80', '100', '120', '150', '180', '200'];
+    }
+    if (platform === '0.035' && stentMaterial === 'bare metal' && stentType === 'balloon expandable') {
+      return ['12', '16', '19', '29', '39', '59'];
+    }
+    if (platform === '0.014' && stentMaterial === 'bare metal' && stentType === 'self expandable') {
+      return ['12', '15', '18'];
+    }
+    if (platform === '0.035' && stentMaterial === 'covered' && stentType === 'balloon expandable') {
+      return ['15', '19', '29', '39', '59', '79'];
+    }
+    return [];
+  };
+
+  const getPtaDiameterOptions = (platform) => {
+    if (platform === '0.014') {
+      return ['1.5', '2', '2.5', '3.5', '4'];
+    }
+    if (platform === '0.018') {
+      return ['2', '2.5', '3', '4', '5', '5.5', '6', '7'];
+    }
+    if (platform === '0.035') {
+      return ['3', '4', '5', '6', '7', '8', '9', '10', '12', '14'];
+    }
+    return [];
+  };
+
+  const getPtaLengthOptions = () => [
+    '10',
+    '12',
+    '15',
+    '18',
+    '20',
+    '30',
+    '40',
+    '50',
+    '60',
+    '70',
+    '80',
+    '90',
+    '100',
+    '110',
+    '120',
+  ];
+
   const createDeviceRow = (deviceKey, index) => {
     const row = document.createElement('div');
     row.className = 'endo-device-row';
     row.dataset.device = deviceKey;
+    row.dataset.rowId = `${deviceKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+    const header = document.createElement('div');
+    header.className = 'endo-device-row-header';
 
     const label = document.createElement('span');
     label.className = 'endo-device-label';
     label.textContent = `${deviceConfigs[deviceKey]?.label || 'Device'} ${index + 1}`;
-
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'endo-device-input';
-    input.placeholder = 'Enter device details';
 
     const remove = document.createElement('button');
     remove.type = 'button';
@@ -115,9 +269,17 @@
       updateRowLabels(deviceKey);
     });
 
-    row.appendChild(label);
-    row.appendChild(input);
-    row.appendChild(remove);
+    header.appendChild(label);
+    header.appendChild(remove);
+    row.appendChild(header);
+
+    const config = deviceConfigs[deviceKey];
+    if (config && typeof window[config.builder] === 'function') {
+      const fields = window[config.builder](row);
+      if (fields) {
+        row.appendChild(fields);
+      }
+    }
 
     return row;
   };
@@ -168,6 +330,219 @@
     }
 
     return panel;
+  };
+
+  window.buildNeedleFields = (row) => {
+    const container = document.createElement('div');
+    container.className = 'endo-device-fields';
+
+    const sizeSelect = createSelect(['19 Gauge', '21 Gauge'], 'Choose needle size', 'endo-select');
+    const lengthSelect = createSelect(['4cm', '7cm', '9cm'], 'Choose needle length', 'endo-select');
+
+    container.appendChild(createFieldGroup('Needle size', sizeSelect));
+    container.appendChild(createFieldGroup('Needle length', lengthSelect));
+
+    return container;
+  };
+
+  window.buildSheathFields = (row) => {
+    const container = document.createElement('div');
+    container.className = 'endo-device-fields';
+
+    const sizeSelect = createSelect(['4 Fr', '5 Fr', '6 Fr', '7 Fr', '8 Fr', '9 Fr'], 'Choose French size', 'endo-select');
+    const lengthSelect = createSelect(['10 cm', '12 cm', '25 cm'], 'Choose length of sheath', 'endo-select');
+
+    container.appendChild(createFieldGroup('French size', sizeSelect));
+    container.appendChild(createFieldGroup('Sheath length', lengthSelect));
+
+    return container;
+  };
+
+  window.buildCatheterFields = (row) => {
+    const container = document.createElement('div');
+    container.className = 'endo-device-fields';
+
+    const sizeSelect = createSelect(
+      ['2.3 Fr', '2.6 Fr', '4 Fr', '5 Fr', '6 Fr', '7 Fr'],
+      'Choose French size',
+      'endo-select'
+    );
+    const lengthSelect = createSelect(
+      ['40 cm', '65 cm', '80 cm', '90 cm', '105 cm', '110 cm', '125 cm', '135 cm', '150 cm'],
+      'Choose length of catheter',
+      'endo-select'
+    );
+    const catheterSelect = createSelect(
+      [
+        'BER2',
+        'BHW',
+        'Cobra 1',
+        'Cobra 2',
+        'Cobra 3',
+        'Cobra Glidecath',
+        'CXI 0.018',
+        'CXI 0.014',
+        'Navicross 0.018',
+        'Navicross 0.035',
+        'MultiPurpose',
+        'PIER',
+        'Pigtail Flush',
+        'Straight Flush',
+        'Universal Flush',
+        'Rim',
+        'Simmons 1',
+        'Simmons 2',
+        'Simmons 3',
+        'Vertebral',
+      ],
+      'Choose specific catheter',
+      'endo-select'
+    );
+
+    container.appendChild(createFieldGroup('French size', sizeSelect));
+    container.appendChild(createFieldGroup('Catheter length', lengthSelect));
+    container.appendChild(createFieldGroup('Specific catheter', catheterSelect));
+
+    return container;
+  };
+
+  window.buildPtaFields = (row) => {
+    const container = document.createElement('div');
+    container.className = 'endo-device-fields';
+    const rowId = row.dataset.rowId;
+    const platformName = `pta-platform-${rowId}`;
+
+    const platformGroup = createRadioGroup(platformName, ['0.014', '0.018', '0.035'], () => {
+      const platform = getSelectedRadioValue(row, platformName);
+      populateSelect(diameterSelect, getPtaDiameterOptions(platform).map((val) => `${val} mm`));
+    });
+
+    const diameterSelect = createSelect([], 'Choose a balloon diameter', 'endo-select');
+    const lengthSelect = createSelect(getPtaLengthOptions().map((val) => `${val} mm`), 'Choose a balloon length', 'endo-select');
+
+    container.appendChild(createFieldGroup('Platform', platformGroup));
+    container.appendChild(createFieldGroup('Balloon diameter', diameterSelect));
+    container.appendChild(createFieldGroup('Balloon length', lengthSelect));
+
+    return container;
+  };
+
+  window.buildStentFields = (row) => {
+    const container = document.createElement('div');
+    container.className = 'endo-device-fields';
+    const rowId = row.dataset.rowId;
+    const platformName = `stent-platform-${rowId}`;
+    const typeName = `stent-type-${rowId}`;
+    const materialName = `stent-material-${rowId}`;
+
+    const diameterSelect = createSelect([], 'Choose stent diameter', 'endo-select');
+    const lengthSelect = createSelect([], 'Choose stent length', 'endo-select');
+
+    const updateOptions = () => {
+      const platform = getSelectedRadioValue(row, platformName);
+      const stentType = getSelectedRadioValue(row, typeName);
+      const stentMaterial = getSelectedRadioValue(row, materialName);
+      populateSelect(diameterSelect, getStentDiameterOptions(platform, stentType, stentMaterial));
+      populateSelect(lengthSelect, getStentLengthOptions(platform, stentType, stentMaterial));
+    };
+
+    const platformGroup = createRadioGroup(platformName, ['0.014', '0.018', '0.035'], updateOptions);
+    const typeGroup = createRadioGroup(typeName, ['self expandable', 'balloon expandable'], updateOptions);
+    const materialGroup = createRadioGroup(materialName, ['bare metal', 'covered'], updateOptions);
+
+    container.appendChild(createFieldGroup('Platform', platformGroup));
+    container.appendChild(createFieldGroup('Stent type', typeGroup));
+    container.appendChild(createFieldGroup('Stent material', materialGroup));
+    container.appendChild(createFieldGroup('Stent diameter', diameterSelect));
+    container.appendChild(createFieldGroup('Stent length', lengthSelect));
+
+    return container;
+  };
+
+  window.buildWireFields = (row) => {
+    const container = document.createElement('div');
+    container.className = 'endo-device-fields';
+    const rowId = row.dataset.rowId;
+    const platformName = `wire-platform-${rowId}`;
+    const typeName = `wire-type-${rowId}`;
+    const techniqueName = `wire-technique-${rowId}`;
+
+    const platformGroup = createRadioGroup(platformName, ['0.014', '0.018', '0.035']);
+    const lengthSelect = createSelect(['180 cm', '260 cm', '300 cm'], 'Choose length of wire', 'endo-select');
+
+    const bodyTypeSelect = createSelect(
+      ['Light bodied', 'Intermediate bodied', 'Heavy bodied'],
+      'Choose body type',
+      'endo-select'
+    );
+    const supportWireSelect = createSelect(
+      ['Rosen wire', 'Lunderquist wire', 'Amplatz wire', 'Bentson wire', 'Meier wire', 'Newton wire'],
+      'Choose support wire',
+      'endo-select'
+    );
+
+    const bodyTypeGroup = createFieldGroup('Body type', bodyTypeSelect);
+    const supportWireGroup = createFieldGroup('Support wire', supportWireSelect);
+    bodyTypeGroup.style.display = 'none';
+    supportWireGroup.style.display = 'none';
+
+    const wireTypeGroup = createRadioGroup(
+      typeName,
+      ['Glidewire', 'CTO wire', 'Support wire'],
+      (selected) => {
+        bodyTypeGroup.style.display = selected === 'CTO wire' ? '' : 'none';
+        supportWireGroup.style.display = selected === 'Support wire' ? '' : 'none';
+      }
+    );
+
+    const techniqueGroup = createRadioGroup(
+      techniqueName,
+      ['Intimal Tracking', 'Limited sub-intimal dissection and re-entry']
+    );
+
+    container.appendChild(createFieldGroup('Platform', platformGroup));
+    container.appendChild(createFieldGroup('Length', lengthSelect));
+    container.appendChild(createFieldGroup('Type of wire', wireTypeGroup));
+    container.appendChild(bodyTypeGroup);
+    container.appendChild(supportWireGroup);
+    container.appendChild(createFieldGroup('Technique', techniqueGroup));
+
+    return container;
+  };
+
+  window.buildSpecialFields = (row) => {
+    const container = document.createElement('div');
+    container.className = 'endo-device-fields';
+    const rowId = row.dataset.rowId;
+    const platformName = `special-platform-${rowId}`;
+    const platformGroup = createRadioGroup(platformName, ['0.014', '0.018', '0.035']);
+    const specialSelect = createSelect(
+      [
+        'Re-entry device',
+        'IVUS catheter',
+        'Vascular plug',
+        'Embolization coils',
+        'Closure device',
+        'Shockwave',
+        'Scoring balloon',
+        'Atherectomy device',
+        'Thrombectomy device',
+        'Miscellaneous',
+      ],
+      'Choose a special device',
+      'endo-select'
+    );
+
+    const extraInput = document.createElement('input');
+    extraInput.type = 'text';
+    extraInput.className = 'endo-text-input';
+    extraInput.placeholder = 'Enter extra details...';
+
+    container.appendChild(createFieldGroup('Platform', platformGroup));
+    container.appendChild(createFieldGroup('Special device', specialSelect));
+    container.appendChild(createFieldGroup('Extra details', extraInput));
+
+    return container;
   };
 
   window.addAnotherNeedle = () => addDeviceRow('needle');
@@ -271,6 +646,12 @@
     const panel = ensureDevicePanel(deviceKey);
 
     state.modalTitle.textContent = config.label;
+    if (state.modalBody) {
+      const host = getPanelHost();
+      Array.from(state.modalBody.children).forEach((child) => {
+        host.appendChild(child);
+      });
+    }
     state.modalBody.innerHTML = '';
     state.modalBody.appendChild(panel);
 
@@ -366,7 +747,7 @@
           min: 0,
           max: 50,
           step: 1,
-          labelText: 'Length of stenosed segment',
+          labelText: 'Length of lesion',
           unit: ' cm',
         });
       } else {
@@ -398,7 +779,7 @@
           min: 0,
           max: 50,
           step: 1,
-          labelText: 'Length of occluded segment',
+          labelText: 'Length of lesion',
           unit: ' cm',
         });
       } else {
@@ -511,14 +892,17 @@
       below: [],
     };
 
+    const diseasedPatencyValues = new Set(['stenosis', 'occlusion']);
+
     segments.forEach((segment) => {
-      const patency = segment.querySelector('.patency')?.value || '';
-      if (!patency) {
+      const rawPatency = segment.querySelector('.patency')?.value || '';
+      const patency = rawPatency.toLowerCase();
+      if (!patency || !diseasedPatencyValues.has(patency)) {
         return;
       }
       const name = resolveSegmentName(segment);
       const level = resolveSegmentLevel(segment);
-      const label = `${name} (${patency})`;
+      const label = `${name} (${rawPatency})`;
       if (level === 'fem-pop') {
         groups['fem-pop'].push(label);
       } else if (level === 'below') {
@@ -814,10 +1198,18 @@
     }
     toast.textContent = message;
     toast.classList.add('is-active');
-    setTimeout(() => toast.classList.remove('is-active'), 2500);
+    if (state.toastTimer) {
+      clearTimeout(state.toastTimer);
+    }
+    state.toastTimer = setTimeout(() => toast.classList.remove('is-active'), 2500);
   };
 
   const resetCase = () => {
+    const now = Date.now();
+    if (now - state.lastResetAt < 400) {
+      return;
+    }
+    state.lastResetAt = now;
     try {
       Object.keys(localStorage).forEach((key) => {
         if (key.endsWith('_data') || /^endoplanner/i.test(key)) {
