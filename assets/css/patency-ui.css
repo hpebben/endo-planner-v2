@@ -1,0 +1,82 @@
+.endo-patency-segment {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.endo-patency-ui {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f7f9fb;
+  border: 1px solid #d7e0ea;
+  color: #1f2933;
+}
+
+.endo-patency-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.endo-patency-title {
+  font-size: 14px;
+}
+
+.endo-patency-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.endo-patency-row.is-hidden {
+  display: none;
+}
+
+.endo-patency-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.endo-patency-row select,
+.endo-patency-row input[type="range"] {
+  width: 100%;
+}
+
+.endo-patency-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.endo-patency-slider output {
+  min-width: 48px;
+  font-size: 12px;
+  text-align: right;
+}
+
+.endo-patency-clear {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid #c7d0da;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.endo-patency-clear:hover {
+  background: #eef3f8;
+}
+
+.endo-patency-helper {
+  font-size: 11px;
+  color: #5f6c7b;
+}
+
+.endo-patency-summary {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1b4d6b;
+}
