@@ -36,6 +36,34 @@
   display: none;
 }
 
+/* Section layout */
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-section {
+  margin-top: 14px;
+}
+
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-section:first-child {
+  margin-top: 0;
+}
+
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-section-title {
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.15rem;
+}
+
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-section-title:empty {
+  display: none;
+  margin-bottom: 0;
+}
+
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-section-body {
+  display: grid;
+  gap: 12px;
+}
+
 /* 3) Typography: light text on blue */
 .raven-hotspot__tooltip.endo-tooltip--patency .endo-title,
 .raven-hotspot__tooltip.endo-tooltip--patency label,
@@ -52,8 +80,7 @@
 .raven-hotspot__tooltip.endo-tooltip--patency .endo-btn-group {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 8px;
+  gap: 12px;
 }
 
 .raven-hotspot__tooltip.endo-tooltip--patency .endo-btn,
@@ -62,11 +89,15 @@
   border: 1px solid rgba(255, 255, 255, 0.34);
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.92);
-  border-radius: 12px;
-  padding: 12px 10px;
+  border-radius: 14px;
+  padding: 14px 12px;
   font-weight: 700;
   text-align: center;
-  min-height: 44px;
+  min-height: 52px;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 
@@ -78,30 +109,43 @@
   border-color: rgba(255, 255, 255, 0.92);
 }
 
-/* 5) Sliders: label | slider | value badge */
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-field-row {
+/* 5) Sliders: stacked label, slider, value badge */
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-field {
   display: grid;
-  grid-template-columns: 110px 1fr 70px;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
 }
 
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-field-title {
+  text-align: center;
+  font-weight: 750;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-field-control {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-slider,
 .raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-slider-input {
   width: 100%;
+  max-width: 360px;
 }
 
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-slider-value,
 .raven-hotspot__tooltip.endo-tooltip--patency .endo-value-badge,
 .raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-slider-output {
-  justify-self: end;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.22);
   color: rgba(255, 255, 255, 0.92);
-  padding: 6px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-weight: 700;
-  min-width: 56px;
-  text-align: right;
+  font-weight: 800;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 6) Clear */
@@ -134,14 +178,18 @@
     grid-template-columns: 1fr;
   }
 
-  .raven-hotspot__tooltip.endo-tooltip--patency .endo-field-row {
-    grid-template-columns: 1fr;
-    gap: 6px;
+  .raven-hotspot__tooltip.endo-tooltip--patency .endo-btn {
+    width: 100%;
   }
 
-  .raven-hotspot__tooltip.endo-tooltip--patency .endo-value-badge,
-  .raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-slider-output {
-    justify-self: start;
-    text-align: left;
+  .raven-hotspot__tooltip.endo-tooltip--patency .endo-slider,
+  .raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-slider-input {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .raven-hotspot__tooltip.endo-tooltip--patency .endo-btn {
+    font-size: 1rem;
   }
 }

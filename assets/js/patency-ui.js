@@ -88,9 +88,17 @@
     });
   };
 
+  const createSection = (labelText) => {
+    const section = createElement('section', 'endo-section endo-section--patency endo-patency-row');
+    const title = createElement('div', 'endo-section-title endo-patency-label endo-title', labelText);
+    const body = createElement('div', 'endo-section-body');
+    section.appendChild(title);
+    section.appendChild(body);
+    return { section, title, body };
+  };
+
   const createButtonGroup = (labelText, options) => {
-    const row = createElement('div', 'endo-patency-row');
-    const label = createElement('div', 'endo-patency-label endo-title', labelText);
+    const section = createSection(labelText);
     const group = createElement('div', 'endo-patency-buttons endo-btn-group');
 
     options.forEach(({ label: buttonLabel, value }) => {
@@ -100,15 +108,16 @@
       group.appendChild(button);
     });
 
-    row.appendChild(label);
-    row.appendChild(group);
+    section.body.appendChild(group);
 
-    return { row, group };
+    return { row: section.section, group };
   };
 
   const createSliderRow = ({ labelText, unit, min, max, step }) => {
-    const row = createElement('div', 'endo-patency-row endo-field-row');
-    const label = createElement('div', 'endo-patency-label endo-title', labelText);
+    const section = createSection('');
+    const row = createElement('div', 'endo-field endo-field-row');
+    const label = createElement('div', 'endo-field-title', labelText);
+    const control = createElement('div', 'endo-field-control');
     const input = document.createElement('input');
     const output = document.createElement('output');
 
@@ -117,19 +126,21 @@
     input.max = max;
     input.step = step;
     input.value = min;
-    input.className = 'endo-patency-slider-input';
-    output.className = 'endo-patency-slider-output endo-value-badge';
+    input.className = 'endo-patency-slider-input endo-slider';
+    output.className = 'endo-patency-slider-output endo-value-badge endo-slider-value';
     output.textContent = `${input.value}${unit}`;
 
     input.addEventListener('input', () => {
       output.textContent = `${input.value}${unit}`;
     });
 
+    control.appendChild(input);
+    control.appendChild(output);
     row.appendChild(label);
-    row.appendChild(input);
-    row.appendChild(output);
+    row.appendChild(control);
+    section.body.appendChild(row);
 
-    return { row, input, output };
+    return { row: section.section, input, output };
   };
 
   const ensureFields = (segment) => {
