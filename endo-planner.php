@@ -41,9 +41,11 @@ function endoplanner_v2_get_git_sha() {
 }
 
 function endoplanner_v2_build_signature() {
+    $version = endoplanner_v2_get_version();
+    $git = endoplanner_v2_get_git_sha();
     return array(
-        'version' => endoplanner_v2_get_version(),
-        'git'     => endoplanner_v2_get_git_sha(),
+        'version' => $version ? $version : 'unknown',
+        'git'     => $git ? $git : 'unknown',
     );
 }
 
@@ -86,6 +88,11 @@ function endoplanner_v2_enqueue_intervention_assets() {
             filemtime( $js_path ),
             true
         );
+
+        $signature = endoplanner_v2_build_signature();
+        $inline = 'window.EndoPlannerV2Build = ' . wp_json_encode( $signature ) . ';';
+        $inline .= 'window.EndoPlannerInterventionBuild = window.EndoPlannerV2Build;';
+        wp_add_inline_script( 'endoplanner-intervention', $inline, 'before' );
     }
 }
 
