@@ -75,6 +75,21 @@
     }
   };
 
+  const resetPatencyState = () => {
+    Object.keys(savedSegments).forEach((key) => {
+      delete savedSegments[key];
+    });
+    persistSavedSegments();
+    const clearButtons = Array.from(document.querySelectorAll('.endo-patency-clear'));
+    clearButtons.forEach((button) => {
+      if (button && typeof button.click === 'function') {
+        button.click();
+      }
+    });
+  };
+
+  window.endoPatencyReset = resetPatencyState;
+
   const buildSummary = (data) => {
     if (!data.patency) {
       return 'Summary: No patency selected.';
