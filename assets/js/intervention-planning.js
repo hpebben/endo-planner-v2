@@ -1030,6 +1030,15 @@
     return matched ? levelMap[matched] : 'aorto-iliac';
   };
 
+  const loadSavedPatencySegments = () => {
+    try {
+      const raw = localStorage.getItem('endoplanner_patency_savedSegments');
+      return raw ? JSON.parse(raw) : {};
+    } catch (error) {
+      return {};
+    }
+  };
+
   const buildSummary = () => {
     const summaryText = document.getElementById('summaryText');
     const summary1 = document.getElementById('summary1');
@@ -1048,9 +1057,15 @@
     };
 
     const diseasedPatencyValues = new Set(['stenosis', 'occlusion']);
+    const savedSegments = loadSavedPatencySegments();
 
     segments.forEach((segment) => {
-      const rawPatency = segment.querySelector('.patency')?.value || '';
+      const segmentKey = segment.dataset.key;
+      const saved = segmentKey ? savedSegments[segmentKey] : null;
+      if (!saved || !saved.patency) {
+        return;
+      }
+      const rawPatency = saved.patency;
       const patency = rawPatency.toLowerCase();
       if (!patency || !diseasedPatencyValues.has(patency)) {
         return;
