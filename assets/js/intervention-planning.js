@@ -967,10 +967,9 @@
 
   const humanizeKey = (key) => {
     if (!key) {
-      return 'Unknown segment';
+      return 'UNKNOWN SEGMENT';
     }
-    const cleaned = key.replace(/[_-]+/g, ' ').trim();
-    return cleaned.replace(/\b\w/g, (match) => match.toUpperCase());
+    return key.toUpperCase();
   };
 
   const normalizeSegmentKey = (value) =>
@@ -1020,6 +1019,78 @@
     return humanizeKey(key);
   };
 
+  const resolvePoplitealSuffix = (key) => {
+    const normalized = normalizeSegmentKey(key);
+    if (!normalized) {
+      return '';
+    }
+    if (normalized.includes('p1')) {
+      return 'P1';
+    }
+    if (normalized.includes('p2')) {
+      return 'P2';
+    }
+    if (normalized.includes('p3')) {
+      return 'P3';
+    }
+    return '';
+  };
+
+  const formatSegmentName = (segment) => {
+    const baseName = resolveSegmentName(segment);
+    const key = segment.dataset.key || segment.id || '';
+    const suffix = resolvePoplitealSuffix(key);
+    if (!suffix) {
+      return baseName;
+    }
+    if (/popliteal/i.test(baseName) && !new RegExp(`\\(${suffix}\\)`, 'i').test(baseName)) {
+      return `${baseName} (${suffix})`;
+    }
+    return baseName;
+  };
+
+  const formatOptionLabel = (value) => {
+    if (!value) {
+      return '';
+    }
+    const normalized = String(value).trim();
+    if (!normalized) {
+      return '';
+    }
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  };
+
+  const formatPatencyDetail = (segment, saved) => {
+    if (!saved || !saved.patency) {
+      return '';
+    }
+    const details = [];
+    const patencyValue = formatOptionLabel(saved.patency);
+    if (patencyValue) {
+      details.push(patencyValue);
+    }
+    if (saved.patency === 'stenosis' || saved.patency === 'Stenosis') {
+      if (saved.stenosisLength) {
+        details.push(`Length ${saved.stenosisLength} cm`);
+      }
+      if (saved.percentage) {
+        details.push(`Degree ${saved.percentage}%`);
+      }
+    }
+    if (saved.patency === 'occlusion' || saved.patency === 'Occlusion') {
+      if (saved.occlusionLength) {
+        details.push(`Length ${saved.occlusionLength} cm`);
+      }
+    }
+    if (saved.calcification) {
+      details.push(`Calcification ${formatOptionLabel(saved.calcification)}`);
+    }
+    if (!details.length) {
+      return '';
+    }
+    return `${formatSegmentName(segment)}: ${details.join(', ')}`;
+  };
+
   const resolveSegmentLevel = (segment) => {
     const level = segment.dataset.level;
     if (level) {
@@ -1056,7 +1127,6 @@
       below: [],
     };
 
-    const diseasedPatencyValues = new Set(['stenosis', 'occlusion']);
     const savedSegments = loadSavedPatencySegments();
 
     segments.forEach((segment) => {
@@ -1065,20 +1135,17 @@
       if (!saved || !saved.patency) {
         return;
       }
-      const rawPatency = saved.patency;
-      const patency = rawPatency.toLowerCase();
-      if (!patency || !diseasedPatencyValues.has(patency)) {
+      const detail = formatPatencyDetail(segment, saved);
+      if (!detail) {
         return;
       }
-      const name = resolveSegmentName(segment);
       const level = resolveSegmentLevel(segment);
-      const label = `${name} (${rawPatency})`;
       if (level === 'fem-pop') {
-        groups['fem-pop'].push(label);
+        groups['fem-pop'].push(detail);
       } else if (level === 'below') {
-        groups.below.push(label);
+        groups.below.push(detail);
       } else {
-        groups['aorto-iliac'].push(label);
+        groups['aorto-iliac'].push(detail);
       }
     });
 
@@ -1086,7 +1153,7 @@
       if (!items.length) {
         return 'No segments selected.';
       }
-      return items.join(', ') + '.';
+      return items.join('; ') + '.';
     };
 
     const hasDetailSummaries = summary1 || summary2 || summary3;
@@ -1360,11 +1427,15 @@
   };
 
   const showToast = (message) => {
-    let toast = document.querySelector('.endo-toast');
+    const existingToasts = Array.from(document.querySelectorAll('.endo-toast'));
+    let toast = existingToasts[0];
     if (!toast) {
       toast = document.createElement('div');
       toast.className = 'endo-toast';
       document.body.appendChild(toast);
+    }
+    if (existingToasts.length > 1) {
+      existingToasts.slice(1).forEach((extra) => extra.remove());
     }
     toast.textContent = message;
     toast.classList.add('is-active');
@@ -1376,10 +1447,11 @@
 
   const resetCase = () => {
     const now = Date.now();
-    if (now - state.lastResetAt < 1000) {
+    if (now - state.lastResetAt < 1000 || (window.__ENDO_LAST_RESET_AT__ && now - window.__ENDO_LAST_RESET_AT__ < 1000)) {
       return;
     }
     state.lastResetAt = now;
+    window.__ENDO_LAST_RESET_AT__ = now;
     try {
       Object.keys(localStorage).forEach((key) => {
         if (key.endsWith('_data') || /^endoplanner/i.test(key)) {
