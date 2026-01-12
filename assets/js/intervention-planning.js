@@ -4,6 +4,18 @@
   }
   window.__ENDO_INTERVENTION_BOOTED__ = true;
 
+  const buildSignature = window.EndoPlannerV2Build || window.EndoPlannerInterventionBuild || {};
+  const buildVersion = buildSignature.version || 'unknown';
+  const buildSha = buildSignature.git || 'unknown';
+  if (!window.__ENDO_INTERVENTION_SIGNATURE_LOGGED__) {
+    window.__ENDO_INTERVENTION_SIGNATURE_LOGGED__ = true;
+    if (typeof console !== 'undefined') {
+      console.info(
+        `[EndoPlanner v2] intervention-planning loaded | v${buildVersion} | git ${buildSha}`
+      );
+    }
+  }
+
   const config = window.EndoPlannerIntervention || {};
   const debug = Boolean(config.debug);
   const log = (...args) => {
@@ -735,6 +747,88 @@
     }
   };
 
+  const normalizeOptionToken = (value) => String(value || '').trim().toLowerCase();
+
+  const resolveSelectOptionValue = (select, candidates) => {
+    if (!select || !candidates || !candidates.length) {
+      return null;
+    }
+    const options = Array.from(select.options || []);
+    for (let i = 0; i < candidates.length; i += 1) {
+      const candidate = normalizeOptionToken(candidates[i]);
+      const match = options.find(
+        (option) =>
+          normalizeOptionToken(option.value) === candidate ||
+          normalizeOptionToken(option.textContent) === candidate
+      );
+      if (match) {
+        return match.value;
+      }
+    }
+    return null;
+  };
+
+  const syncButtonGroupSelection = (group, select) => {
+    if (!group || !select) {
+      return;
+    }
+    const currentValue = select.value;
+    Array.from(group.querySelectorAll('.endo-patency-button')).forEach((button) => {
+      const isSelected = button.dataset.value === currentValue;
+      button.classList.toggle('is-selected', isSelected);
+      button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+    });
+  };
+
+  const createSelectButtonGroup = (select, groupLabel, optionDefs) => {
+    if (!select || select.dataset.endoButtonGroup) {
+      return;
+    }
+    const options = optionDefs
+      .map((definition) => ({
+        label: definition.label,
+        value: resolveSelectOptionValue(select, definition.candidates),
+      }))
+      .filter((option) => option.value);
+
+    if (!options.length) {
+      return;
+    }
+
+    select.dataset.endoButtonGroup = 'true';
+    select.classList.add('endo-select-hidden');
+
+    const group = document.createElement('div');
+    group.className = 'endo-patency-button-group';
+    group.setAttribute('role', 'radiogroup');
+    if (groupLabel) {
+      group.setAttribute('aria-label', groupLabel);
+    }
+
+    options.forEach((option) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'endo-patency-button';
+      button.textContent = option.label;
+      button.dataset.value = option.value;
+      button.setAttribute('aria-pressed', 'false');
+      button.addEventListener('click', () => {
+        if (select.value === option.value) {
+          return;
+        }
+        select.value = option.value;
+        select.dispatchEvent(new Event('input', { bubbles: true }));
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      group.appendChild(button);
+    });
+
+    select.insertAdjacentElement('afterend', group);
+    syncButtonGroupSelection(group, select);
+    select.addEventListener('change', () => syncButtonGroupSelection(group, select));
+    select.addEventListener('input', () => syncButtonGroupSelection(group, select));
+  };
+
   const updatePatencyUI = (segment) => {
     const patencySelect = segment.querySelector('.patency');
     const stenosisLength = segment.querySelector('.stenosis_length');
@@ -812,6 +906,14 @@
       const stenosisPercent = segment.querySelector('.percentage');
       const occlusionLength = segment.querySelector('.occlusion_length');
       const calcification = segment.querySelector('.calcification');
+      const tooltip = segment.closest(
+        '.raven-hotspot-tooltip, .raven-hotspot__tooltip, .raven-hotspot__content, .raven-hotspot-content, .raven-hotspot__popup, .raven-hotspot-popup'
+      );
+
+      segment.classList.add('endo-patency-tooltip');
+      if (tooltip) {
+        tooltip.classList.add('endo-patency-tooltip');
+      }
 
       const saved = key ? loadSegmentData(key) : null;
       if (saved) {
@@ -821,6 +923,18 @@
         if (occlusionLength && saved.occlusionLength !== undefined) occlusionLength.value = saved.occlusionLength;
         if (calcification && saved.calcification) calcification.value = saved.calcification;
       }
+
+      createSelectButtonGroup(patency, 'Patency', [
+        { label: 'Open', candidates: ['open'] },
+        { label: 'Stenosis', candidates: ['stenosis'] },
+        { label: 'Occlusion', candidates: ['occlusion'] },
+      ]);
+
+      createSelectButtonGroup(calcification, 'Calcification', [
+        { label: 'None', candidates: ['none'] },
+        { label: 'Moderate', candidates: ['moderate'] },
+        { label: 'Heavy', candidates: ['heavy'] },
+      ]);
 
       updatePatencyUI(segment);
 

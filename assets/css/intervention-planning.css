@@ -195,6 +195,80 @@
   opacity: 1;
 }
 
+.endo-select-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.endo-patency-tooltip {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 80vh;
+  max-width: min(92vw, 360px);
+  overflow: auto;
+  padding: 0.75rem;
+}
+
+.endo-patency-tooltip .endo-field-group,
+.endo-patency-tooltip .endo-slider,
+.endo-patency-tooltip .endo-patency-button-group {
+  width: 100%;
+}
+
+.endo-patency-button-group {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.endo-patency-button {
+  background: #f0f4ff;
+  border: 1px solid #ccd5f3;
+  border-radius: 999px;
+  color: #113195;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-height: 40px;
+  padding: 0.35rem 0.9rem;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.endo-patency-button.is-selected {
+  background: #113195;
+  border-color: #113195;
+  box-shadow: 0 0 0 2px rgba(17, 49, 149, 0.2);
+  color: #fff;
+}
+
+.endo-patency-button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(17, 49, 149, 0.35);
+  outline: none;
+}
+
+.endo-patency-tooltip .endo-slider input[type='range'] {
+  width: 100%;
+}
+
+.endo-patency-map .endo-patency-tooltip {
+  max-width: min(92vw, 420px);
+}
+
+.endo-patency-map .endo-patency-button-group {
+  gap: 0.6rem;
+}
+
 .patency-container .param-box,
 .patency-container .instruction-box,
 .patency-container .summary-box {
