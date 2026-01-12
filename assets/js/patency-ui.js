@@ -82,17 +82,19 @@
   const setActiveButton = (group, value) => {
     const buttons = Array.from(group.querySelectorAll('button'));
     buttons.forEach((button) => {
-      button.classList.toggle('is-active', button.dataset.value === value);
+      const isSelected = button.dataset.value === value;
+      button.classList.toggle('is-active', isSelected);
+      button.classList.toggle('is-selected', isSelected);
     });
   };
 
   const createButtonGroup = (labelText, options) => {
     const row = createElement('div', 'endo-patency-row');
-    const label = createElement('div', 'endo-patency-label', labelText);
-    const group = createElement('div', 'endo-patency-buttons');
+    const label = createElement('div', 'endo-patency-label endo-title', labelText);
+    const group = createElement('div', 'endo-patency-buttons endo-btn-group');
 
     options.forEach(({ label: buttonLabel, value }) => {
-      const button = createElement('button', 'endo-patency-button', buttonLabel);
+      const button = createElement('button', 'endo-patency-button endo-btn', buttonLabel);
       button.type = 'button';
       button.dataset.value = value;
       group.appendChild(button);
@@ -105,9 +107,8 @@
   };
 
   const createSliderRow = ({ labelText, unit, min, max, step }) => {
-    const row = createElement('div', 'endo-patency-row');
-    const label = createElement('div', 'endo-patency-label', labelText);
-    const sliderWrap = createElement('div', 'endo-patency-slider');
+    const row = createElement('div', 'endo-patency-row endo-field-row');
+    const label = createElement('div', 'endo-patency-label endo-title', labelText);
     const input = document.createElement('input');
     const output = document.createElement('output');
 
@@ -117,18 +118,16 @@
     input.step = step;
     input.value = min;
     input.className = 'endo-patency-slider-input';
-    output.className = 'endo-patency-slider-output';
+    output.className = 'endo-patency-slider-output endo-value-badge';
     output.textContent = `${input.value}${unit}`;
 
     input.addEventListener('input', () => {
       output.textContent = `${input.value}${unit}`;
     });
 
-    sliderWrap.appendChild(input);
-    sliderWrap.appendChild(output);
-
     row.appendChild(label);
-    row.appendChild(sliderWrap);
+    row.appendChild(input);
+    row.appendChild(output);
 
     return { row, input, output };
   };
@@ -199,6 +198,15 @@
     segment.dataset.endoPatencyUi = 'true';
     segment.classList.add('endo-patency-segment');
 
+    const tooltip = segment.closest('.raven-hotspot__tooltip');
+    if (tooltip) {
+      tooltip.classList.add('endo-tooltip--patency');
+      if (!window.__ENDO_PATENCY_THEME_LOGGED__ && typeof console !== 'undefined' && console.info) {
+        console.info('[EndoPlanner v2] Patency tooltip theme enabled');
+        window.__ENDO_PATENCY_THEME_LOGGED__ = true;
+      }
+    }
+
     const fields = ensureFields(segment);
 
     const container = createElement('div', 'endo-patency-ui');
@@ -236,8 +244,8 @@
       { label: 'Heavy', value: 'heavy' },
     ]);
 
-    const summary = createElement('div', 'endo-patency-summary', 'Summary: No patency selected.');
-    const clearButton = createElement('button', 'endo-patency-clear', 'Clear');
+    const summary = createElement('div', 'endo-patency-summary endo-summary', 'Summary: No patency selected.');
+    const clearButton = createElement('button', 'endo-patency-clear endo-clear', 'Clear');
     clearButton.type = 'button';
 
     container.appendChild(patencyButtons.row);
