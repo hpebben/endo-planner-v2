@@ -159,6 +159,17 @@
     return { row: section.section, input, output };
   };
 
+  const normalizePercentageValue = (value) => {
+    if (value === '' || value === null || value === undefined) {
+      return '';
+    }
+    const numeric = Number.parseInt(value, 10);
+    if (Number.isNaN(numeric)) {
+      return '';
+    }
+    return Math.min(100, Math.max(0, Math.round(numeric / 5) * 5));
+  };
+
   const getCurrentData = (fields) => ({
     patency: fields.patency.value || '',
     stenosisLength: fields.stenosisLength.value || '',
@@ -276,7 +287,7 @@
       unit: '%',
       min: 0,
       max: 100,
-      step: 1,
+      step: 5,
     });
     const occlusionLength = createSliderRow({
       labelText: 'Length (cm)',
@@ -299,6 +310,8 @@
     const clearButton = createElement('button', 'endo-patency-clear endo-clear', 'Clear');
     clearButton.type = 'button';
     let saveTimer = null;
+    let statusTimer = null;
+    let closeTimer = null;
 
     container.appendChild(patencyButtons.row);
     container.appendChild(stenosisLength.row);
@@ -323,18 +336,25 @@
     };
 
     const updateSavedStateNote = () => {
+      if (statusNote.classList.contains('is-saved')) {
+        return;
+      }
       const segmentKey = segment.dataset.key;
       const saved = segmentKey ? savedSegments[segmentKey] : null;
       if (!saved) {
         statusNote.textContent = '';
+        statusNote.classList.remove('is-saved', 'is-warning');
         return;
       }
       const current = getCurrentData(fields);
       if (areSegmentStatesEqual(saved, current)) {
         statusNote.textContent = '';
+        statusNote.classList.remove('is-saved', 'is-warning');
         return;
       }
       statusNote.textContent = 'Unsaved changes';
+      statusNote.classList.add('is-warning');
+      statusNote.classList.remove('is-saved');
     };
 
     const updateSummary = () => {
@@ -351,7 +371,11 @@
       setActiveButton(patencyButtons.group, fields.patency.value);
       setActiveButton(calcificationButtons.group, fields.calcification.value);
       const stenosisLengthValue = fields.stenosisLength.value || 0;
-      const stenosisPercentValue = fields.percentage.value || 0;
+      const normalizedPercent = normalizePercentageValue(fields.percentage.value || 0);
+      if (normalizedPercent !== '' && `${fields.percentage.value}` !== `${normalizedPercent}`) {
+        setFieldValue(fields.percentage, `${normalizedPercent}`, false, true);
+      }
+      const stenosisPercentValue = normalizedPercent || 0;
       const occlusionLengthValue = fields.occlusionLength.value || 0;
       stenosisLength.input.value = stenosisLengthValue;
       stenosisLength.output.textContent = `${stenosisLengthValue} cm`;
@@ -408,18 +432,20 @@
       syncFromFields();
     });
 
-    const wireSlider = (slider, targetField, unit) => {
+    const wireSlider = (slider, targetField, unit, normalizeValue) => {
       slider.input.addEventListener('input', () => {
-        slider.output.textContent = `${slider.input.value}${unit}`;
-        setFieldValue(targetField, slider.input.value, true, false);
+        const rawValue = normalizeValue ? normalizeValue(slider.input.value) : slider.input.value;
+        slider.output.textContent = `${rawValue}${unit}`;
+        setFieldValue(targetField, `${rawValue}`, true, false);
       });
       slider.input.addEventListener('change', () => {
-        setFieldValue(targetField, slider.input.value, false, true);
+        const rawValue = normalizeValue ? normalizeValue(slider.input.value) : slider.input.value;
+        setFieldValue(targetField, `${rawValue}`, false, true);
       });
     };
 
     wireSlider(stenosisLength, fields.stenosisLength, ' cm');
-    wireSlider(stenosisPercent, fields.percentage, '%');
+    wireSlider(stenosisPercent, fields.percentage, '%', normalizePercentageValue);
     wireSlider(occlusionLength, fields.occlusionLength, ' cm');
 
     clearButton.addEventListener('click', () => {
@@ -441,8 +467,16 @@
       if (!segmentKey) {
         return;
       }
-      savedSegments[segmentKey] = getCurrentData(fields);
+      const currentData = getCurrentData(fields);
+      currentData.percentage = `${normalizePercentageValue(currentData.percentage)}`.trim();
+      savedSegments[segmentKey] = currentData;
       persistSavedSegments();
+      if (statusTimer) {
+        window.clearTimeout(statusTimer);
+      }
+      statusNote.textContent = 'Saved';
+      statusNote.classList.add('is-saved');
+      statusNote.classList.remove('is-warning');
       if (saveTimer) {
         window.clearTimeout(saveTimer);
       }
@@ -453,8 +487,21 @@
         saveButton.textContent = originalText;
         saveButton.classList.remove('is-saved');
       }, 1500);
+      statusTimer = window.setTimeout(() => {
+        statusNote.textContent = '';
+        statusNote.classList.remove('is-saved');
+      }, 1200);
       updateSummary();
       updateSavedStateNote();
+      if (closeTimer) {
+        window.clearTimeout(closeTimer);
+      }
+      closeTimer = window.setTimeout(() => {
+        const hotspot = segment.closest('.raven-hotspot');
+        if (hotspot && typeof hotspot.click === 'function') {
+          hotspot.click();
+        }
+      }, 800);
     });
 
     syncFromFields();

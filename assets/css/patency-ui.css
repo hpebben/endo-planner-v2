@@ -26,10 +26,9 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  background: rgba(12, 54, 128, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 14px;
-  padding: 14px;
+  background: transparent;
+  border: none;
+  padding: 4px 2px;
 }
 
 .raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-row.is-hidden {
@@ -96,7 +95,7 @@
   font-weight: 700;
   text-align: center;
   min-height: 48px;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2.6vw, 1rem);
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
@@ -188,6 +187,14 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.75);
+}
+
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-status.is-warning {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-status.is-saved {
+  color: rgba(202, 243, 255, 0.95);
 }
 
 /* 7) Summary */
