@@ -57,24 +57,42 @@
     return input;
   };
 
-  const buildSummary = (fields) => {
-    if (!fields.patency.value) {
+  const STORAGE_KEY = 'endoplanner_patency_savedSegments';
+  const savedSegments = (() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (error) {
+      return {};
+    }
+  })();
+
+  const persistSavedSegments = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSegments));
+    } catch (error) {
+      // Ignore storage failures.
+    }
+  };
+
+  const buildSummary = (data) => {
+    if (!data.patency) {
       return 'Summary: No patency selected.';
     }
-    const segments = [`Patency: ${fields.patency.value}`];
-    if (fields.patency.value === 'stenosis') {
-      if (fields.stenosisLength.value) {
-        segments.push(`Length ${fields.stenosisLength.value} cm`);
+    const segments = [`Patency: ${data.patency}`];
+    if (data.patency === 'stenosis') {
+      if (data.stenosisLength) {
+        segments.push(`Length ${data.stenosisLength} cm`);
       }
-      if (fields.percentage.value) {
-        segments.push(`${fields.percentage.value}% stenosis`);
+      if (data.percentage) {
+        segments.push(`${data.percentage}% stenosis`);
       }
     }
-    if (fields.patency.value === 'occlusion' && fields.occlusionLength.value) {
-      segments.push(`Length ${fields.occlusionLength.value} cm`);
+    if (data.patency === 'occlusion' && data.occlusionLength) {
+      segments.push(`Length ${data.occlusionLength} cm`);
     }
-    if (fields.calcification.value) {
-      segments.push(`Calcification: ${fields.calcification.value}`);
+    if (data.calcification) {
+      segments.push(`Calcification: ${data.calcification}`);
     }
     return `Summary: ${segments.join(' | ')}.`;
   };
@@ -85,6 +103,7 @@
       const isSelected = button.dataset.value === value;
       button.classList.toggle('is-active', isSelected);
       button.classList.toggle('is-selected', isSelected);
+      button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
     });
   };
 
@@ -105,6 +124,7 @@
       const button = createElement('button', 'endo-patency-button endo-btn', buttonLabel);
       button.type = 'button';
       button.dataset.value = value;
+      button.setAttribute('aria-pressed', 'false');
       group.appendChild(button);
     });
 
@@ -114,10 +134,8 @@
   };
 
   const createSliderRow = ({ labelText, unit, min, max, step }) => {
-    const section = createSection('');
-    const row = createElement('div', 'endo-field endo-field-row');
-    const label = createElement('div', 'endo-field-title', labelText);
-    const control = createElement('div', 'endo-field-control');
+    const section = createSection(labelText);
+    const control = createElement('div', 'endo-field-control endo-slider-control');
     const input = document.createElement('input');
     const output = document.createElement('output');
 
@@ -136,11 +154,30 @@
 
     control.appendChild(input);
     control.appendChild(output);
-    row.appendChild(label);
-    row.appendChild(control);
-    section.body.appendChild(row);
+    section.body.appendChild(control);
 
     return { row: section.section, input, output };
+  };
+
+  const getCurrentData = (fields) => ({
+    patency: fields.patency.value || '',
+    stenosisLength: fields.stenosisLength.value || '',
+    percentage: fields.percentage.value || '',
+    occlusionLength: fields.occlusionLength.value || '',
+    calcification: fields.calcification.value || '',
+  });
+
+  const areSegmentStatesEqual = (left, right) => {
+    if (!left || !right) {
+      return false;
+    }
+    return (
+      left.patency === right.patency &&
+      left.stenosisLength === right.stenosisLength &&
+      left.percentage === right.percentage &&
+      left.occlusionLength === right.occlusionLength &&
+      left.calcification === right.calcification
+    );
   };
 
   const ensureFields = (segment) => {
@@ -235,7 +272,7 @@
       step: 1,
     });
     const stenosisPercent = createSliderRow({
-      labelText: 'Percent (%)',
+      labelText: 'Degree of stenosis',
       unit: '%',
       min: 0,
       max: 100,
@@ -256,15 +293,21 @@
     ]);
 
     const summary = createElement('div', 'endo-patency-summary endo-summary', 'Summary: No patency selected.');
+    const statusNote = createElement('div', 'endo-patency-status', '');
+    const saveButton = createElement('button', 'endo-patency-save endo-save', 'Save');
+    saveButton.type = 'button';
     const clearButton = createElement('button', 'endo-patency-clear endo-clear', 'Clear');
     clearButton.type = 'button';
+    let saveTimer = null;
 
     container.appendChild(patencyButtons.row);
     container.appendChild(stenosisLength.row);
     container.appendChild(stenosisPercent.row);
     container.appendChild(occlusionLength.row);
     container.appendChild(calcificationButtons.row);
+    container.appendChild(saveButton);
     container.appendChild(clearButton);
+    container.appendChild(statusNote);
     container.appendChild(summary);
 
     segment.appendChild(container);
@@ -277,6 +320,31 @@
       stenosisPercent.row.classList.toggle('is-hidden', !showStenosis);
       occlusionLength.row.classList.toggle('is-hidden', !showOcclusion);
       calcificationButtons.row.classList.toggle('is-hidden', !(showStenosis || showOcclusion));
+    };
+
+    const updateSavedStateNote = () => {
+      const segmentKey = segment.dataset.key;
+      const saved = segmentKey ? savedSegments[segmentKey] : null;
+      if (!saved) {
+        statusNote.textContent = '';
+        return;
+      }
+      const current = getCurrentData(fields);
+      if (areSegmentStatesEqual(saved, current)) {
+        statusNote.textContent = '';
+        return;
+      }
+      statusNote.textContent = 'Unsaved changes';
+    };
+
+    const updateSummary = () => {
+      const segmentKey = segment.dataset.key;
+      const saved = segmentKey ? savedSegments[segmentKey] : null;
+      if (saved) {
+        summary.textContent = buildSummary(saved);
+      } else {
+        summary.textContent = buildSummary(getCurrentData(fields));
+      }
     };
 
     const syncFromFields = () => {
@@ -292,12 +360,14 @@
       occlusionLength.input.value = occlusionLengthValue;
       occlusionLength.output.textContent = `${occlusionLengthValue} cm`;
       updateVisibility();
-      summary.textContent = buildSummary(fields);
+      updateSummary();
+      updateSavedStateNote();
     };
 
     const handleFieldChange = () => {
       updateVisibility();
-      summary.textContent = buildSummary(fields);
+      updateSummary();
+      updateSavedStateNote();
     };
 
     [fields.patency, fields.stenosisLength, fields.percentage, fields.occlusionLength, fields.calcification].forEach(
@@ -358,7 +428,33 @@
       setFieldValue(fields.percentage, '');
       setFieldValue(fields.occlusionLength, '');
       setFieldValue(fields.calcification, '');
+      const segmentKey = segment.dataset.key;
+      if (segmentKey && savedSegments[segmentKey]) {
+        delete savedSegments[segmentKey];
+        persistSavedSegments();
+      }
       syncFromFields();
+    });
+
+    saveButton.addEventListener('click', () => {
+      const segmentKey = segment.dataset.key;
+      if (!segmentKey) {
+        return;
+      }
+      savedSegments[segmentKey] = getCurrentData(fields);
+      persistSavedSegments();
+      if (saveTimer) {
+        window.clearTimeout(saveTimer);
+      }
+      const originalText = saveButton.textContent;
+      saveButton.textContent = 'Saved';
+      saveButton.classList.add('is-saved');
+      saveTimer = window.setTimeout(() => {
+        saveButton.textContent = originalText;
+        saveButton.classList.remove('is-saved');
+      }, 1500);
+      updateSummary();
+      updateSavedStateNote();
     });
 
     syncFromFields();
