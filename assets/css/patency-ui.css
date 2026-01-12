@@ -2,32 +2,25 @@
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
+.endo-patency-hidden {
+  display: none;
+}
+
 .endo-patency-ui {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f7f9fb;
   border: 1px solid #d7e0ea;
   color: #1f2933;
 }
 
-.endo-patency-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.endo-patency-title {
-  font-size: 14px;
-}
-
 .endo-patency-row {
-  display: grid;
-  grid-template-columns: 140px 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  align-items: center;
 }
 
 .endo-patency-row.is-hidden {
@@ -35,32 +28,59 @@
 }
 
 .endo-patency-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
-.endo-patency-row select,
-.endo-patency-row input[type="range"] {
-  width: 100%;
+.endo-patency-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.endo-patency-button {
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid #c7d0da;
+  background: #ffffff;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.endo-patency-button.is-active {
+  background: #1b4d6b;
+  border-color: #1b4d6b;
+  color: #ffffff;
+}
+
+.endo-patency-button:focus {
+  outline: 2px solid #1b4d6b;
+  outline-offset: 2px;
 }
 
 .endo-patency-slider {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
-.endo-patency-slider output {
-  min-width: 48px;
+.endo-patency-slider-input {
+  width: 100%;
+}
+
+.endo-patency-slider-output {
+  min-width: 60px;
   font-size: 12px;
   text-align: right;
 }
 
 .endo-patency-clear {
-  align-self: flex-start;
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 4px;
+  min-height: 44px;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 8px;
   border: 1px solid #c7d0da;
   background: #ffffff;
   cursor: pointer;
@@ -70,13 +90,30 @@
   background: #eef3f8;
 }
 
-.endo-patency-helper {
-  font-size: 11px;
-  color: #5f6c7b;
-}
-
 .endo-patency-summary {
   font-size: 12px;
   font-weight: 600;
   color: #1b4d6b;
+}
+
+@media (min-width: 481px) {
+  .endo-patency-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .endo-patency-label {
+    width: 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  .endo-patency-slider {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .endo-patency-slider-output {
+    text-align: left;
+  }
 }
