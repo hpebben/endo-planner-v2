@@ -33,6 +33,8 @@
     boundClick: false,
     lastResetAt: 0,
     toastTimer: null,
+    clickHandler: null,
+    changeHandler: null,
   };
 
   const deviceConfigs = {
@@ -1452,27 +1454,46 @@
     }
     state.lastResetAt = now;
     window.__ENDO_LAST_RESET_AT__ = now;
+    const clearedByElementor = typeof window.endoElementorClearCaseUI === 'function';
+    if (clearedByElementor) {
+      window.endoElementorClearCaseUI();
+    } else {
+      try {
+        Object.keys(localStorage).forEach((key) => {
+          if (key.endsWith('_data')) {
+            localStorage.removeItem(key);
+          }
+        });
+      } catch (error) {
+        log('Unable to clear localStorage', error);
+      }
+      clearDevicePanels();
+      clearSummaries();
+    }
+    if (typeof window.endoPatencyReset === 'function') {
+      window.endoPatencyReset();
+    }
     try {
       Object.keys(localStorage).forEach((key) => {
-        if (key.endsWith('_data') || /^endoplanner/i.test(key)) {
+        if (/^endoplanner/i.test(key)) {
           localStorage.removeItem(key);
         }
       });
     } catch (error) {
       log('Unable to clear localStorage', error);
     }
-    clearDevicePanels();
-    clearSummaries();
     showToast('New case started. Data has been reset.');
   };
 
   const bindClicks = () => {
-    if (state.boundClick) {
-      return;
+    if (state.boundClick && state.clickHandler) {
+      document.removeEventListener('click', state.clickHandler);
     }
-    state.boundClick = true;
+    if (state.boundClick && state.changeHandler) {
+      document.removeEventListener('change', state.changeHandler);
+    }
 
-    document.addEventListener('click', (event) => {
+    state.clickHandler = (event) => {
       const deviceTrigger = event.target.closest('.endo-device-trigger');
       if (deviceTrigger) {
         event.preventDefault();
@@ -1503,9 +1524,9 @@
         buildSummary();
         updateClinicalSummary(summarizeTrigger);
       }
-    });
+    };
 
-    document.addEventListener('change', (event) => {
+    state.changeHandler = (event) => {
       const target = event.target;
       if (!isFontaineElement(target)) {
         return;
@@ -1530,7 +1551,11 @@
       if (rutherfordInput) {
         setInputFromCandidates(container, rutherfordInput, candidates);
       }
-    });
+    };
+
+    document.addEventListener('click', state.clickHandler);
+    document.addEventListener('change', state.changeHandler);
+    state.boundClick = true;
   };
 
   const init = () => {
