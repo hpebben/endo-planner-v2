@@ -264,7 +264,83 @@
   namespace.addAnotherStent = () => addDeviceRow('stent');
   namespace.addAnotherSpecial = (panelId) => addDeviceRow('special', panelId);
 
+  const setPanelState = (panel, open) => {
+    if (!panel) {
+      return;
+    }
+    panel.dataset.endoPanelOpen = open ? 'true' : 'false';
+    panel.classList.toggle('endo-panel-open', open);
+    panel.classList.toggle('endo-panel-collapsed', !open);
+  };
+
+  const ensurePanelCloseButton = (panel) => {
+    if (!panel || panel.dataset.endoPanelCloseAdded === 'true') {
+      return;
+    }
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'endo-panel-close';
+    closeButton.setAttribute('aria-label', 'Close panel');
+    closeButton.textContent = '×';
+    closeButton.addEventListener('click', () => setPanelState(panel, false));
+    panel.dataset.endoPanelCloseAdded = 'true';
+    panel.insertBefore(closeButton, panel.firstChild);
+  };
+
+  const panelHasEntries = (panel) => {
+    if (!panel) {
+      return false;
+    }
+    return Boolean(panel.querySelector('.endo-device-row, .endo-device-select, select'));
+  };
+
+  const deviceTriggerMap = [
+    { triggerId: 'needleimg', panelId: 'plananeedle', builder: () => namespace.addAnotherNeedle() },
+    { triggerId: 'sheathimg', panelId: 'planasheath', builder: () => namespace.addAnotherSheath() },
+    { triggerId: 'catheterimg', panelId: 'planacatheter', builder: () => namespace.addAnotherCatheter() },
+    { triggerId: 'wireimg', panelId: 'planawire', builder: () => namespace.addAnotherWire() },
+    { triggerId: 'ptaimg', panelId: 'planapta', builder: () => namespace.addAnotherPta() },
+    { triggerId: 'stentimg', panelId: 'planastent', builder: () => namespace.addAnotherStent() },
+    { triggerId: 'special1img', panelId: 'planaspecial1', builder: () => namespace.addAnotherSpecial('planaspecial1') },
+    { triggerId: 'special2img', panelId: 'planaspecial2', builder: () => namespace.addAnotherSpecial('planaspecial2') },
+  ];
+
+  const bindDeviceTriggers = () => {
+    deviceTriggerMap.forEach(({ triggerId, panelId, builder }) => {
+      const trigger = document.getElementById(triggerId);
+      if (!trigger || trigger.dataset.endoDeviceTriggerBound) {
+        return;
+      }
+      trigger.dataset.endoDeviceTriggerBound = 'true';
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        const panel = document.getElementById(panelId);
+        if (!panel) {
+          return;
+        }
+        ensurePanelCloseButton(panel);
+        const isOpen = panel.dataset.endoPanelOpen === 'true';
+        const nextOpen = !isOpen;
+        setPanelState(panel, nextOpen);
+        if (nextOpen) {
+          if (!panelHasEntries(panel) && typeof builder === 'function') {
+            builder();
+          }
+          panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    if (!namespace.__deviceTriggersLogged && typeof console !== 'undefined' && console.info) {
+      namespace.__deviceTriggersLogged = true;
+      console.info('[EndoPlanner v2] Intervention device triggers bound');
+    }
+  };
+
   const bindNewCaseTriggers = () => {
+    if (namespace.__caseScrollHandlersBound) {
+      return;
+    }
     const triggers = Array.from(document.querySelectorAll('.endo-newcase-trigger'));
     triggers.forEach((trigger) => {
       if (trigger.dataset.endoNewcaseBound) {
@@ -281,8 +357,10 @@
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindNewCaseTriggers);
+    document.addEventListener('DOMContentLoaded', bindDeviceTriggers);
   } else {
     bindNewCaseTriggers();
+    bindDeviceTriggers();
   }
 
   const installDeprecatedShim = (name, fn) => {

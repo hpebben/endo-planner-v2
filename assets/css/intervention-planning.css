@@ -54,6 +54,30 @@
   border-radius: 10px;
   margin-bottom: 1rem;
   padding: 0.75rem 1rem 1rem;
+  position: relative;
+}
+
+.endo-panel-collapsed {
+  display: none !important;
+}
+
+.endo-panel-close {
+  align-items: center;
+  background: #113195;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.95rem;
+  height: 26px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 26px;
 }
 
 .endo-device-panel-header {

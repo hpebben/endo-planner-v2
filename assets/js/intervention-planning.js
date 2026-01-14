@@ -897,6 +897,9 @@
   const initPatencySegments = () => {
     const segments = getPatencySegments();
     segments.forEach((segment) => {
+      if (segment.dataset.endoPatencyUi === 'true') {
+        return;
+      }
       if (segment.dataset.endoPatencyInitialized) {
         return;
       }
@@ -1075,8 +1078,9 @@
       if (saved.stenosisLength) {
         details.push(`Length ${saved.stenosisLength} cm`);
       }
-      if (saved.percentage) {
-        details.push(`Degree ${saved.percentage}%`);
+      const percentValue = saved.percentage || saved.stenosisPercent;
+      if (percentValue) {
+        details.push(`Degree ${percentValue}%`);
       }
     }
     if (saved.patency === 'occlusion' || saved.patency === 'Occlusion') {
@@ -1103,15 +1107,6 @@
     return matched ? levelMap[matched] : 'aorto-iliac';
   };
 
-  const loadSavedPatencySegments = () => {
-    try {
-      const raw = localStorage.getItem('endoplanner_patency_savedSegments');
-      return raw ? JSON.parse(raw) : {};
-    } catch (error) {
-      return {};
-    }
-  };
-
   const buildSummary = () => {
     const summaryText = document.getElementById('summaryText');
     const summary1 = document.getElementById('summary1');
@@ -1129,11 +1124,9 @@
       below: [],
     };
 
-    const savedSegments = loadSavedPatencySegments();
-
     segments.forEach((segment) => {
       const segmentKey = segment.dataset.key;
-      const saved = segmentKey ? savedSegments[segmentKey] : null;
+      const saved = segmentKey ? loadSegmentData(segmentKey) : null;
       if (!saved || !saved.patency) {
         return;
       }
@@ -1179,6 +1172,11 @@
       summary3.textContent = buildSentence(groups.below);
       summary3.style.fontSize = '16px';
     }
+  };
+
+  const summarizeCase = (source) => {
+    buildSummary();
+    updateClinicalSummary(source);
   };
 
   const getClinicalContainer = (source) => {
@@ -1514,6 +1512,10 @@
       if (newCaseTrigger) {
         event.preventDefault();
         resetCase();
+        const caseTarget = document.getElementById('case');
+        if (caseTarget) {
+          caseTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         return;
       }
 
@@ -1521,8 +1523,11 @@
         event.target.closest('.endo-summarize-trigger') || event.target.closest('#jsonlog');
       if (summarizeTrigger) {
         event.preventDefault();
-        buildSummary();
-        updateClinicalSummary(summarizeTrigger);
+        summarizeCase(summarizeTrigger);
+        const summaryTarget = document.getElementById('casesummary');
+        if (summaryTarget) {
+          summaryTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
     };
 
@@ -1556,6 +1561,12 @@
     document.addEventListener('click', state.clickHandler);
     document.addEventListener('change', state.changeHandler);
     state.boundClick = true;
+    window.EndoPlannerV2 = window.EndoPlannerV2 || {};
+    window.EndoPlannerV2.__caseScrollHandlersBound = true;
+    if (!window.__ENDO_CASE_SCROLL_LOGGED__ && typeof console !== 'undefined' && console.info) {
+      window.__ENDO_CASE_SCROLL_LOGGED__ = true;
+      console.info('[EndoPlanner v2] New case/summarize scroll handlers bound');
+    }
   };
 
   const init = () => {
