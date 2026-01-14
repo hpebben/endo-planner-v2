@@ -429,6 +429,7 @@ export default function StepSummary({ data, setData, setStep }) {
   return (
     <div id="case-summary" className="summary-card-wrapper case-summary">
       <div className="case-summary-container">
+        <h2 className="case-summary__title">{__("Case Summary", "endoplanner")}</h2>
         <div className="summary-row row1">
           <div className="summary-card case-summary__indication">
             <div className="card-title">

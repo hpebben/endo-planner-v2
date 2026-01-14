@@ -35,6 +35,7 @@
     toastTimer: null,
     clickHandler: null,
     changeHandler: null,
+    boundNewcaseListener: false,
   };
 
   const deviceConfigs = {
@@ -1445,40 +1446,87 @@
     state.toastTimer = setTimeout(() => toast.classList.remove('is-active'), 2500);
   };
 
-  const resetCase = () => {
+  const clearPlannerStorage = () => {
+    const clearMatching = (storage) => {
+      Object.keys(storage).forEach((key) => {
+        if (key.endsWith('_data') || /^endoplanner/i.test(key)) {
+          storage.removeItem(key);
+        }
+      });
+    };
+    try {
+      clearMatching(localStorage);
+    } catch (error) {
+      log('Unable to clear localStorage', error);
+    }
+    try {
+      clearMatching(sessionStorage);
+    } catch (error) {
+      log('Unable to clear sessionStorage', error);
+    }
+  };
+
+  const resetFormElements = () => {
+    const containers = [
+      document.querySelector('.endo-clinical-indication'),
+      document.getElementById('endo-intervention-panels'),
+      document.querySelector('.endo-patency-map'),
+      document.querySelector('.endo-patency-tooltip'),
+    ].filter(Boolean);
+
+    const resetSelect = (select) => {
+      if (!select) {
+        return;
+      }
+      select.selectedIndex = 0;
+      select.dispatchEvent(new Event('input', { bubbles: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    containers.forEach((container) => {
+      Array.from(container.querySelectorAll('select')).forEach(resetSelect);
+      Array.from(
+        container.querySelectorAll('input[type="text"], input[type="number"], textarea')
+      ).forEach((input) => {
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      Array.from(container.querySelectorAll('input[type="radio"], input[type="checkbox"]')).forEach(
+        (input) => {
+          input.checked = false;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      );
+      Array.from(container.querySelectorAll('button.is-selected, button.active, button.selected')).forEach(
+        (button) => {
+          button.classList.remove('is-selected', 'active', 'selected');
+          button.setAttribute('aria-pressed', 'false');
+        }
+      );
+    });
+  };
+
+  const resetPlanner = () => {
     const now = Date.now();
     if (now - state.lastResetAt < 1000 || (window.__ENDO_LAST_RESET_AT__ && now - window.__ENDO_LAST_RESET_AT__ < 1000)) {
       return;
     }
     state.lastResetAt = now;
     window.__ENDO_LAST_RESET_AT__ = now;
-    const clearedByElementor = typeof window.endoElementorClearCaseUI === 'function';
+    clearPlannerStorage();
+    const clearedByElementor = typeof window.EndoPlannerV2?.clearCaseUI === 'function';
     if (clearedByElementor) {
+      window.EndoPlannerV2.clearCaseUI();
+    } else if (typeof window.endoElementorClearCaseUI === 'function') {
       window.endoElementorClearCaseUI();
     } else {
-      try {
-        Object.keys(localStorage).forEach((key) => {
-          if (key.endsWith('_data')) {
-            localStorage.removeItem(key);
-          }
-        });
-      } catch (error) {
-        log('Unable to clear localStorage', error);
-      }
       clearDevicePanels();
       clearSummaries();
     }
+    resetFormElements();
     if (typeof window.endoPatencyReset === 'function') {
       window.endoPatencyReset();
-    }
-    try {
-      Object.keys(localStorage).forEach((key) => {
-        if (/^endoplanner/i.test(key)) {
-          localStorage.removeItem(key);
-        }
-      });
-    } catch (error) {
-      log('Unable to clear localStorage', error);
     }
     showToast('New case started. Data has been reset.');
   };
@@ -1527,7 +1575,7 @@
         event.target.closest('.endo-newcase-trigger') || event.target.closest('#startnewcase');
       if (newCaseTrigger) {
         event.preventDefault();
-        resetCase();
+        resetPlanner();
         scrollToTarget(newCaseTrigger, 'case');
         return;
       }
@@ -1581,6 +1629,10 @@
 
   const init = () => {
     bindClicks();
+    if (!state.boundNewcaseListener) {
+      window.addEventListener('endo:newcase', resetPlanner);
+      state.boundNewcaseListener = true;
+    }
     initPatencySegments();
   };
 

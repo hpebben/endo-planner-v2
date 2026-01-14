@@ -7,7 +7,6 @@ import Step2 from './steps/Step2_Patency';
 import Step3 from './steps/Step4_Intervention';
 import Step4 from './steps/Step3_Summary';
 import { ProgressBar, Button } from '@wordpress/components';
-import ResetCaseButton from './ResetCaseButton';
 
 const steps = [
   { title: __( 'Clinical indication', 'endoplanner' ), component: Step1 },
@@ -55,6 +54,29 @@ export default function Wizard() {
     let attempts = 0;
     const maxAttempts = 8;
 
+    const scrollToElementWithOffset = (element, offset) => {
+      if (!element) {
+        return;
+      }
+      const top = element.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+    };
+
+    const resolveStickyOffset = () => {
+      const header = document.querySelector(
+        '.site-header, header.site-header, .wp-site-blocks > header, header'
+      );
+      if (!header) {
+        return 80;
+      }
+      const style = window.getComputedStyle(header);
+      const height = header.getBoundingClientRect().height;
+      if (style.position === 'fixed' || style.position === 'sticky') {
+        return height || 80;
+      }
+      return height || 80;
+    };
+
     const focusCaseSummary = () => {
       const summary =
         document.querySelector('#case-summary') ||
@@ -68,22 +90,9 @@ export default function Wizard() {
         return;
       }
 
-      const explicitSection = summary.querySelector('.case-summary__indication');
       let target =
-        explicitSection?.querySelector('.card-title') || explicitSection;
-
-      if (!target) {
-        const headings = Array.from(
-          summary.querySelectorAll('h2, h3, .card-title')
-        );
-        target = headings.find((heading) =>
-          heading.textContent?.toLowerCase().includes('indication')
-        );
-      }
-
-      if (!target) {
-        target = summary.querySelector('h2, h3, .card-title, .summary-card');
-      }
+        summary.querySelector('.case-summary__title') ||
+        summary.querySelector('h2, h3');
 
       if (!target) {
         return;
@@ -95,7 +104,7 @@ export default function Wizard() {
       }
 
       target.focus({ preventScroll: true });
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollToElementWithOffset(target, resolveStickyOffset());
 
       if (existingTabIndex === null) {
         setTimeout(() => {
@@ -161,7 +170,6 @@ export default function Wizard() {
           </button>
         ) }
       </div>
-      <ResetCaseButton />
     </div>
   );
 }
