@@ -220,6 +220,33 @@
 .endo-wizard .wizard-nav .stage-btn {
   margin: 0.5rem;
 }
+.endo-wizard .wizard-nav .planner-nav-btn {
+  background: #0073e6;
+  border: 1px solid #0065c9;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.75rem;
+  box-shadow: 0 6px 12px rgba(0, 115, 230, 0.2);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.endo-wizard .wizard-nav .planner-nav-btn:hover,
+.endo-wizard .wizard-nav .planner-nav-btn:focus-visible {
+  background: #0065c9;
+  box-shadow: 0 8px 16px rgba(0, 101, 201, 0.28);
+  transform: translateY(-1px);
+}
+.endo-wizard .wizard-nav .planner-nav-btn:focus-visible {
+  outline: 3px solid rgba(0, 115, 230, 0.35);
+  outline-offset: 2px;
+}
+.endo-wizard .wizard-nav .planner-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
 
 .icon-button {
     border: 1px solid #ccc;

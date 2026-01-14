@@ -42,6 +42,79 @@ export default function Wizard() {
     );
   }, [current, data]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return undefined;
+    }
+
+    if (current !== steps.length - 1) {
+      return undefined;
+    }
+
+    let rafId;
+    let attempts = 0;
+    const maxAttempts = 8;
+
+    const focusCaseSummary = () => {
+      const summary =
+        document.querySelector('#case-summary') ||
+        document.querySelector('.case-summary');
+
+      if (!summary) {
+        attempts += 1;
+        if (attempts <= maxAttempts) {
+          rafId = requestAnimationFrame(focusCaseSummary);
+        }
+        return;
+      }
+
+      const explicitSection = summary.querySelector('.case-summary__indication');
+      let target =
+        explicitSection?.querySelector('.card-title') || explicitSection;
+
+      if (!target) {
+        const headings = Array.from(
+          summary.querySelectorAll('h2, h3, .card-title')
+        );
+        target = headings.find((heading) =>
+          heading.textContent?.toLowerCase().includes('indication')
+        );
+      }
+
+      if (!target) {
+        target = summary.querySelector('h2, h3, .card-title, .summary-card');
+      }
+
+      if (!target) {
+        return;
+      }
+
+      const existingTabIndex = target.getAttribute('tabindex');
+      if (existingTabIndex === null) {
+        target.setAttribute('tabindex', '-1');
+      }
+
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      if (existingTabIndex === null) {
+        setTimeout(() => {
+          if (target.isConnected) {
+            target.removeAttribute('tabindex');
+          }
+        }, 1000);
+      }
+    };
+
+    rafId = requestAnimationFrame(focusCaseSummary);
+
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, [current]);
+
   const StepComponent = steps[current].component;
   const setStep = (idx) => {
     if (typeof idx === 'number') {
@@ -61,14 +134,18 @@ export default function Wizard() {
       </div>
       <div className="wizard-nav">
         { current > 0 && (
-          <button type="button" className="stage-btn wizard-back" onClick={prev}>
+          <button
+            type="button"
+            className="stage-btn planner-nav-btn wizard-back"
+            onClick={prev}
+          >
             { __( 'Back', 'endoplanner' ) }
           </button>
         ) }
         { current < steps.length - 1 ? (
           <button
             type="button"
-            className="stage-btn wizard-next"
+            className="stage-btn planner-nav-btn wizard-next"
             onClick={ next }
           >
             { __( 'Next', 'endoplanner' ) }
@@ -77,7 +154,7 @@ export default function Wizard() {
           <button
             type="button"
             id="export-pdf-btn"
-            className="stage-btn wizard-finish"
+            className="stage-btn planner-nav-btn wizard-finish"
             onClick={ exportCaseSummaryToPDF }
           >
             { __( 'Export PDF', 'endoplanner' ) }

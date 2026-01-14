@@ -55,13 +55,49 @@ add_action( 'init', function() {
     ) );
 } );
 
+function endoplanner_v2_page_has_planner() {
+    if ( ! is_singular() ) {
+        return false;
+    }
+
+    $post = get_post();
+    if ( ! $post ) {
+        return false;
+    }
+
+    $has_block = function_exists( 'has_block' ) && has_block( 'endoplanner/v2-wizard', $post );
+    $has_shortcode = function_exists( 'has_shortcode' ) && has_shortcode( $post->post_content, 'endoplanner' );
+    $has_marker = str_contains( $post->post_content, 'endoplanner-root' );
+
+    $has_planner = $has_block || $has_shortcode || $has_marker;
+
+    return (bool) apply_filters( 'endoplanner_v2_should_enqueue_planner_assets', $has_planner, $post );
+}
+
+function endoplanner_v2_label_planner_script_tag( $tag, $handle, $src ) {
+    if ( 'endoplanner-v2-wizard-script' !== $handle ) {
+        return $tag;
+    }
+
+    if ( false === strpos( $tag, 'my-plugin-planner-js' ) ) {
+        $tag = preg_replace(
+            '/<script /',
+            '<script id="my-plugin-planner-js" data-source="my-plugin" ',
+            $tag,
+            1
+        );
+    }
+
+    return "\n<!-- my-plugin planner scripts -->\n" . $tag;
+}
+
+add_filter( 'script_loader_tag', 'endoplanner_v2_label_planner_script_tag', 10, 3 );
+
 /**
  * Enqueue Intervention Planning assets for Elementor-based pages.
  * (No build step; shipped as plain JS/CSS in assets/.)
  */
 function endoplanner_v2_enqueue_intervention_assets() {
-    // TEMPORARILY: load on all frontend pages to validate it works.
-    // After validation, restrict via is_front_page()/is_page()/slug/page-id.
     $base_url  = plugin_dir_url( __FILE__ );
     $base_path = plugin_dir_path( __FILE__ );
 
@@ -154,6 +190,10 @@ function endoplanner_v2_enqueue_device_ui_assets() {
 
 add_action( 'wp_enqueue_scripts', function() {
     if ( is_admin() ) {
+        return;
+    }
+
+    if ( ! endoplanner_v2_page_has_planner() ) {
         return;
     }
 
