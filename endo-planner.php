@@ -131,6 +131,28 @@ function endoplanner_v2_enqueue_patency_assets() {
     }
 }
 
+function endoplanner_v2_enqueue_device_ui_assets() {
+    $base_url  = plugin_dir_url( __FILE__ );
+    $base_path = plugin_dir_path( __FILE__ );
+
+    $js_rel  = 'assets/js/device-ui.js';
+    $js_path = $base_path . $js_rel;
+
+    if ( file_exists( $js_path ) ) {
+        wp_enqueue_script(
+            'endoplanner-device-ui',
+            $base_url . $js_rel,
+            array(),
+            filemtime( $js_path ),
+            true
+        );
+
+        $signature = endoplanner_v2_build_signature();
+        $inline = 'window.EndoPlannerV2Build = ' . wp_json_encode( $signature ) . ';';
+        wp_add_inline_script( 'endoplanner-device-ui', $inline, 'before' );
+    }
+}
+
 add_action( 'wp_enqueue_scripts', function() {
     if ( is_admin() ) {
         return;
@@ -138,6 +160,7 @@ add_action( 'wp_enqueue_scripts', function() {
 
     endoplanner_v2_enqueue_intervention_assets();
     endoplanner_v2_enqueue_patency_assets();
+    endoplanner_v2_enqueue_device_ui_assets();
 }, 20 );
 
 add_action( 'elementor/editor/before_enqueue_scripts', 'endoplanner_v2_enqueue_intervention_assets' );
@@ -147,3 +170,6 @@ add_action( 'elementor/preview/enqueue_styles', 'endoplanner_v2_enqueue_interven
 add_action( 'elementor/editor/before_enqueue_scripts', 'endoplanner_v2_enqueue_patency_assets' );
 add_action( 'elementor/preview/enqueue_scripts', 'endoplanner_v2_enqueue_patency_assets' );
 add_action( 'elementor/preview/enqueue_styles', 'endoplanner_v2_enqueue_patency_assets' );
+
+add_action( 'elementor/editor/before_enqueue_scripts', 'endoplanner_v2_enqueue_device_ui_assets' );
+add_action( 'elementor/preview/enqueue_scripts', 'endoplanner_v2_enqueue_device_ui_assets' );
