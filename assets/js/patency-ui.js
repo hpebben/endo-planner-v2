@@ -58,9 +58,10 @@
   };
 
   const STORAGE_KEY = 'endoplanner_patency_savedSegments';
+  const LEGACY_STORAGE_KEY = STORAGE_KEY;
   const savedSegments = (() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
       return raw ? JSON.parse(raw) : {};
     } catch (error) {
       return {};
@@ -69,10 +70,85 @@
 
   const persistSavedSegments = () => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSegments));
+      localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(savedSegments));
     } catch (error) {
       // Ignore storage failures.
     }
+  };
+
+  const loadSegmentData = (segmentKey) => {
+    if (!segmentKey) {
+      return null;
+    }
+    try {
+      const raw = localStorage.getItem(`${segmentKey}_data`);
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch (error) {
+      // Ignore storage failures.
+    }
+    return savedSegments[segmentKey] || null;
+  };
+
+  const saveSegmentData = (segmentKey, data) => {
+    if (!segmentKey) {
+      return;
+    }
+    try {
+      localStorage.setItem(`${segmentKey}_data`, JSON.stringify(data));
+    } catch (error) {
+      // Ignore storage failures.
+    }
+    savedSegments[segmentKey] = data;
+    persistSavedSegments();
+  };
+
+  const deleteSegmentData = (segmentKey) => {
+    if (!segmentKey) {
+      return;
+    }
+    try {
+      localStorage.removeItem(`${segmentKey}_data`);
+    } catch (error) {
+      // Ignore storage failures.
+    }
+    if (savedSegments[segmentKey]) {
+      delete savedSegments[segmentKey];
+      persistSavedSegments();
+    }
+  };
+
+  const PERCENTAGE_BUCKETS = [
+    { label: '<50%', value: '<50', representative: 25 },
+    { label: '50–75%', value: '50-75', representative: 60 },
+    { label: '75–90%', value: '75-90', representative: 82 },
+    { label: '>90%', value: '>90', representative: 95 },
+  ];
+
+  const resolveBucketFromPercentage = (value) => {
+    if (value === '' || value === null || value === undefined) {
+      return '';
+    }
+    const numeric = Number.parseFloat(value);
+    if (Number.isNaN(numeric)) {
+      return '';
+    }
+    if (numeric < 50) {
+      return '<50';
+    }
+    if (numeric <= 75) {
+      return '50-75';
+    }
+    if (numeric <= 90) {
+      return '75-90';
+    }
+    return '>90';
+  };
+
+  const resolvePercentageForBucket = (bucket) => {
+    const match = PERCENTAGE_BUCKETS.find((entry) => entry.value === bucket);
+    return match ? match.representative : '';
   };
 
   const resetPatencyState = () => {
@@ -80,6 +156,15 @@
       delete savedSegments[key];
     });
     persistSavedSegments();
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.endsWith('_data')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      // Ignore storage failures.
+    }
     const clearButtons = Array.from(document.querySelectorAll('.endo-patency-clear'));
     clearButtons.forEach((button) => {
       if (button && typeof button.click === 'function') {
@@ -174,21 +259,42 @@
     return { row: section.section, input, output };
   };
 
+  const createBucketRow = (labelText, buckets) => {
+    const section = createSection(labelText);
+    const group = createElement('div', 'endo-bucket-group endo-btn-group');
+    group.setAttribute('role', 'radiogroup');
+    if (labelText) {
+      group.setAttribute('aria-label', labelText);
+    }
+
+    buckets.forEach((bucket) => {
+      const button = createElement('button', 'endo-bucket-button endo-btn', bucket.label);
+      button.type = 'button';
+      button.dataset.value = bucket.value;
+      button.setAttribute('aria-pressed', 'false');
+      group.appendChild(button);
+    });
+
+    section.body.appendChild(group);
+    return { row: section.section, group };
+  };
+
   const normalizePercentageValue = (value) => {
     if (value === '' || value === null || value === undefined) {
       return '';
     }
-    const numeric = Number.parseInt(value, 10);
+    const numeric = Number.parseFloat(value);
     if (Number.isNaN(numeric)) {
       return '';
     }
-    return Math.min(100, Math.max(0, Math.round(numeric / 5) * 5));
+    return Math.min(100, Math.max(0, Math.round(numeric)));
   };
 
   const getCurrentData = (fields) => ({
     patency: fields.patency.value || '',
     stenosisLength: fields.stenosisLength.value || '',
     percentage: fields.percentage.value || '',
+    percentage_bucket: fields.percentage.dataset.bucket || '',
     occlusionLength: fields.occlusionLength.value || '',
     calcification: fields.calcification.value || '',
   });
@@ -197,10 +303,15 @@
     if (!left || !right) {
       return false;
     }
+    const leftBucket =
+      left.percentage_bucket || resolveBucketFromPercentage(left.percentage || left.stenosisPercent);
+    const rightBucket =
+      right.percentage_bucket || resolveBucketFromPercentage(right.percentage || right.stenosisPercent);
     return (
       left.patency === right.patency &&
       left.stenosisLength === right.stenosisLength &&
       left.percentage === right.percentage &&
+      leftBucket === rightBucket &&
       left.occlusionLength === right.occlusionLength &&
       left.calcification === right.calcification
     );
@@ -232,6 +343,9 @@
     if (!percentage) {
       percentage = createHiddenInput('percentage');
       fragment.appendChild(percentage);
+    } else {
+      percentage.type = 'hidden';
+      percentage.classList.add('endo-patency-hidden');
     }
 
     let occlusionLength = segment.querySelector('input.occlusion_length');
@@ -261,6 +375,34 @@
     return { patency, stenosisLength, percentage, occlusionLength, calcification };
   };
 
+  const closeHotspotTooltip = (segment) => {
+    if (!segment) {
+      return;
+    }
+    const tooltip = segment.closest('.raven-hotspot__tooltip');
+    const hotspot = segment.closest('.raven-hotspot');
+    const hotspotButton = hotspot
+      ? hotspot.querySelector('.raven-hotspot__button, .raven-hotspot-button, button')
+      : null;
+    const isActive =
+      (hotspotButton && hotspotButton.getAttribute('aria-expanded') === 'true') ||
+      (hotspotButton && hotspotButton.classList.contains('is-active')) ||
+      (hotspot && hotspot.classList.contains('is-active')) ||
+      (tooltip && tooltip.classList.contains('is-active'));
+
+    if (hotspotButton && isActive && typeof hotspotButton.click === 'function') {
+      hotspotButton.click();
+      return;
+    }
+
+    if (tooltip) {
+      tooltip.classList.remove('is-active', 'is-open', 'open');
+    }
+    if (hotspot) {
+      hotspot.classList.remove('is-active', 'is-open', 'open');
+    }
+  };
+
   const attachSegmentUI = (segment) => {
     if (segment.dataset.endoPatencyUi === 'true') {
       return;
@@ -279,9 +421,42 @@
         console.info('[EndoPlanner v2] Patency tooltip theme enabled');
         window.__ENDO_PATENCY_THEME_LOGGED__ = true;
       }
+      if (!tooltip.querySelector('.endo-tooltip-close')) {
+        const closeButton = createElement('button', 'endo-tooltip-close', '×');
+        closeButton.type = 'button';
+        closeButton.setAttribute('aria-label', 'Close');
+        tooltip.appendChild(closeButton);
+      }
     }
 
     const fields = ensureFields(segment);
+    const segmentKey = segment.dataset.key;
+    const saved = segmentKey ? loadSegmentData(segmentKey) : null;
+    if (saved) {
+      if (saved.patency) {
+        fields.patency.value = saved.patency;
+      }
+      if (saved.stenosisLength !== undefined) {
+        fields.stenosisLength.value = saved.stenosisLength;
+      }
+      if (saved.occlusionLength !== undefined) {
+        fields.occlusionLength.value = saved.occlusionLength;
+      }
+      if (saved.calcification) {
+        fields.calcification.value = saved.calcification;
+      }
+      const savedPercent = saved.percentage || saved.stenosisPercent || '';
+      const savedBucket = saved.percentage_bucket || resolveBucketFromPercentage(savedPercent);
+      const resolvedPercent = savedBucket
+        ? resolvePercentageForBucket(savedBucket)
+        : normalizePercentageValue(savedPercent);
+      if (savedBucket) {
+        fields.percentage.dataset.bucket = savedBucket;
+      }
+      if (resolvedPercent !== '') {
+        fields.percentage.value = `${resolvedPercent}`;
+      }
+    }
 
     const container = createElement('div', 'endo-patency-ui');
     const patencyButtons = createButtonGroup('Patency', [
@@ -297,13 +472,11 @@
       max: 50,
       step: 1,
     });
-    const stenosisPercent = createSliderRow({
-      labelText: 'Degree of stenosis',
-      unit: '%',
-      min: 0,
-      max: 100,
-      step: 5,
-    });
+    const stenosisPercent = createBucketRow('Degree of stenosis', PERCENTAGE_BUCKETS);
+    if (!window.__ENDO_PATENCY_BUCKET_LOGGED__ && typeof console !== 'undefined' && console.info) {
+      console.info('[EndoPlanner v2] Patency bucket UI enabled');
+      window.__ENDO_PATENCY_BUCKET_LOGGED__ = true;
+    }
     const occlusionLength = createSliderRow({
       labelText: 'Length (cm)',
       unit: ' cm',
@@ -354,8 +527,7 @@
       if (statusNote.classList.contains('is-saved')) {
         return;
       }
-      const segmentKey = segment.dataset.key;
-      const saved = segmentKey ? savedSegments[segmentKey] : null;
+      const saved = segmentKey ? savedSegments[segmentKey] || loadSegmentData(segmentKey) : null;
       if (!saved) {
         statusNote.textContent = '';
         statusNote.classList.remove('is-saved', 'is-warning');
@@ -373,8 +545,7 @@
     };
 
     const updateSummary = () => {
-      const segmentKey = segment.dataset.key;
-      const saved = segmentKey ? savedSegments[segmentKey] : null;
+      const saved = segmentKey ? savedSegments[segmentKey] || loadSegmentData(segmentKey) : null;
       if (saved) {
         summary.textContent = buildSummary(saved);
       } else {
@@ -386,16 +557,18 @@
       setActiveButton(patencyButtons.group, fields.patency.value);
       setActiveButton(calcificationButtons.group, fields.calcification.value);
       const stenosisLengthValue = fields.stenosisLength.value || 0;
-      const normalizedPercent = normalizePercentageValue(fields.percentage.value || 0);
-      if (normalizedPercent !== '' && `${fields.percentage.value}` !== `${normalizedPercent}`) {
-        setFieldValue(fields.percentage, `${normalizedPercent}`, false, true);
+      const percentBucket = fields.percentage.dataset.bucket || resolveBucketFromPercentage(fields.percentage.value);
+      if (percentBucket) {
+        fields.percentage.dataset.bucket = percentBucket;
       }
-      const stenosisPercentValue = normalizedPercent || 0;
+      const representative = percentBucket ? resolvePercentageForBucket(percentBucket) : '';
+      if (representative !== '' && `${fields.percentage.value}` !== `${representative}`) {
+        fields.percentage.value = `${representative}`;
+      }
+      setActiveButton(stenosisPercent.group, percentBucket || '');
       const occlusionLengthValue = fields.occlusionLength.value || 0;
       stenosisLength.input.value = stenosisLengthValue;
       stenosisLength.output.textContent = `${stenosisLengthValue} cm`;
-      stenosisPercent.input.value = stenosisPercentValue;
-      stenosisPercent.output.textContent = `${stenosisPercentValue}%`;
       occlusionLength.input.value = occlusionLengthValue;
       occlusionLength.output.textContent = `${occlusionLengthValue} cm`;
       updateVisibility();
@@ -404,6 +577,12 @@
     };
 
     const handleFieldChange = () => {
+      if (fields.percentage.value && !fields.percentage.dataset.bucket) {
+        const bucket = resolveBucketFromPercentage(fields.percentage.value);
+        if (bucket) {
+          fields.percentage.dataset.bucket = bucket;
+        }
+      }
       updateVisibility();
       updateSummary();
       updateSavedStateNote();
@@ -428,9 +607,11 @@
       } else if (value === 'occlusion') {
         setFieldValue(fields.stenosisLength, '');
         setFieldValue(fields.percentage, '');
+        fields.percentage.dataset.bucket = '';
       } else {
         setFieldValue(fields.stenosisLength, '');
         setFieldValue(fields.percentage, '');
+        fields.percentage.dataset.bucket = '';
         setFieldValue(fields.occlusionLength, '');
         setFieldValue(fields.calcification, '');
       }
@@ -447,6 +628,22 @@
       syncFromFields();
     });
 
+    stenosisPercent.group.addEventListener('click', (event) => {
+      const button = event.target.closest('button');
+      if (!button) {
+        return;
+      }
+      const bucketValue = button.dataset.value || '';
+      const representative = resolvePercentageForBucket(bucketValue);
+      fields.percentage.dataset.bucket = bucketValue;
+      if (representative !== '') {
+        setFieldValue(fields.percentage, `${representative}`);
+      } else {
+        setFieldValue(fields.percentage, '');
+      }
+      syncFromFields();
+    });
+
     const wireSlider = (slider, targetField, unit, normalizeValue) => {
       slider.input.addEventListener('input', () => {
         const rawValue = normalizeValue ? normalizeValue(slider.input.value) : slider.input.value;
@@ -460,32 +657,27 @@
     };
 
     wireSlider(stenosisLength, fields.stenosisLength, ' cm');
-    wireSlider(stenosisPercent, fields.percentage, '%', normalizePercentageValue);
     wireSlider(occlusionLength, fields.occlusionLength, ' cm');
 
-    clearButton.addEventListener('click', () => {
-      setFieldValue(fields.patency, '');
-      setFieldValue(fields.stenosisLength, '');
-      setFieldValue(fields.percentage, '');
-      setFieldValue(fields.occlusionLength, '');
-      setFieldValue(fields.calcification, '');
-      const segmentKey = segment.dataset.key;
-      if (segmentKey && savedSegments[segmentKey]) {
-        delete savedSegments[segmentKey];
-        persistSavedSegments();
-      }
-      syncFromFields();
-    });
-
-    saveButton.addEventListener('click', () => {
-      const segmentKey = segment.dataset.key;
+    const saveSegment = ({ closeOnSave = false } = {}) => {
       if (!segmentKey) {
         return;
       }
       const currentData = getCurrentData(fields);
+      const bucketValue =
+        currentData.percentage_bucket || resolveBucketFromPercentage(currentData.percentage);
+      if (bucketValue) {
+        currentData.percentage_bucket = bucketValue;
+        currentData.percentage = `${resolvePercentageForBucket(bucketValue)}`;
+      } else {
+        currentData.percentage_bucket = '';
+      }
       currentData.percentage = `${normalizePercentageValue(currentData.percentage)}`.trim();
+      if (currentData.percentage) {
+        currentData.stenosisPercent = currentData.percentage;
+      }
       savedSegments[segmentKey] = currentData;
-      persistSavedSegments();
+      saveSegmentData(segmentKey, currentData);
       if (statusTimer) {
         window.clearTimeout(statusTimer);
       }
@@ -501,23 +693,47 @@
       saveTimer = window.setTimeout(() => {
         saveButton.textContent = originalText;
         saveButton.classList.remove('is-saved');
-      }, 1500);
+      }, 1200);
       statusTimer = window.setTimeout(() => {
         statusNote.textContent = '';
         statusNote.classList.remove('is-saved');
-      }, 1200);
+      }, 1000);
       updateSummary();
       updateSavedStateNote();
-      if (closeTimer) {
-        window.clearTimeout(closeTimer);
-      }
-      closeTimer = window.setTimeout(() => {
-        const hotspot = segment.closest('.raven-hotspot');
-        if (hotspot && typeof hotspot.click === 'function') {
-          hotspot.click();
+      if (closeOnSave) {
+        if (closeTimer) {
+          window.clearTimeout(closeTimer);
         }
-      }, 800);
+        closeTimer = window.setTimeout(() => {
+          closeHotspotTooltip(segment);
+        }, 200);
+      }
+    };
+
+    clearButton.addEventListener('click', () => {
+      setFieldValue(fields.patency, '');
+      setFieldValue(fields.stenosisLength, '');
+      setFieldValue(fields.percentage, '');
+      fields.percentage.dataset.bucket = '';
+      setFieldValue(fields.occlusionLength, '');
+      setFieldValue(fields.calcification, '');
+      if (segmentKey) {
+        deleteSegmentData(segmentKey);
+      }
+      syncFromFields();
     });
+
+    saveButton.addEventListener('click', () => {
+      saveSegment({ closeOnSave: true });
+    });
+
+    const tooltipCloseButton = tooltip ? tooltip.querySelector('.endo-tooltip-close') : null;
+    if (tooltipCloseButton && tooltipCloseButton.dataset.endoBound !== 'true') {
+      tooltipCloseButton.dataset.endoBound = 'true';
+      tooltipCloseButton.addEventListener('click', () => {
+        saveSegment({ closeOnSave: true });
+      });
+    }
 
     syncFromFields();
 

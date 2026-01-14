@@ -47,6 +47,8 @@ size, which do not prevent the build from finishing.
   - `.endo-newcase-trigger`
   - `.endo-summarize-trigger`
   - `#summaryText`, `#summary1`, `#summary2`, `#summary3`
+- For the New Case and Summarize buttons, leave the Elementor link field empty (or set to `#`).
+  The plugin handles scrolling to `#case` and `#casesummary` to avoid double-handling.
 
 ## Elementor snippet
 
