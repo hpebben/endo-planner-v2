@@ -47,3 +47,10 @@ size, which do not prevent the build from finishing.
   - `.endo-newcase-trigger`
   - `.endo-summarize-trigger`
   - `#summaryText`, `#summary1`, `#summary2`, `#summary3`
+
+## Elementor snippet
+
+Elementor HTML widgets should contain **markup only** (no inline `<script>` tags). The device UI
+logic now lives in `assets/js/device-ui.js`, so Elementor should not bind events or define helper
+functions. If a bridge is absolutely required for legacy layouts, keep it to a no-op placeholder
+that does not attach behavior. The plugin provides shims for any legacy global functions.
