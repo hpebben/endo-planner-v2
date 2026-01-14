@@ -232,7 +232,7 @@
   width: 1px;
 }
 
-.endo-patency-tooltip {
+.raven-hotspot__tooltip .endo-patency-tooltip {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -243,20 +243,20 @@
   padding: 0.75rem;
 }
 
-.endo-patency-tooltip .endo-field-group,
-.endo-patency-tooltip .endo-slider,
-.endo-patency-tooltip .endo-patency-button-group {
+.raven-hotspot__tooltip .endo-patency-tooltip .endo-field-group,
+.raven-hotspot__tooltip .endo-patency-tooltip .endo-slider,
+.raven-hotspot__tooltip .endo-patency-tooltip .endo-patency-button-group {
   width: 100%;
 }
 
-.endo-patency-button-group {
+.raven-hotspot__tooltip .endo-patency-tooltip .endo-patency-button-group {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-.endo-patency-button {
+.raven-hotspot__tooltip .endo-patency-tooltip .endo-patency-button {
   background: #f0f4ff;
   border: 1px solid #ccd5f3;
   border-radius: 999px;
@@ -269,27 +269,27 @@
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.endo-patency-button.is-selected {
+.raven-hotspot__tooltip .endo-patency-tooltip .endo-patency-button.is-selected {
   background: #113195;
   border-color: #113195;
   box-shadow: 0 0 0 2px rgba(17, 49, 149, 0.2);
   color: #fff;
 }
 
-.endo-patency-button:focus-visible {
+.raven-hotspot__tooltip .endo-patency-tooltip .endo-patency-button:focus-visible {
   box-shadow: 0 0 0 3px rgba(17, 49, 149, 0.35);
   outline: none;
 }
 
-.endo-patency-tooltip .endo-slider input[type='range'] {
+.raven-hotspot__tooltip .endo-patency-tooltip .endo-slider input[type='range'] {
   width: 100%;
 }
 
-.endo-patency-map .endo-patency-tooltip {
+.raven-hotspot__tooltip .endo-patency-map .endo-patency-tooltip {
   max-width: min(92vw, 420px);
 }
 
-.endo-patency-map .endo-patency-button-group {
+.raven-hotspot__tooltip .endo-patency-map .endo-patency-button-group {
   gap: 0.6rem;
 }
 

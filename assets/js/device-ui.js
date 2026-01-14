@@ -312,27 +312,31 @@
         return;
       }
       trigger.dataset.endoDeviceTriggerBound = 'true';
-      trigger.addEventListener('click', (event) => {
-        event.preventDefault();
-        const panel = document.getElementById(panelId);
-        if (!panel) {
-          return;
-        }
-        ensurePanelCloseButton(panel);
-        const isOpen = panel.dataset.endoPanelOpen === 'true';
-        const nextOpen = !isOpen;
-        setPanelState(panel, nextOpen);
-        if (nextOpen) {
-          if (!panelHasEntries(panel) && typeof builder === 'function') {
-            builder();
+      trigger.addEventListener('click', () => {
+        window.setTimeout(() => {
+          const panel = document.getElementById(panelId);
+          if (!panel) {
+            return;
           }
-          panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+          ensurePanelCloseButton(panel);
+          const isOpen = panel.dataset.endoPanelOpen === 'true';
+          const nextOpen = !isOpen;
+          setPanelState(panel, nextOpen);
+          if (nextOpen) {
+            if (!panelHasEntries(panel) && typeof builder === 'function') {
+              builder();
+            }
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 0);
       });
     });
 
     if (!namespace.__deviceTriggersLogged && typeof console !== 'undefined' && console.info) {
       namespace.__deviceTriggersLogged = true;
+      if (console.debug) {
+        console.debug('[EndoPlanner v2] Intervention device triggers bound once');
+      }
       console.info('[EndoPlanner v2] Intervention device triggers bound');
     }
   };

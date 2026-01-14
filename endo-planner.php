@@ -126,7 +126,6 @@ function endoplanner_v2_enqueue_patency_assets() {
 
         $signature = endoplanner_v2_build_signature();
         $inline = 'window.EndoPlannerV2Build = ' . wp_json_encode( $signature ) . ';';
-        $inline .= 'console.info("[EndoPlanner V2]", window.EndoPlannerV2Build);';
         wp_add_inline_script( 'endoplanner-patency', $inline, 'before' );
     }
 }

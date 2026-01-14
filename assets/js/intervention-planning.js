@@ -1483,6 +1483,22 @@
     showToast('New case started. Data has been reset.');
   };
 
+  const scrollToTarget = (trigger, fallbackId) => {
+    if (!trigger) {
+      return;
+    }
+    const href = trigger.getAttribute('href') || '';
+    const dataTarget = trigger.getAttribute('data-target') || '';
+    let targetSelector = dataTarget || href || '';
+    if (!targetSelector.startsWith('#')) {
+      targetSelector = `#${fallbackId}`;
+    }
+    const target = document.querySelector(targetSelector);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const bindClicks = () => {
     if (state.boundClick && state.clickHandler) {
       document.removeEventListener('click', state.clickHandler);
@@ -1512,10 +1528,7 @@
       if (newCaseTrigger) {
         event.preventDefault();
         resetCase();
-        const caseTarget = document.getElementById('case');
-        if (caseTarget) {
-          caseTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        scrollToTarget(newCaseTrigger, 'case');
         return;
       }
 
@@ -1524,10 +1537,7 @@
       if (summarizeTrigger) {
         event.preventDefault();
         summarizeCase(summarizeTrigger);
-        const summaryTarget = document.getElementById('casesummary');
-        if (summaryTarget) {
-          summaryTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        scrollToTarget(summarizeTrigger, 'casesummary');
       }
     };
 

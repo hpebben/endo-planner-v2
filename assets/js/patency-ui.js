@@ -8,6 +8,11 @@
   const pluginVersion = buildInfo.version || 'unknown';
   const gitHash = buildInfo.git || 'unknown';
 
+  if (!window.__ENDO_PLANNER_BUILD_LOGGED__ && typeof console !== 'undefined' && console.info) {
+    window.__ENDO_PLANNER_BUILD_LOGGED__ = true;
+    console.info(`[EndoPlanner v2] v${pluginVersion} | git ${gitHash}`);
+  }
+
   const createElement = (tag, className, text) => {
     const el = document.createElement(tag);
     if (className) {
@@ -384,23 +389,46 @@
     const hotspotButton = hotspot
       ? hotspot.querySelector('.raven-hotspot__button, .raven-hotspot-button, button')
       : null;
+
+    const openClassPatterns = [
+      /--active$/i,
+      /--open$/i,
+      /\bis-active\b/i,
+      /\bis-open\b/i,
+      /\bactive\b/i,
+      /\bopen\b/i,
+    ];
+
+    const getOpenClasses = (element) => {
+      if (!element || !element.classList) {
+        return [];
+      }
+      return Array.from(element.classList).filter((cls) =>
+        openClassPatterns.some((pattern) => pattern.test(cls))
+      );
+    };
+
+    const hasOpenClass = (element) => getOpenClasses(element).length > 0;
     const isActive =
       (hotspotButton && hotspotButton.getAttribute('aria-expanded') === 'true') ||
-      (hotspotButton && hotspotButton.classList.contains('is-active')) ||
-      (hotspot && hotspot.classList.contains('is-active')) ||
-      (tooltip && tooltip.classList.contains('is-active'));
+      hasOpenClass(hotspotButton) ||
+      hasOpenClass(hotspot) ||
+      hasOpenClass(tooltip);
 
     if (hotspotButton && isActive && typeof hotspotButton.click === 'function') {
       hotspotButton.click();
       return;
     }
 
-    if (tooltip) {
-      tooltip.classList.remove('is-active', 'is-open', 'open');
-    }
-    if (hotspot) {
-      hotspot.classList.remove('is-active', 'is-open', 'open');
-    }
+    [hotspotButton, tooltip, hotspot].forEach((element) => {
+      if (!element) {
+        return;
+      }
+      getOpenClasses(element).forEach((cls) => element.classList.remove(cls));
+      if (element === hotspotButton && element.getAttribute('aria-expanded') === 'true') {
+        element.setAttribute('aria-expanded', 'false');
+      }
+    });
   };
 
   const attachSegmentUI = (segment) => {
@@ -420,12 +448,6 @@
       if (!window.__ENDO_PATENCY_THEME_LOGGED__ && typeof console !== 'undefined' && console.info) {
         console.info('[EndoPlanner v2] Patency tooltip theme enabled');
         window.__ENDO_PATENCY_THEME_LOGGED__ = true;
-      }
-      if (!tooltip.querySelector('.endo-tooltip-close')) {
-        const closeButton = createElement('button', 'endo-tooltip-close', '×');
-        closeButton.type = 'button';
-        closeButton.setAttribute('aria-label', 'Close');
-        tooltip.appendChild(closeButton);
       }
     }
 
@@ -459,6 +481,12 @@
     }
 
     const container = createElement('div', 'endo-patency-ui');
+    if (tooltip && !tooltip.querySelector('.endo-tooltip-close')) {
+      const closeButton = createElement('button', 'endo-tooltip-close', '×');
+      closeButton.type = 'button';
+      closeButton.setAttribute('aria-label', 'Close');
+      container.appendChild(closeButton);
+    }
     const patencyButtons = createButtonGroup('Patency', [
       { label: 'Open', value: 'Open' },
       { label: 'Stenosis', value: 'stenosis' },

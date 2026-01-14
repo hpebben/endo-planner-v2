@@ -1,13 +1,13 @@
-.endo-patency-segment {
+.raven-hotspot__tooltip .endo-patency-segment {
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
-.endo-patency-hidden {
+.raven-hotspot__tooltip .endo-patency-hidden {
   display: none;
 }
 
-/* 1) Make Raven tooltip itself the visual container */
-.raven-hotspot__tooltip.endo-tooltip--patency {
+/* 1) Make the patency UI itself the visual container */
+.raven-hotspot__tooltip .endo-patency-ui {
   background: linear-gradient(180deg, rgba(6, 45, 120, 0.92), rgba(6, 45, 120, 0.86));
   border-radius: 18px;
   padding: 14px;
@@ -15,37 +15,25 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   position: relative;
-}
-
-/* If Raven tooltip adds inner padding/background, neutralize it safely */
-.raven-hotspot__tooltip.endo-tooltip--patency > * {
-  background: transparent !important;
-}
-
-/* 2) Remove the “white card” look from your injected UI wrapper */
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-ui {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  background: transparent;
-  border: none;
-  padding: 4px 2px;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-row.is-hidden {
+.raven-hotspot__tooltip .endo-patency-row.is-hidden {
   display: none;
 }
 
 /* Section layout */
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-section {
+.raven-hotspot__tooltip .endo-patency-ui .endo-section {
   margin-top: 14px;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-section:first-child {
+.raven-hotspot__tooltip .endo-patency-ui .endo-section:first-child {
   margin-top: 0;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-section-title {
+.raven-hotspot__tooltip .endo-patency-ui .endo-section-title {
   text-align: center;
   font-weight: 800;
   letter-spacing: 0.2px;
@@ -54,39 +42,39 @@
   font-size: 1.15rem;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-section-title:empty {
+.raven-hotspot__tooltip .endo-patency-ui .endo-section-title:empty {
   display: none;
   margin-bottom: 0;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-section-body {
+.raven-hotspot__tooltip .endo-patency-ui .endo-section-body {
   display: grid;
   gap: 12px;
   justify-items: center;
 }
 
 /* 3) Typography: light text on blue */
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-title,
-.raven-hotspot__tooltip.endo-tooltip--patency label,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-label {
+.raven-hotspot__tooltip .endo-patency-ui .endo-title,
+.raven-hotspot__tooltip .endo-patency-ui label,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-label {
   color: rgba(255, 255, 255, 0.92);
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-subtle,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-help {
+.raven-hotspot__tooltip .endo-patency-ui .endo-subtle,
+.raven-hotspot__tooltip .endo-patency-ui .endo-help {
   color: rgba(255, 255, 255, 0.7);
 }
 
 /* 4) Button groups: modern chips */
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-btn-group {
+.raven-hotspot__tooltip .endo-patency-ui .endo-btn-group {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 12px;
   width: 100%;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-btn,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-button {
+.raven-hotspot__tooltip .endo-patency-ui .endo-btn,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-button {
   appearance: none;
   border: 1px solid rgba(255, 255, 255, 0.34);
   background: rgba(255, 255, 255, 0.08);
@@ -105,22 +93,22 @@
   cursor: pointer;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-bucket-group {
+.raven-hotspot__tooltip .endo-patency-ui .endo-bucket-group {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-bucket-button {
+.raven-hotspot__tooltip .endo-patency-ui .endo-bucket-button {
   min-height: 38px;
   padding: 8px 6px;
   font-size: 0.85rem;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-tooltip-close {
+.raven-hotspot__tooltip .endo-patency-ui .endo-tooltip-close {
   align-items: center;
-  background: rgba(255, 255, 255, 0.95);
-  border: none;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 999px;
-  color: rgba(6, 45, 120, 1);
+  color: #1b1f2a;
   cursor: pointer;
   display: inline-flex;
   font-size: 1.2rem;
@@ -136,42 +124,42 @@
   z-index: 2;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-btn.is-selected,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-button.is-active,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-button.is-selected {
+.raven-hotspot__tooltip .endo-patency-ui .endo-btn.is-selected,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-button.is-active,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-button.is-selected {
   background: rgba(255, 255, 255, 0.92);
   color: rgba(6, 45, 120, 1);
   border-color: rgba(255, 255, 255, 0.92);
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-btn:focus-visible,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-button:focus-visible {
+.raven-hotspot__tooltip .endo-patency-ui .endo-btn:focus-visible,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-button:focus-visible {
   outline: 3px solid rgba(255, 255, 255, 0.7);
   outline-offset: 2px;
 }
 
 /* 5) Sliders: stacked label, slider, value badge */
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-field {
+.raven-hotspot__tooltip .endo-patency-ui .endo-field {
   display: grid;
   gap: 8px;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-field-control {
+.raven-hotspot__tooltip .endo-patency-ui .endo-field-control {
   display: grid;
   gap: 8px;
   justify-items: center;
   width: 100%;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-slider,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-slider-input {
+.raven-hotspot__tooltip .endo-patency-ui .endo-slider,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-slider-input {
   width: 100%;
   max-width: 360px;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-slider-value,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-value-badge,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-slider-output {
+.raven-hotspot__tooltip .endo-patency-ui .endo-slider-value,
+.raven-hotspot__tooltip .endo-patency-ui .endo-value-badge,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-slider-output {
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.22);
   color: rgba(255, 255, 255, 0.92);
@@ -185,8 +173,8 @@
 }
 
 /* 6) Clear */
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-clear,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-clear {
+.raven-hotspot__tooltip .endo-patency-ui .endo-clear,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-clear {
   margin-top: 12px;
   width: 100%;
   border-radius: 12px;
@@ -197,8 +185,8 @@
   font-weight: 700;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-save,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-save {
+.raven-hotspot__tooltip .endo-patency-ui .endo-save,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-save {
   width: 100%;
   border-radius: 12px;
   min-height: 44px;
@@ -209,29 +197,29 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-save.is-saved {
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-save.is-saved {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
   transform: translateY(-1px);
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-status {
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-status {
   text-align: center;
   font-size: 0.85rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.75);
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-status.is-warning {
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-status.is-warning {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-status.is-saved {
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-status.is-saved {
   color: rgba(202, 243, 255, 0.95);
 }
 
 /* 7) Summary */
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-summary,
-.raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-summary {
+.raven-hotspot__tooltip .endo-patency-ui .endo-summary,
+.raven-hotspot__tooltip .endo-patency-ui .endo-patency-summary {
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.16);
@@ -242,22 +230,22 @@
 
 /* Mobile */
 @media (max-width: 420px) {
-  .raven-hotspot__tooltip.endo-tooltip--patency .endo-btn-group {
+  .raven-hotspot__tooltip .endo-patency-ui .endo-btn-group {
     grid-template-columns: 1fr;
   }
 
-  .raven-hotspot__tooltip.endo-tooltip--patency .endo-btn {
+  .raven-hotspot__tooltip .endo-patency-ui .endo-btn {
     width: 100%;
   }
 
-  .raven-hotspot__tooltip.endo-tooltip--patency .endo-slider,
-  .raven-hotspot__tooltip.endo-tooltip--patency .endo-patency-slider-input {
+  .raven-hotspot__tooltip .endo-patency-ui .endo-slider,
+  .raven-hotspot__tooltip .endo-patency-ui .endo-patency-slider-input {
     max-width: 100%;
   }
 }
 
 @media (max-width: 360px) {
-  .raven-hotspot__tooltip.endo-tooltip--patency .endo-btn {
+  .raven-hotspot__tooltip .endo-patency-ui .endo-btn {
     font-size: 1rem;
   }
 }
