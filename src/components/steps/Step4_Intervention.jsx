@@ -51,6 +51,32 @@ const specialDeviceOptions = [
   'Custom',
 ];
 
+const preferenceDevices = [
+  { id: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg },
+  { id: 'sheathimg', label: __('Sheath', 'endoplanner'), img: sheathImg },
+  { id: 'catheterimg', label: __('Catheter', 'endoplanner'), img: catheterImg },
+  { id: 'wireimg', label: __('Wire', 'endoplanner'), img: wireImg },
+  { id: 'balloonimg', label: __('Balloon', 'endoplanner'), img: balloonImg },
+  { id: 'stentimg', label: __('Stent', 'endoplanner'), img: stentImg },
+  { id: 'specialdeviceimg', label: __('Special device', 'endoplanner'), img: deviceImg },
+  { id: 'closuredeviceimg', label: __('Closure device', 'endoplanner'), img: closureImg },
+];
+
+const PREFS_COOKIE_NAME = 'planner_local_prefs';
+const PREFS_COOKIE_DAYS = 180;
+
+const getCookieValue = (name) => {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+const setCookieValue = (name, value, days) => {
+  if (typeof document === 'undefined') return;
+  const maxAge = days * 24 * 60 * 60;
+  document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+};
+
 // Simple utility to generate unique ids for dynamic rows
 const uid = () => Math.random().toString(36).substr(2, 9);
 
@@ -70,15 +96,16 @@ SimpleModal.propTypes = {
 
 // Generic card-like button used for selecting a device
 // Generic card-like button used for selecting a device
-function DeviceButton({ label, img, onClick }) {
+function DeviceButton({ label, img, onClick, className, isSelected }) {
   return (
     <button
       type="button"
-      className="device-button"
+      className={`device-button${className ? ` ${className}` : ''}`}
       onClick={(e) => {
         console.log('Device button clicked', label);
         onClick(e);
       }}
+      aria-pressed={isSelected}
     >
       <img src={img} alt="" />
       <span>{label}</span>
@@ -90,6 +117,8 @@ DeviceButton.propTypes = {
   label: PropTypes.string.isRequired,
   img: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
+  className: PropTypes.string,
+  isSelected: PropTypes.bool,
 };
 
 // Helper to convert a selection object into a short label.  For the button text
@@ -867,7 +896,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
           options={specialDeviceOptions}
           value={data.device}
           onChange={(val) => onChange({ ...data, device: val })}
-          buttonLabel={__('Choose', 'endoplanner')}
+          buttonLabel={__('Special', 'endoplanner')}
         />
       </div>
       <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
@@ -936,7 +965,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
           options={specialDeviceOptions}
           value={data.device}
           onChange={(val) => onChange({ ...data, device: val })}
-          buttonLabel={__('Choose', 'endoplanner')}
+          buttonLabel={__('Special', 'endoplanner')}
         />
       </div>
       <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
@@ -990,6 +1019,8 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
             value={data.device}
             onChange={(val) => onChange({ ...data, device: val })}
             buttonLabel={__('Choose', 'endoplanner')}
+            showButton={false}
+            alwaysOpen
           />
         )}
         </div>
@@ -1021,6 +1052,44 @@ export default function Step4({ data, setData }) {
   const [navRows, setNavRows] = useState(initRows(data.navRows, defaultNav));
   const [therapyRows, setTherapyRows] = useState(initRows(data.therapyRows, defaultTherapy));
   const [closureRows, setClosureRows] = useState(initRows(data.closureRows, defaultClosure));
+  const [prefsOpen, setPrefsOpen] = useState(false);
+  const [prefsSelected, setPrefsSelected] = useState([]);
+
+  useEffect(() => {
+    const saved = getCookieValue(PREFS_COOKIE_NAME);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setPrefsSelected(parsed);
+        }
+      } catch (err) {
+        console.warn('[Prefs] Unable to parse cookie', err);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!prefsOpen) return undefined;
+    const handleKey = (event) => {
+      if (event.key === 'Escape') {
+        setPrefsOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [prefsOpen]);
+
+  const togglePreference = (id) => {
+    setPrefsSelected((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const handleSavePreferences = () => {
+    setCookieValue(PREFS_COOKIE_NAME, JSON.stringify(prefsSelected), PREFS_COOKIE_DAYS);
+    setPrefsOpen(false);
+  };
 
   useEffect(() => {
     setData({ ...data, accessRows, navRows, therapyRows, closureRows });
@@ -1028,6 +1097,50 @@ export default function Step4({ data, setData }) {
 
   return (
     <div className="step4-intervention">
+      <div className="intervention-preferences">
+        <button
+          type="button"
+          className="prefs-toggle-btn"
+          onClick={() => setPrefsOpen((open) => !open)}
+          aria-expanded={prefsOpen}
+        >
+          <span className="prefs-toggle-icon" aria-hidden="true">★</span>
+          {__('Set local preferences', 'endoplanner')}
+        </button>
+        {prefsOpen && (
+          <div className="prefs-panel" role="dialog" aria-label={__('Local preferences', 'endoplanner')}>
+            <button
+              type="button"
+              className="prefs-close-btn"
+              onClick={() => setPrefsOpen(false)}
+              aria-label={__('Close', 'endoplanner')}
+            >
+              &times;
+            </button>
+            <div className="prefs-panel-title">{__('Select preferred devices', 'endoplanner')}</div>
+            <div className="prefs-device-grid">
+              {preferenceDevices.map((device) => {
+                const isSelected = prefsSelected.includes(device.id);
+                return (
+                  <DeviceButton
+                    key={device.id}
+                    label={device.label}
+                    img={device.img}
+                    onClick={() => togglePreference(device.id)}
+                    className={`device-button--compact${isSelected ? ' is-selected' : ''}`}
+                    isSelected={isSelected}
+                  />
+                );
+              })}
+            </div>
+            <div className="prefs-actions">
+              <button type="button" className="prefs-save-btn" onClick={handleSavePreferences}>
+                {__('Save setup', 'endoplanner')}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       <section className="intervention-section">
         <div className="section-heading">{__('Access', 'endoplanner')}</div>
