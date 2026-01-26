@@ -51,15 +51,15 @@ const specialDeviceOptions = [
   'Custom',
 ];
 
-const preferenceDevices = [
-  { id: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg },
-  { id: 'sheathimg', label: __('Sheath', 'endoplanner'), img: sheathImg },
-  { id: 'catheterimg', label: __('Catheter', 'endoplanner'), img: catheterImg },
-  { id: 'wireimg', label: __('Wire', 'endoplanner'), img: wireImg },
-  { id: 'balloonimg', label: __('Balloon', 'endoplanner'), img: balloonImg },
-  { id: 'stentimg', label: __('Stent', 'endoplanner'), img: stentImg },
-  { id: 'specialdeviceimg', label: __('Special device', 'endoplanner'), img: deviceImg },
-  { id: 'closuredeviceimg', label: __('Closure device', 'endoplanner'), img: closureImg },
+const preferenceTypes = [
+  { key: 'needle', legacyId: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg, modal: 'needle' },
+  { key: 'sheath', legacyId: 'sheathimg', label: __('Sheath', 'endoplanner'), img: sheathImg, modal: 'sheath' },
+  { key: 'catheter', legacyId: 'catheterimg', label: __('Catheter', 'endoplanner'), img: catheterImg, modal: 'catheter' },
+  { key: 'wire', legacyId: 'wireimg', label: __('Wire', 'endoplanner'), img: wireImg, modal: 'wire', allowsMultiple: true },
+  { key: 'balloon', legacyId: 'balloonimg', label: __('Balloon', 'endoplanner'), img: balloonImg, modal: 'balloon' },
+  { key: 'stent', legacyId: 'stentimg', label: __('Stent', 'endoplanner'), img: stentImg, modal: 'stent' },
+  { key: 'specialDevice', legacyId: 'specialdeviceimg', label: __('Special device', 'endoplanner'), img: deviceImg, modal: 'special' },
+  { key: 'closureDevice', legacyId: 'closuredeviceimg', label: __('Closure device', 'endoplanner'), img: closureImg, modal: 'closure' },
 ];
 
 const PREFS_COOKIE_NAME = 'planner_local_prefs';
@@ -80,6 +80,18 @@ const setCookieValue = (name, value, days) => {
 // Simple utility to generate unique ids for dynamic rows
 const uid = () => Math.random().toString(36).substr(2, 9);
 
+const createEmptyPreferences = () =>
+  preferenceTypes.reduce((acc, device) => {
+    acc[device.key] = [{ id: uid(), value: null }];
+    return acc;
+  }, {});
+
+const hasPreferenceValue = (value) => {
+  if (!value) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  return Object.values(value).some(Boolean);
+};
+
 // Simple wrapper using shared InlineModal (portal-based)
 const SimpleModal = ({ title, isOpen, onRequestClose, children }) => (
   <InlineModal title={title} isOpen={isOpen} onRequestClose={onRequestClose}>
@@ -96,7 +108,7 @@ SimpleModal.propTypes = {
 
 // Generic card-like button used for selecting a device
 // Generic card-like button used for selecting a device
-function DeviceButton({ label, img, onClick, className, isSelected }) {
+function DeviceButton({ label, subtitle, img, onClick, className, isSelected }) {
   return (
     <button
       type="button"
@@ -108,13 +120,15 @@ function DeviceButton({ label, img, onClick, className, isSelected }) {
       aria-pressed={isSelected}
     >
       <img src={img} alt="" />
-      <span>{label}</span>
+      <span className="device-button-label">{label}</span>
+      {subtitle ? <span className="device-button-subtitle">{subtitle}</span> : null}
     </button>
   );
 }
 
 DeviceButton.propTypes = {
   label: PropTypes.string.isRequired,
+  subtitle: PropTypes.string,
   img: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
   className: PropTypes.string,
@@ -144,6 +158,29 @@ const shortLabel = (type, obj) => {
     default:
       return summarize(obj);
   }
+};
+
+const getPreferenceLabel = (type, value) => {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  return shortLabel(type, value);
+};
+
+// Deserialize cookie payload into preference slots for the UI.
+const normalizePreferences = (payload) => {
+  const normalized = createEmptyPreferences();
+  if (!payload || typeof payload !== 'object') return normalized;
+
+  preferenceTypes.forEach((device) => {
+    const slots = payload[device.key];
+    if (!Array.isArray(slots) || slots.length === 0) return;
+    normalized[device.key] = slots.map((slot) => ({
+      id: slot.id || uid(),
+      value: slot.value ?? slot.data ?? slot,
+    }));
+  });
+
+  return normalized;
 };
 
 // --- Popup Components -----------------------------------------------------
@@ -1053,19 +1090,28 @@ export default function Step4({ data, setData }) {
   const [therapyRows, setTherapyRows] = useState(initRows(data.therapyRows, defaultTherapy));
   const [closureRows, setClosureRows] = useState(initRows(data.closureRows, defaultClosure));
   const [prefsOpen, setPrefsOpen] = useState(false);
-  const [prefsSelected, setPrefsSelected] = useState([]);
+  const [prefsData, setPrefsData] = useState(createEmptyPreferences);
+  const [prefsPicker, setPrefsPicker] = useState(null);
 
   useEffect(() => {
     const saved = getCookieValue(PREFS_COOKIE_NAME);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setPrefsSelected(parsed);
-        }
-      } catch (err) {
-        console.warn('[Prefs] Unable to parse cookie', err);
+    if (!saved) return;
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        const legacyPrefs = createEmptyPreferences();
+        parsed.forEach((legacyId) => {
+          const match = preferenceTypes.find((device) => device.legacyId === legacyId);
+          if (match) {
+            legacyPrefs[match.key] = [{ id: uid(), value: null }];
+          }
+        });
+        setPrefsData(legacyPrefs);
+      } else {
+        setPrefsData(normalizePreferences(parsed));
       }
+    } catch (err) {
+      console.warn('[Prefs] Unable to parse cookie', err);
     }
   }, []);
 
@@ -1080,16 +1126,69 @@ export default function Step4({ data, setData }) {
     return () => document.removeEventListener('keydown', handleKey);
   }, [prefsOpen]);
 
-  const togglePreference = (id) => {
-    setPrefsSelected((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  };
-
   const handleSavePreferences = () => {
-    setCookieValue(PREFS_COOKIE_NAME, JSON.stringify(prefsSelected), PREFS_COOKIE_DAYS);
+    const serialized = preferenceTypes.reduce((acc, device) => {
+      const slots = prefsData[device.key] || [];
+      const cleaned = slots
+        // Serialize cookie structure with slot metadata + selection payload.
+        .map((slot) => ({
+          id: slot.id,
+          label: getPreferenceLabel(device.key, slot.value),
+          value: slot.value,
+        }))
+        .filter((slot) => hasPreferenceValue(slot.value));
+
+      if (cleaned.length) acc[device.key] = cleaned;
+      return acc;
+    }, {});
+    setCookieValue(PREFS_COOKIE_NAME, JSON.stringify(serialized), PREFS_COOKIE_DAYS);
     setPrefsOpen(false);
   };
+
+  const updatePreferenceSlot = (typeKey, slotId, value) => {
+    if (!slotId) return;
+    setPrefsData((prev) => ({
+      ...prev,
+      [typeKey]: prev[typeKey].map((slot) =>
+        slot.id === slotId ? { ...slot, value } : slot,
+      ),
+    }));
+  };
+
+  const addPreferenceSlot = (typeKey) => {
+    // Multi-slot behavior for preference devices (e.g., multiple wires).
+    setPrefsData((prev) => ({
+      ...prev,
+      [typeKey]: [...(prev[typeKey] || []), { id: uid(), value: null }],
+    }));
+  };
+
+  const removePreferenceSlot = (typeKey, slotId) => {
+    setPrefsData((prev) => {
+      const nextSlots = (prev[typeKey] || []).filter((slot) => slot.id !== slotId);
+      return {
+        ...prev,
+        [typeKey]: nextSlots.length ? nextSlots : [{ id: uid(), value: null }],
+      };
+    });
+  };
+
+  const openPreferencePicker = (typeKey, slotId, event) => {
+    // Map preference buttons to the same selector popups used in the main workflow.
+    setPrefsPicker({
+      typeKey,
+      slotId,
+      anchor: event.currentTarget.getBoundingClientRect(),
+    });
+  };
+
+  const closePreferencePicker = () => {
+    setPrefsPicker(null);
+  };
+
+  const activePreferenceSlot = prefsPicker
+    ? (prefsData[prefsPicker.typeKey] || []).find((slot) => slot.id === prefsPicker.slotId)
+    : null;
 
   useEffect(() => {
     setData({ ...data, accessRows, navRows, therapyRows, closureRows });
@@ -1098,15 +1197,17 @@ export default function Step4({ data, setData }) {
   return (
     <div className="step4-intervention">
       <div className="intervention-preferences">
-        <button
-          type="button"
-          className="prefs-toggle-btn"
-          onClick={() => setPrefsOpen((open) => !open)}
-          aria-expanded={prefsOpen}
-        >
-          <span className="prefs-toggle-icon" aria-hidden="true">★</span>
-          {__('Set local preferences', 'endoplanner')}
-        </button>
+        <div className="prefs-toggle-row">
+          <button
+            type="button"
+            className="planner-nav-btn prefs-toggle-btn"
+            onClick={() => setPrefsOpen((open) => !open)}
+            aria-expanded={prefsOpen}
+          >
+            <span className="prefs-toggle-icon" aria-hidden="true">★</span>
+            {__('Set local preferences', 'endoplanner')}
+          </button>
+        </div>
         {prefsOpen && (
           <div className="prefs-panel" role="dialog" aria-label={__('Local preferences', 'endoplanner')}>
             <button
@@ -1119,28 +1220,138 @@ export default function Step4({ data, setData }) {
             </button>
             <div className="prefs-panel-title">{__('Select preferred devices', 'endoplanner')}</div>
             <div className="prefs-device-grid">
-              {preferenceDevices.map((device) => {
-                const isSelected = prefsSelected.includes(device.id);
-                return (
-                  <DeviceButton
-                    key={device.id}
-                    label={device.label}
-                    img={device.img}
-                    onClick={() => togglePreference(device.id)}
-                    className={`device-button--compact${isSelected ? ' is-selected' : ''}`}
-                    isSelected={isSelected}
-                  />
-                );
-              })}
+              {preferenceTypes.map((device) =>
+                (prefsData[device.key] || []).map((slot, index) => {
+                  const label = getPreferenceLabel(device.key, slot.value);
+                  const showAdd = device.allowsMultiple && index === prefsData[device.key].length - 1;
+                  return (
+                    <div className="prefs-device-slot" key={`${device.key}-${slot.id}`}>
+                      <DeviceButton
+                        label={device.label}
+                        subtitle={label || __('Choose', 'endoplanner')}
+                        img={device.img}
+                        onClick={(event) => openPreferencePicker(device.key, slot.id, event)}
+                        className={`device-button--compact${label ? ' is-selected' : ''}`}
+                        isSelected={Boolean(label)}
+                      />
+                      {showAdd && (
+                        <button
+                          type="button"
+                          className="prefs-slot-add"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            addPreferenceSlot(device.key);
+                          }}
+                          aria-label={__('Add preference', 'endoplanner')}
+                        >
+                          +
+                        </button>
+                      )}
+                      {prefsData[device.key].length > 1 && (
+                        <button
+                          type="button"
+                          className="prefs-slot-remove"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            removePreferenceSlot(device.key, slot.id);
+                          }}
+                          aria-label={__('Remove preference', 'endoplanner')}
+                        >
+                          &times;
+                        </button>
+                      )}
+                    </div>
+                  );
+                }),
+              )}
             </div>
             <div className="prefs-actions">
-              <button type="button" className="prefs-save-btn" onClick={handleSavePreferences}>
+              <button type="button" className="planner-nav-btn prefs-save-btn" onClick={handleSavePreferences}>
                 {__('Save setup', 'endoplanner')}
               </button>
             </div>
           </div>
         )}
       </div>
+
+      <NeedleModal
+        isOpen={prefsPicker?.typeKey === 'needle'}
+        anchor={prefsPicker?.anchor}
+        onRequestClose={closePreferencePicker}
+        values={activePreferenceSlot?.value || {}}
+        onSave={(val) => updatePreferenceSlot('needle', prefsPicker?.slotId, val)}
+      />
+      <SheathModal
+        isOpen={prefsPicker?.typeKey === 'sheath'}
+        anchor={prefsPicker?.anchor}
+        onRequestClose={closePreferencePicker}
+        values={activePreferenceSlot?.value || {}}
+        onSave={(val) => updatePreferenceSlot('sheath', prefsPicker?.slotId, val)}
+      />
+      <CatheterModal
+        isOpen={prefsPicker?.typeKey === 'catheter'}
+        anchor={prefsPicker?.anchor}
+        onRequestClose={closePreferencePicker}
+        values={activePreferenceSlot?.value || {}}
+        onSave={(val) => updatePreferenceSlot('catheter', prefsPicker?.slotId, val)}
+      />
+      <WireModal
+        isOpen={prefsPicker?.typeKey === 'wire'}
+        anchor={prefsPicker?.anchor}
+        onRequestClose={closePreferencePicker}
+        values={activePreferenceSlot?.value || {}}
+        onSave={(val) => updatePreferenceSlot('wire', prefsPicker?.slotId, val)}
+      />
+      <BalloonModal
+        isOpen={prefsPicker?.typeKey === 'balloon'}
+        anchor={prefsPicker?.anchor}
+        onRequestClose={closePreferencePicker}
+        values={activePreferenceSlot?.value || {}}
+        onSave={(val) => updatePreferenceSlot('balloon', prefsPicker?.slotId, val)}
+      />
+      <StentModal
+        isOpen={prefsPicker?.typeKey === 'stent'}
+        anchor={prefsPicker?.anchor}
+        onRequestClose={closePreferencePicker}
+        values={activePreferenceSlot?.value || {}}
+        onSave={(val) => updatePreferenceSlot('stent', prefsPicker?.slotId, val)}
+      />
+      <SimpleModal
+        title={__('Special device', 'endoplanner')}
+        isOpen={prefsPicker?.typeKey === 'specialDevice'}
+        onRequestClose={closePreferencePicker}
+      >
+        <InlineDeviceSelect
+          options={specialDeviceOptions}
+          value={activePreferenceSlot?.value || ''}
+          onChange={(val) => updatePreferenceSlot('specialDevice', prefsPicker?.slotId, val)}
+          showButton={false}
+          alwaysOpen
+        />
+        <div className="popup-close-row">
+          <button type="button" className="circle-btn close-modal-btn" onClick={closePreferencePicker}>
+            &times;
+          </button>
+        </div>
+      </SimpleModal>
+      <SimpleModal
+        title={__('Closure device', 'endoplanner')}
+        isOpen={prefsPicker?.typeKey === 'closureDevice'}
+        onRequestClose={closePreferencePicker}
+      >
+        <InlineDeviceSelect
+          options={closureDeviceOptions}
+          value={activePreferenceSlot?.value || ''}
+          onChange={(val) => updatePreferenceSlot('closureDevice', prefsPicker?.slotId, val)}
+          showButton={false}
+          alwaysOpen
+        />
+        <div className="popup-close-row">
+          <button type="button" className="circle-btn close-modal-btn" onClick={closePreferencePicker}>
+            &times;
+          </button>
+        </div>
+      </SimpleModal>
 
       <section className="intervention-section">
         <div className="section-heading">{__('Access', 'endoplanner')}</div>

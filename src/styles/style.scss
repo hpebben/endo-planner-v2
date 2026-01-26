@@ -218,7 +218,7 @@
 .endo-wizard .wizard-nav .stage-btn {
   margin: 0.5rem;
 }
-.endo-wizard .wizard-nav .planner-nav-btn {
+.endo-wizard .planner-nav-btn {
   background: #113195;
   border: 1px solid #0f2c86;
   border-radius: 6px;
@@ -229,17 +229,17 @@
   box-shadow: 0 6px 12px rgba(17, 49, 149, 0.2);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.endo-wizard .wizard-nav .planner-nav-btn:hover,
-.endo-wizard .wizard-nav .planner-nav-btn:focus-visible {
+.endo-wizard .planner-nav-btn:hover,
+.endo-wizard .planner-nav-btn:focus-visible {
   background: #0f2c86;
   box-shadow: 0 8px 16px rgba(17, 49, 149, 0.28);
   transform: translateY(-1px);
 }
-.endo-wizard .wizard-nav .planner-nav-btn:focus-visible {
+.endo-wizard .planner-nav-btn:focus-visible {
   outline: 3px solid rgba(17, 49, 149, 0.35);
   outline-offset: 2px;
 }
-.endo-wizard .wizard-nav .planner-nav-btn:disabled {
+.endo-wizard .planner-nav-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
@@ -647,30 +647,25 @@ svg .vessel-path:hover {
 
 .step4-intervention .intervention-preferences {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   position: relative;
   margin: 1.5rem 0 0;
+}
+
+.step4-intervention .prefs-toggle-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .step4-intervention .prefs-toggle-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  background: #1f5eff;
-  color: #fff;
-  border: none;
+  padding: 0.6rem 1.25rem;
   border-radius: 999px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 6px 12px rgba(17, 49, 149, 0.2);
-}
-
-.step4-intervention .prefs-toggle-btn:focus,
-.step4-intervention .prefs-toggle-btn:hover {
-  background: #1848c4;
 }
 
 .step4-intervention .prefs-toggle-icon {
@@ -686,6 +681,7 @@ svg .vessel-path:hover {
   border: 1px solid rgba(17, 49, 149, 0.15);
   box-shadow: 0 12px 24px rgba(17, 49, 149, 0.12);
   width: min(100%, 760px);
+  text-align: center;
 }
 
 .step4-intervention .prefs-panel-title {
@@ -710,7 +706,14 @@ svg .vessel-path:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  justify-content: flex-start;
+  justify-content: center;
+}
+
+.step4-intervention .prefs-device-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .step4-intervention .device-button--compact {
@@ -718,6 +721,7 @@ svg .vessel-path:hover {
   height: 72px;
   border-radius: 12px;
   padding: 0.35rem;
+  text-align: center;
 }
 
 .step4-intervention .device-button--compact img {
@@ -730,26 +734,61 @@ svg .vessel-path:hover {
   font-size: 0.65rem;
 }
 
+.step4-intervention .device-button--compact .device-button-label {
+  font-size: 0.65rem;
+  line-height: 1.1;
+}
+
+.step4-intervention .device-button--compact .device-button-subtitle {
+  font-size: 0.55rem;
+  color: #4b5b91;
+  line-height: 1.1;
+}
+
 .step4-intervention .device-button--compact.is-selected {
   border: 2px solid #113195;
   box-shadow: 0 0 0 3px rgba(17, 49, 149, 0.15);
   background: #eaf0ff;
 }
 
+.step4-intervention .prefs-slot-add,
+.step4-intervention .prefs-slot-remove {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  line-height: 1;
+  background: #113195;
+  color: #fff;
+}
+
+.step4-intervention .prefs-slot-add {
+  right: -4px;
+  bottom: -4px;
+}
+
+.step4-intervention .prefs-slot-remove {
+  right: -4px;
+  top: -4px;
+  background: #0f2c86;
+}
+
 .step4-intervention .prefs-actions {
   margin-top: 1.25rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .step4-intervention .prefs-save-btn {
-  padding: 0.5rem 1.25rem;
-  background: #113195;
-  color: #fff;
-  border: none;
+  padding: 0.35rem 1rem;
+  font-size: 0.9rem;
   border-radius: 999px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 .row-inner {
@@ -931,6 +970,18 @@ svg .vessel-path:hover {
 .device-button span {
   font-size: 0.75rem;
   color: #113195;
+}
+
+.device-button-label {
+  font-size: 0.75rem;
+  color: #113195;
+  text-align: center;
+}
+
+.device-button-subtitle {
+  font-size: 0.65rem;
+  color: #4b5b91;
+  text-align: center;
 }
 
 .circle-btn {
