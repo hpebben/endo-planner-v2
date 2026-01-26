@@ -645,6 +645,113 @@ svg .vessel-path:hover {
   margin-bottom: 2rem;
 }
 
+.step4-intervention .intervention-preferences {
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  margin: 1.5rem 0 0;
+}
+
+.step4-intervention .prefs-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: #1f5eff;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(17, 49, 149, 0.2);
+}
+
+.step4-intervention .prefs-toggle-btn:focus,
+.step4-intervention .prefs-toggle-btn:hover {
+  background: #1848c4;
+}
+
+.step4-intervention .prefs-toggle-icon {
+  font-size: 1rem;
+}
+
+.step4-intervention .prefs-panel {
+  position: relative;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: #f6f8ff;
+  border: 1px solid rgba(17, 49, 149, 0.15);
+  box-shadow: 0 12px 24px rgba(17, 49, 149, 0.12);
+  width: min(100%, 760px);
+}
+
+.step4-intervention .prefs-panel-title {
+  font-weight: 600;
+  color: #113195;
+  margin-bottom: 1rem;
+}
+
+.step4-intervention .prefs-close-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #113195;
+}
+
+.step4-intervention .prefs-device-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-start;
+}
+
+.step4-intervention .device-button--compact {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  padding: 0.35rem;
+}
+
+.step4-intervention .device-button--compact img {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 0.2rem;
+}
+
+.step4-intervention .device-button--compact span {
+  font-size: 0.65rem;
+}
+
+.step4-intervention .device-button--compact.is-selected {
+  border: 2px solid #113195;
+  box-shadow: 0 0 0 3px rgba(17, 49, 149, 0.15);
+  background: #eaf0ff;
+}
+
+.step4-intervention .prefs-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.step4-intervention .prefs-save-btn {
+  padding: 0.5rem 1.25rem;
+  background: #113195;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .row-inner {
   flex: 1;
   display: flex;
@@ -1068,6 +1175,11 @@ svg .vessel-path:hover {
   gap: 0.5rem;
   margin-top: 0;
   z-index: 10;
+}
+
+.inline-device-select--open .device-dropdown {
+  position: static;
+  margin-top: 0.75rem;
 }
 
 /* Case summary layout */

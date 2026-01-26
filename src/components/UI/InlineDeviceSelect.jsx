@@ -9,14 +9,23 @@ export default function InlineDeviceSelect({
   onChange,
   buttonLabel = __('Choose', 'endoplanner'),
   image,
+  showButton = true,
+  alwaysOpen = false,
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(alwaysOpen);
   const containerRef = useRef(null);
   const baseOptions = options.filter((o) => o !== 'Custom');
   const hasCustom = options.includes('Custom');
   const isKnown = baseOptions.includes(value);
   const [selection, setSelection] = useState(isKnown ? value : hasCustom && value ? 'Custom' : '');
   const [customText, setCustomText] = useState(isKnown ? '' : value || '');
+  const isOpen = alwaysOpen || open;
+
+  useEffect(() => {
+    if (alwaysOpen) {
+      setOpen(true);
+    }
+  }, [alwaysOpen]);
 
   useEffect(() => {
     const known = baseOptions.includes(value);
@@ -25,7 +34,7 @@ export default function InlineDeviceSelect({
   }, [value, baseOptions, hasCustom]);
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || alwaysOpen) return undefined;
     const handle = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setOpen(false);
@@ -41,7 +50,9 @@ export default function InlineDeviceSelect({
       if (!customText) onChange('');
     } else {
       onChange(val);
-      setOpen(false);
+      if (!alwaysOpen) {
+        setOpen(false);
+      }
     }
   };
 
@@ -53,16 +64,21 @@ export default function InlineDeviceSelect({
   const label = value || buttonLabel;
 
   return (
-    <div className="inline-device-select" ref={containerRef}>
-      <button
-        type="button"
-        className="device-button"
-        onClick={() => setOpen((o) => !o)}
-      >
-        {image && <img src={image} alt="" />}
-        <span>{label}</span>
-      </button>
-      {open && (
+    <div
+      className={`inline-device-select${alwaysOpen ? ' inline-device-select--open' : ''}`}
+      ref={containerRef}
+    >
+      {showButton && (
+        <button
+          type="button"
+          className="device-button"
+          onClick={() => setOpen((o) => !o)}
+        >
+          {image && <img src={image} alt="" />}
+          <span>{label}</span>
+        </button>
+      )}
+      {isOpen && (
         <div className="device-dropdown">
           <SegmentedControl
             options={[...baseOptions.map((v) => ({ label: v, value: v })), ...(hasCustom ? [{ label: __('Custom', 'endoplanner'), value: 'Custom' }] : [])]}
@@ -91,4 +107,6 @@ InlineDeviceSelect.propTypes = {
   onChange: PropTypes.func.isRequired,
   buttonLabel: PropTypes.string,
   image: PropTypes.string,
+  showButton: PropTypes.bool,
+  alwaysOpen: PropTypes.bool,
 };
