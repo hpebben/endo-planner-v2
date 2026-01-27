@@ -1240,27 +1240,6 @@ export default function Step4({ data, setData }) {
                   const showAdd = true;
                   return (
                     <div className="prefs-device-slot" key={`${device.key}-${slot.id}`}>
-                      <DeviceButton
-                        label={device.label}
-                        subtitle={label || __('Choose', 'endoplanner')}
-                        img={device.img}
-                        onClick={(event) => openPreferencePicker(device.key, slot.id, event)}
-                        className={`device-button--compact planner-nav-btn prefs-device-button${label ? ' is-selected' : ''}`}
-                        isSelected={Boolean(label)}
-                      />
-                      {showAdd && (
-                        <button
-                          type="button"
-                          className="planner-nav-btn prefs-slot-add"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            addPreferenceSlot(device.key);
-                          }}
-                          aria-label={__('Add preference', 'endoplanner')}
-                        >
-                          +
-                        </button>
-                      )}
                       {prefsData[device.key].length > 1 && (
                         <button
                           type="button"
@@ -1271,7 +1250,28 @@ export default function Step4({ data, setData }) {
                           }}
                           aria-label={__('Remove preference', 'endoplanner')}
                         >
-                          &times;
+                          &minus;
+                        </button>
+                      )}
+                      <DeviceButton
+                        label={device.label}
+                        subtitle={label || __('Choose', 'endoplanner')}
+                        img={device.img}
+                        onClick={(event) => openPreferencePicker(device.key, slot.id, event)}
+                        className={`device-button--compact prefs-device-button${label ? ' is-selected' : ''}`}
+                        isSelected={Boolean(label)}
+                      />
+                      {showAdd && (
+                        <button
+                          type="button"
+                          className="prefs-slot-add"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            addPreferenceSlot(device.key);
+                          }}
+                          aria-label={__('Add preference', 'endoplanner')}
+                        >
+                          +
                         </button>
                       )}
                     </div>

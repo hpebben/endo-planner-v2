@@ -664,6 +664,8 @@ svg .vessel-path:hover {
   display: flex;
   justify-content: center;
   width: 100%;
+  border-bottom: none;
+  box-shadow: none;
 }
 
 .endo-wizard .step4-intervention .prefs-toggle-btn {
@@ -717,16 +719,17 @@ svg .vessel-path:hover {
 }
 
 .endo-wizard .step4-intervention .prefs-device-slot {
-  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
 }
 
 .endo-wizard .step4-intervention .device-button--compact {
   width: 72px;
   height: 72px;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 0.35rem;
   text-align: center;
 }
@@ -748,59 +751,47 @@ svg .vessel-path:hover {
 
 .endo-wizard .step4-intervention .device-button--compact .device-button-subtitle {
   font-size: 0.55rem;
-  color: rgba(255, 255, 255, 0.8);
   line-height: 1.1;
-}
-
-.endo-wizard .step4-intervention .prefs-device-slot .device-button.planner-nav-btn {
-  background: var(--planner-nav-bg);
-  border: 1px solid var(--planner-nav-border);
-  box-shadow: var(--planner-nav-shadow);
-}
-
-.endo-wizard .step4-intervention .prefs-device-slot .device-button.planner-nav-btn:hover,
-.endo-wizard .step4-intervention .prefs-device-slot .device-button.planner-nav-btn:focus-visible {
-  background: var(--planner-nav-bg-hover);
-  box-shadow: var(--planner-nav-shadow-hover);
-}
-
-.endo-wizard .step4-intervention .prefs-device-slot .device-button.planner-nav-btn span {
-  color: #fff;
-}
-
-.endo-wizard .step4-intervention .device-button--compact.is-selected {
-  border: 2px solid var(--planner-nav-border);
-  box-shadow: 0 0 0 3px rgba(17, 49, 149, 0.15);
-  background: var(--planner-nav-bg-hover);
 }
 
 .endo-wizard .step4-intervention .prefs-slot-add,
 .endo-wizard .step4-intervention .prefs-slot-remove {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
   border: 1px solid var(--planner-nav-border);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   line-height: 1;
-  color: #fff;
   padding: 0;
+  margin: 0;
+  box-shadow: none;
 }
 
 .endo-wizard .step4-intervention .prefs-slot-add {
-  right: 4px;
-  bottom: 4px;
-  background: var(--planner-nav-bg);
+  background: transparent;
+  color: var(--planner-nav-bg);
+  padding: 0;
 }
 
 .endo-wizard .step4-intervention .prefs-slot-remove {
-  right: 4px;
-  top: 4px;
-  background: var(--planner-nav-bg-hover);
+  background: transparent;
+  color: var(--planner-nav-border);
+}
+
+.endo-wizard .step4-intervention .prefs-slot-add:hover,
+.endo-wizard .step4-intervention .prefs-slot-add:focus-visible,
+.endo-wizard .step4-intervention .prefs-slot-remove:hover,
+.endo-wizard .step4-intervention .prefs-slot-remove:focus-visible {
+  background: var(--planner-nav-focus);
+  color: var(--planner-nav-bg);
+}
+
+.endo-wizard .step4-intervention .intervention-preferences hr {
+  display: none;
 }
 
 .endo-wizard .step4-intervention .prefs-actions {
