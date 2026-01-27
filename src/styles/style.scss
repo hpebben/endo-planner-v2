@@ -197,6 +197,12 @@
     flex-direction: column;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif;
+    --planner-nav-bg: #113195;
+    --planner-nav-bg-hover: #0f2c86;
+    --planner-nav-border: #0f2c86;
+    --planner-nav-shadow: 0 6px 12px rgba(17, 49, 149, 0.2);
+    --planner-nav-shadow-hover: 0 8px 16px rgba(17, 49, 149, 0.28);
+    --planner-nav-focus: rgba(17, 49, 149, 0.35);
 }
 
 .wizard-content {
@@ -219,24 +225,24 @@
   margin: 0.5rem;
 }
 .endo-wizard .planner-nav-btn {
-  background: #113195;
-  border: 1px solid #0f2c86;
+  background: var(--planner-nav-bg);
+  border: 1px solid var(--planner-nav-border);
   border-radius: 6px;
   color: #fff;
   font-size: 1rem;
   font-weight: 600;
   padding: 0.75rem 1.75rem;
-  box-shadow: 0 6px 12px rgba(17, 49, 149, 0.2);
+  box-shadow: var(--planner-nav-shadow);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 .endo-wizard .planner-nav-btn:hover,
 .endo-wizard .planner-nav-btn:focus-visible {
-  background: #0f2c86;
-  box-shadow: 0 8px 16px rgba(17, 49, 149, 0.28);
+  background: var(--planner-nav-bg-hover);
+  box-shadow: var(--planner-nav-shadow-hover);
   transform: translateY(-1px);
 }
 .endo-wizard .planner-nav-btn:focus-visible {
-  outline: 3px solid rgba(17, 49, 149, 0.35);
+  outline: 3px solid var(--planner-nav-focus);
   outline-offset: 2px;
 }
 .endo-wizard .planner-nav-btn:disabled {
@@ -645,7 +651,7 @@ svg .vessel-path:hover {
   margin-bottom: 2rem;
 }
 
-.step4-intervention .intervention-preferences {
+.endo-wizard .step4-intervention .intervention-preferences {
   display: flex;
   justify-content: center;
   flex-direction: column;
@@ -654,13 +660,13 @@ svg .vessel-path:hover {
   margin: 1.5rem 0 0;
 }
 
-.step4-intervention .prefs-toggle-row {
+.endo-wizard .step4-intervention .prefs-toggle-row {
   display: flex;
   justify-content: center;
   width: 100%;
 }
 
-.step4-intervention .prefs-toggle-btn {
+.endo-wizard .step4-intervention .prefs-toggle-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -668,11 +674,11 @@ svg .vessel-path:hover {
   border-radius: 999px;
 }
 
-.step4-intervention .prefs-toggle-icon {
+.endo-wizard .step4-intervention .prefs-toggle-icon {
   font-size: 1rem;
 }
 
-.step4-intervention .prefs-panel {
+.endo-wizard .step4-intervention .prefs-panel {
   position: relative;
   margin-top: 1rem;
   padding: 1.5rem;
@@ -684,13 +690,13 @@ svg .vessel-path:hover {
   text-align: center;
 }
 
-.step4-intervention .prefs-panel-title {
+.endo-wizard .step4-intervention .prefs-panel-title {
   font-weight: 600;
-  color: #113195;
+  color: var(--planner-nav-bg);
   margin-bottom: 1rem;
 }
 
-.step4-intervention .prefs-close-btn {
+.endo-wizard .step4-intervention .prefs-close-btn {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
@@ -699,24 +705,25 @@ svg .vessel-path:hover {
   font-size: 1.4rem;
   line-height: 1;
   cursor: pointer;
-  color: #113195;
+  color: var(--planner-nav-bg);
 }
 
-.step4-intervention .prefs-device-grid {
+.endo-wizard .step4-intervention .prefs-device-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   justify-content: center;
+  align-items: center;
 }
 
-.step4-intervention .prefs-device-slot {
+.endo-wizard .step4-intervention .prefs-device-slot {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.step4-intervention .device-button--compact {
+.endo-wizard .step4-intervention .device-button--compact {
   width: 72px;
   height: 72px;
   border-radius: 12px;
@@ -724,68 +731,85 @@ svg .vessel-path:hover {
   text-align: center;
 }
 
-.step4-intervention .device-button--compact img {
+.endo-wizard .step4-intervention .device-button--compact img {
   width: 36px;
   height: 36px;
   margin-bottom: 0.2rem;
 }
 
-.step4-intervention .device-button--compact span {
+.endo-wizard .step4-intervention .device-button--compact span {
   font-size: 0.65rem;
 }
 
-.step4-intervention .device-button--compact .device-button-label {
+.endo-wizard .step4-intervention .device-button--compact .device-button-label {
   font-size: 0.65rem;
   line-height: 1.1;
 }
 
-.step4-intervention .device-button--compact .device-button-subtitle {
+.endo-wizard .step4-intervention .device-button--compact .device-button-subtitle {
   font-size: 0.55rem;
-  color: #4b5b91;
+  color: rgba(255, 255, 255, 0.8);
   line-height: 1.1;
 }
 
-.step4-intervention .device-button--compact.is-selected {
-  border: 2px solid #113195;
-  box-shadow: 0 0 0 3px rgba(17, 49, 149, 0.15);
-  background: #eaf0ff;
+.endo-wizard .step4-intervention .prefs-device-slot .device-button.planner-nav-btn {
+  background: var(--planner-nav-bg);
+  border: 1px solid var(--planner-nav-border);
+  box-shadow: var(--planner-nav-shadow);
 }
 
-.step4-intervention .prefs-slot-add,
-.step4-intervention .prefs-slot-remove {
+.endo-wizard .step4-intervention .prefs-device-slot .device-button.planner-nav-btn:hover,
+.endo-wizard .step4-intervention .prefs-device-slot .device-button.planner-nav-btn:focus-visible {
+  background: var(--planner-nav-bg-hover);
+  box-shadow: var(--planner-nav-shadow-hover);
+}
+
+.endo-wizard .step4-intervention .prefs-device-slot .device-button.planner-nav-btn span {
+  color: #fff;
+}
+
+.endo-wizard .step4-intervention .device-button--compact.is-selected {
+  border: 2px solid var(--planner-nav-border);
+  box-shadow: 0 0 0 3px rgba(17, 49, 149, 0.15);
+  background: var(--planner-nav-bg-hover);
+}
+
+.endo-wizard .step4-intervention .prefs-slot-add,
+.endo-wizard .step4-intervention .prefs-slot-remove {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: none;
+  border: 1px solid var(--planner-nav-border);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1;
-  background: #113195;
   color: #fff;
+  padding: 0;
 }
 
-.step4-intervention .prefs-slot-add {
-  right: -4px;
-  bottom: -4px;
+.endo-wizard .step4-intervention .prefs-slot-add {
+  right: 4px;
+  bottom: 4px;
+  background: var(--planner-nav-bg);
 }
 
-.step4-intervention .prefs-slot-remove {
-  right: -4px;
-  top: -4px;
-  background: #0f2c86;
+.endo-wizard .step4-intervention .prefs-slot-remove {
+  right: 4px;
+  top: 4px;
+  background: var(--planner-nav-bg-hover);
 }
 
-.step4-intervention .prefs-actions {
+.endo-wizard .step4-intervention .prefs-actions {
   margin-top: 1.25rem;
   display: flex;
   justify-content: center;
 }
 
-.step4-intervention .prefs-save-btn {
+.endo-wizard .step4-intervention .prefs-save-btn {
   padding: 0.35rem 1rem;
   font-size: 0.9rem;
   border-radius: 999px;

@@ -77,6 +77,12 @@ const setCookieValue = (name, value, days) => {
   document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; SameSite=Lax`;
 };
 
+const debugLog = (...args) => {
+  if (typeof window !== 'undefined' && window.PLANNER_DEBUG) {
+    console.debug('[Planner Debug]', ...args);
+  }
+};
+
 // Simple utility to generate unique ids for dynamic rows
 const uid = () => Math.random().toString(36).substr(2, 9);
 
@@ -1107,8 +1113,11 @@ export default function Step4({ data, setData }) {
           }
         });
         setPrefsData(legacyPrefs);
+        debugLog('Loaded legacy preference cookie', legacyPrefs);
       } else {
-        setPrefsData(normalizePreferences(parsed));
+        const normalized = normalizePreferences(parsed);
+        setPrefsData(normalized);
+        debugLog('Loaded preference cookie', normalized);
       }
     } catch (err) {
       console.warn('[Prefs] Unable to parse cookie', err);
@@ -1142,11 +1151,13 @@ export default function Step4({ data, setData }) {
       return acc;
     }, {});
     setCookieValue(PREFS_COOKIE_NAME, JSON.stringify(serialized), PREFS_COOKIE_DAYS);
+    debugLog('Saved preference cookie', serialized);
     setPrefsOpen(false);
   };
 
   const updatePreferenceSlot = (typeKey, slotId, value) => {
     if (!slotId) return;
+    debugLog('Preference slot updated', { typeKey, slotId, value });
     setPrefsData((prev) => ({
       ...prev,
       [typeKey]: prev[typeKey].map((slot) =>
@@ -1157,6 +1168,7 @@ export default function Step4({ data, setData }) {
 
   const addPreferenceSlot = (typeKey) => {
     // Multi-slot behavior for preference devices (e.g., multiple wires).
+    debugLog('Added preference slot', { typeKey });
     setPrefsData((prev) => ({
       ...prev,
       [typeKey]: [...(prev[typeKey] || []), { id: uid(), value: null }],
@@ -1171,10 +1183,12 @@ export default function Step4({ data, setData }) {
         [typeKey]: nextSlots.length ? nextSlots : [{ id: uid(), value: null }],
       };
     });
+    debugLog('Removed preference slot', { typeKey, slotId });
   };
 
   const openPreferencePicker = (typeKey, slotId, event) => {
     // Map preference buttons to the same selector popups used in the main workflow.
+    debugLog('Preference slot clicked', { typeKey, slotId });
     setPrefsPicker({
       typeKey,
       slotId,
@@ -1223,7 +1237,7 @@ export default function Step4({ data, setData }) {
               {preferenceTypes.map((device) =>
                 (prefsData[device.key] || []).map((slot, index) => {
                   const label = getPreferenceLabel(device.key, slot.value);
-                  const showAdd = device.allowsMultiple && index === prefsData[device.key].length - 1;
+                  const showAdd = true;
                   return (
                     <div className="prefs-device-slot" key={`${device.key}-${slot.id}`}>
                       <DeviceButton
@@ -1231,13 +1245,13 @@ export default function Step4({ data, setData }) {
                         subtitle={label || __('Choose', 'endoplanner')}
                         img={device.img}
                         onClick={(event) => openPreferencePicker(device.key, slot.id, event)}
-                        className={`device-button--compact${label ? ' is-selected' : ''}`}
+                        className={`device-button--compact planner-nav-btn prefs-device-button${label ? ' is-selected' : ''}`}
                         isSelected={Boolean(label)}
                       />
                       {showAdd && (
                         <button
                           type="button"
-                          className="prefs-slot-add"
+                          className="planner-nav-btn prefs-slot-add"
                           onClick={(event) => {
                             event.stopPropagation();
                             addPreferenceSlot(device.key);
