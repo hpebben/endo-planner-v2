@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import VesselMap from '../VesselMap';
 import ParameterPopup from '../UI/ParameterPopup';
-import { useBlockProps } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
 import rawVesselData from '../../assets/vessel-map.json';
 
@@ -16,7 +15,6 @@ const vesselSegments = parseVesselData(rawVesselData) || [];
 export { vesselSegments };
 
 export default function Step2_Patency({ data, setData }) {
-  const blockProps = useBlockProps();
   const [tooltip, setTooltip] = useState(null);
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const tooltipRef = useRef(null);
@@ -103,7 +101,7 @@ export default function Step2_Patency({ data, setData }) {
   };
 
   return (
-    <div {...blockProps} className="step2-patency">
+    <div className="step2-patency">
       <div className="patency-container">
         <div className="vessel-column">
           <div className="svg-wrapper patency-svg vessel-map-wrapper">
