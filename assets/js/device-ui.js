@@ -1,4 +1,11 @@
 (function () {
+  const plannerDebug = typeof window !== 'undefined' && window.PLANNER_DEBUG === true;
+  if (plannerDebug && typeof console !== 'undefined' && console.log) {
+    console.log('[PlannerBoot] entrypoint loaded', {
+      file: 'assets/js/device-ui.js',
+      buildStamp: window.EndoPlannerV2Build?.git || window.EndoPlannerV2Build?.version || 'unknown',
+    });
+  }
   window.EndoPlannerV2 = window.EndoPlannerV2 || {};
   const namespace = window.EndoPlannerV2;
 
@@ -359,12 +366,33 @@
     });
   };
 
+  const safeInit = () => {
+    if (plannerDebug && typeof console !== 'undefined' && console.log) {
+      console.log('[PlannerBoot] before mount', {
+        file: 'assets/js/device-ui.js',
+        buildStamp: `${pluginVersion}-${gitHash}`,
+      });
+    }
+    try {
+      bindNewCaseTriggers();
+      bindDeviceTriggers();
+      if (plannerDebug && typeof console !== 'undefined' && console.log) {
+        console.log('[PlannerBoot] after mount', {
+          file: 'assets/js/device-ui.js',
+          buildStamp: `${pluginVersion}-${gitHash}`,
+        });
+      }
+    } catch (error) {
+      if (typeof console !== 'undefined' && console.error) {
+        console.error('[PlannerBoot] device-ui init failed', error);
+      }
+    }
+  };
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindNewCaseTriggers);
-    document.addEventListener('DOMContentLoaded', bindDeviceTriggers);
+    document.addEventListener('DOMContentLoaded', safeInit);
   } else {
-    bindNewCaseTriggers();
-    bindDeviceTriggers();
+    safeInit();
   }
 
   const installDeprecatedShim = (name, fn) => {
