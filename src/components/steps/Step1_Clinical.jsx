@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
-import { useBlockProps } from '@wordpress/block-editor';
 import SegmentedControl from '../UI/SegmentedControl';
 
 const stageOptions = [
@@ -34,7 +33,6 @@ const wifiDescriptions = {
 };
 
 export default function Step1({ data, setData }) {
-  const blockProps = useBlockProps({ className: 'clinical-center' });
   const [wound, setWound] = useState(data.clinical?.wound ?? 0);
   const [ischemia, setIschemia] = useState(data.clinical?.ischemia ?? 0);
   const [infection, setInfection] = useState(data.clinical?.infection ?? 0);
@@ -56,7 +54,7 @@ export default function Step1({ data, setData }) {
   };
 
   return (
-    <div {...blockProps}>
+    <div className="clinical-center">
       <h2 className="section-title">{__('Stage', 'endoplanner')}</h2>
       <p className="section-subtitle">
         {__('Stage I\u2013IV based on Fontaine classification', 'endoplanner')}

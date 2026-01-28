@@ -1,4 +1,11 @@
 (function () {
+  const plannerDebug = typeof window !== 'undefined' && window.PLANNER_DEBUG === true;
+  if (plannerDebug && typeof console !== 'undefined' && console.log) {
+    console.log('[PlannerBoot] entrypoint loaded', {
+      file: 'assets/js/intervention-planning.js',
+      buildStamp: window.EndoPlannerV2Build?.git || window.EndoPlannerV2Build?.version || 'unknown',
+    });
+  }
   if (window.__ENDO_INTERVENTION_BOOTED__) {
     return;
   }
@@ -1694,15 +1701,37 @@
     initPatencySegments();
   };
 
+  const safeInit = () => {
+    if (plannerDebug && typeof console !== 'undefined' && console.log) {
+      console.log('[PlannerBoot] before mount', {
+        file: 'assets/js/intervention-planning.js',
+        buildStamp: PREFS_UI_BUILD_STAMP,
+      });
+    }
+    try {
+      init();
+      if (plannerDebug && typeof console !== 'undefined' && console.log) {
+        console.log('[PlannerBoot] after mount', {
+          file: 'assets/js/intervention-planning.js',
+          buildStamp: PREFS_UI_BUILD_STAMP,
+        });
+      }
+    } catch (error) {
+      if (typeof console !== 'undefined' && console.error) {
+        console.error('[PlannerBoot] intervention init failed', error);
+      }
+    }
+  };
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', safeInit);
   } else {
-    init();
+    safeInit();
   }
 
   if (window.elementorFrontend && window.elementorFrontend.hooks) {
     window.elementorFrontend.hooks.addAction('frontend/element_ready/global', () => {
-      init();
+      safeInit();
     });
   }
 

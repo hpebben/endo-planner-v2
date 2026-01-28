@@ -1,4 +1,11 @@
 (function () {
+  const plannerDebug = typeof window !== 'undefined' && window.PLANNER_DEBUG === true;
+  if (plannerDebug && typeof console !== 'undefined' && console.log) {
+    console.log('[PlannerBoot] entrypoint loaded', {
+      file: 'assets/js/patency-ui.js',
+      buildStamp: window.EndoPlannerV2Build?.git || window.EndoPlannerV2Build?.version || 'unknown',
+    });
+  }
   if (window.__ENDO_PATENCY_UI_BOOTED__) {
     return;
   }
@@ -799,9 +806,31 @@
     observer.observe(document.body, { childList: true, subtree: true });
   };
 
+  const safeStart = () => {
+    if (plannerDebug && typeof console !== 'undefined' && console.log) {
+      console.log('[PlannerBoot] before mount', {
+        file: 'assets/js/patency-ui.js',
+        buildStamp: `${pluginVersion}-${gitHash}`,
+      });
+    }
+    try {
+      start();
+      if (plannerDebug && typeof console !== 'undefined' && console.log) {
+        console.log('[PlannerBoot] after mount', {
+          file: 'assets/js/patency-ui.js',
+          buildStamp: `${pluginVersion}-${gitHash}`,
+        });
+      }
+    } catch (error) {
+      if (typeof console !== 'undefined' && console.error) {
+        console.error('[PlannerBoot] patency init failed', error);
+      }
+    }
+  };
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start);
+    document.addEventListener('DOMContentLoaded', safeStart);
   } else {
-    start();
+    safeStart();
   }
 })();
