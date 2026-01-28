@@ -1237,45 +1237,50 @@ export default function Step4({ data, setData }) {
             <div className="prefs-panel-title">{__('Select preferred devices', 'endoplanner')}</div>
             <div className="prefs-device-grid">
               {preferenceTypes.map((device) =>
-                (prefsData[device.key] || []).map((slot, index) => {
+                (prefsData[device.key] || []).map((slot) => {
                   const label = getPreferenceLabel(device.key, slot.value);
                   const showAdd = true;
                   return (
                     <div className="prefs-device-slot" key={`${device.key}-${slot.id}`}>
-                      {prefsData[device.key].length > 1 && (
-                        <button
-                          type="button"
-                          className="prefs-slot-remove"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            removePreferenceSlot(device.key, slot.id);
-                          }}
-                          aria-label={__('Remove preference', 'endoplanner')}
-                        >
-                          &minus;
-                        </button>
-                      )}
-                      <DeviceButton
-                        label={device.label}
-                        subtitle={label || __('Choose', 'endoplanner')}
-                        img={device.img}
-                        onClick={(event) => openPreferencePicker(device.key, slot.id, event)}
-                        className={`device-button--compact prefs-device-button${label ? ' is-selected' : ''}`}
-                        isSelected={Boolean(label)}
-                      />
-                      {showAdd && (
-                        <button
-                          type="button"
-                          className="prefs-slot-add"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            addPreferenceSlot(device.key);
-                          }}
-                          aria-label={__('Add preference', 'endoplanner')}
-                        >
-                          +
-                        </button>
-                      )}
+                      <div className="prefs-slot-button-wrapper">
+                        {prefsData[device.key].length > 1 && (
+                          <button
+                            type="button"
+                            className="prefs-slot-remove"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              removePreferenceSlot(device.key, slot.id);
+                            }}
+                            aria-label={__('Remove preference', 'endoplanner')}
+                          >
+                            &minus;
+                          </button>
+                        )}
+                        <DeviceButton
+                          label={device.label}
+                          subtitle=""
+                          img={device.img}
+                          onClick={(event) => openPreferencePicker(device.key, slot.id, event)}
+                          className={`device-button--compact prefs-device-button${label ? ' is-selected' : ''}`}
+                          isSelected={Boolean(label)}
+                        />
+                        {showAdd && (
+                          <button
+                            type="button"
+                            className="prefs-slot-add"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              addPreferenceSlot(device.key);
+                            }}
+                            aria-label={__('Add preference', 'endoplanner')}
+                          >
+                            +
+                          </button>
+                        )}
+                      </div>
+                      <div className="prefs-slot-description">
+                        {label || __('Choose', 'endoplanner')}
+                      </div>
                     </div>
                   );
                 }),
@@ -1285,9 +1290,6 @@ export default function Step4({ data, setData }) {
               <button type="button" className="planner-nav-btn prefs-save-btn" onClick={handleSavePreferences}>
                 {__('Save setup', 'endoplanner')}
               </button>
-            </div>
-            <div className="prefs-footer">
-              {__('Prefs UI build:', 'endoplanner')} {PREFS_UI_BUILD_STAMP}
             </div>
           </div>
         )}
