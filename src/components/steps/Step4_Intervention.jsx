@@ -26,6 +26,8 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
+const PREFS_UI_BUILD_STAMP = '2026-01-27-1900';
+
 const closureDeviceOptions = [
   '6F AngioSeal',
   '8F AngioSeal',
@@ -1283,6 +1285,9 @@ export default function Step4({ data, setData }) {
               <button type="button" className="planner-nav-btn prefs-save-btn" onClick={handleSavePreferences}>
                 {__('Save setup', 'endoplanner')}
               </button>
+            </div>
+            <div className="prefs-footer">
+              {__('Prefs UI build:', 'endoplanner')} {PREFS_UI_BUILD_STAMP}
             </div>
           </div>
         )}
