@@ -168,10 +168,68 @@ const shortLabel = (type, obj) => {
   }
 };
 
+const getDisplayLabel = (obj) => {
+  if (!obj || typeof obj !== 'object') return '';
+  return obj.label || obj.name || obj.title || obj.displayLabel || '';
+};
+
+const joinPreferenceParts = (parts) =>
+  parts
+    .map((part) => (typeof part === 'string' ? part.trim() : part))
+    .filter((part) => part && String(part).trim().length > 0)
+    .join(' • ');
+
+const formatWireLabel = (value) => {
+  const size = value.platform || '';
+  const length = value.length || '';
+  const type = value.type || '';
+  const product = value.product && value.product !== 'none' ? value.product : '';
+  const modifierParts = [value.technique, value.body, value.support].filter(Boolean);
+  const productParts = [];
+  if (type) productParts.push(type);
+  if (product && product !== type) productParts.push(product);
+  return joinPreferenceParts([size, length, ...productParts, ...modifierParts]);
+};
+
+const formatBalloonLabel = (value) => {
+  const size = value.platform || '';
+  const diameter = value.diameter ? `${value.diameter}mm` : '';
+  const length = value.length ? `${value.length}mm` : '';
+  const shaft = value.shaft || '';
+  return joinPreferenceParts([size, diameter, length, shaft]);
+};
+
+const formatStentLabel = (value) => {
+  const size = value.platform || '';
+  const diameter = value.diameter ? `${value.diameter}mm` : '';
+  const length = value.length ? `${value.length}mm` : '';
+  const type = value.type || '';
+  const material = value.material || '';
+  const shaft = value.shaft || '';
+  return joinPreferenceParts([size, diameter, length, type, material, shaft]);
+};
+
 const getPreferenceLabel = (type, value) => {
   if (!value) return '';
   if (typeof value === 'string') return value;
-  return shortLabel(type, value);
+  const displayLabel = getDisplayLabel(value);
+  if (displayLabel) return displayLabel;
+  switch (type) {
+    case 'needle':
+      return joinPreferenceParts([value.size, value.length]);
+    case 'sheath':
+      return joinPreferenceParts([value.frSize, value.length]);
+    case 'catheter':
+      return joinPreferenceParts([value.specific, value.frSize, value.length]);
+    case 'wire':
+      return formatWireLabel(value);
+    case 'balloon':
+      return formatBalloonLabel(value);
+    case 'stent':
+      return formatStentLabel(value);
+    default:
+      return summarize(value);
+  }
 };
 
 // Deserialize cookie payload into preference slots for the UI.
