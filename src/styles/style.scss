@@ -688,6 +688,8 @@ svg .vessel-path:hover {
   background: #f6f8ff;
   border: 1px solid rgba(17, 49, 149, 0.15);
   box-shadow: 0 12px 24px rgba(17, 49, 149, 0.12);
+  outline: 1px dashed rgba(17, 49, 149, 0.3);
+  outline-offset: 4px;
   width: min(100%, 760px);
   text-align: center;
 }
@@ -723,7 +725,7 @@ svg .vessel-path:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .endo-wizard .step4-intervention .device-button--compact {
@@ -752,42 +754,56 @@ svg .vessel-path:hover {
 .endo-wizard .step4-intervention .device-button--compact .device-button-subtitle {
   font-size: 0.55rem;
   line-height: 1.1;
+  color: #4b5b91;
+}
+
+.endo-wizard .step4-intervention .prefs-device-button {
+  background: #fff;
+  border: 1px solid #d7dff7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.endo-wizard .step4-intervention .prefs-device-button:hover {
+  background: #f0f4ff;
+}
+
+.endo-wizard .step4-intervention .device-button--compact.is-selected {
+  background: #fff;
+  border: 2px solid var(--planner-nav-border);
+  box-shadow: 0 0 0 3px rgba(17, 49, 149, 0.15);
 }
 
 .endo-wizard .step4-intervention .prefs-slot-add,
 .endo-wizard .step4-intervention .prefs-slot-remove {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 999px;
-  border: 1px solid var(--planner-nav-border);
+  border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   line-height: 1;
   padding: 0;
   margin: 0;
-  box-shadow: none;
+  background: var(--planner-nav-bg);
+  color: #fff;
 }
 
 .endo-wizard .step4-intervention .prefs-slot-add {
-  background: transparent;
-  color: var(--planner-nav-bg);
   padding: 0;
 }
 
 .endo-wizard .step4-intervention .prefs-slot-remove {
-  background: transparent;
-  color: var(--planner-nav-border);
+  background: var(--planner-nav-bg-hover);
 }
 
 .endo-wizard .step4-intervention .prefs-slot-add:hover,
 .endo-wizard .step4-intervention .prefs-slot-add:focus-visible,
 .endo-wizard .step4-intervention .prefs-slot-remove:hover,
 .endo-wizard .step4-intervention .prefs-slot-remove:focus-visible {
-  background: var(--planner-nav-focus);
-  color: var(--planner-nav-bg);
+  background: var(--planner-nav-bg-hover);
 }
 
 .endo-wizard .step4-intervention .intervention-preferences hr {
@@ -804,6 +820,12 @@ svg .vessel-path:hover {
   padding: 0.35rem 1rem;
   font-size: 0.9rem;
   border-radius: 999px;
+}
+
+.endo-wizard .step4-intervention .prefs-footer {
+  color: #5a6478;
+  font-size: 0.7rem;
+  margin-top: 0.75rem;
 }
 
 .row-inner {

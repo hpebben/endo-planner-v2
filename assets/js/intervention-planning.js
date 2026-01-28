@@ -7,12 +7,15 @@
   const buildSignature = window.EndoPlannerV2Build || window.EndoPlannerInterventionBuild || {};
   const buildVersion = buildSignature.version || 'unknown';
   const buildSha = buildSignature.git || 'unknown';
+  const PREFS_UI_BUILD_STAMP = '2026-01-27-1900';
+  window.EndoPlannerPrefsBuildStamp = PREFS_UI_BUILD_STAMP;
   if (!window.__ENDO_INTERVENTION_SIGNATURE_LOGGED__) {
     window.__ENDO_INTERVENTION_SIGNATURE_LOGGED__ = true;
     if (typeof console !== 'undefined') {
       console.info(
         `[EndoPlanner v2] intervention-planning loaded | v${buildVersion} | git ${buildSha}`
       );
+      console.log(`PREFS_UI_BUILD_STAMP: ${PREFS_UI_BUILD_STAMP}`);
     }
   }
 
@@ -1449,7 +1452,11 @@
   const clearPlannerStorage = () => {
     const clearMatching = (storage) => {
       Object.keys(storage).forEach((key) => {
-        if (key.endsWith('_data') || /^endoplanner/i.test(key)) {
+        if (
+          key.endsWith('_data') ||
+          /^endoplanner/i.test(key) ||
+          /^ENDOPLANNER_WIZARD_V1$/.test(key)
+        ) {
           storage.removeItem(key);
         }
       });
@@ -1464,6 +1471,56 @@
     } catch (error) {
       log('Unable to clear sessionStorage', error);
     }
+  };
+
+  const clearPlannerCookies = () => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const cookieKeys = document.cookie.split(';').map((entry) => entry.split('=')[0].trim());
+    cookieKeys.forEach((key) => {
+      if (!key) {
+        return;
+      }
+      if (/endo|planner/i.test(key)) {
+        document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      }
+    });
+  };
+
+  const collectPlannerStorage = () => {
+    const entries = {};
+    Object.keys(localStorage || {}).forEach((key) => {
+      if (key.endsWith('_data') || /endoplanner/i.test(key)) {
+        entries[key] = localStorage.getItem(key);
+      }
+    });
+    return entries;
+  };
+
+  const dumpPlannerState = () => {
+    const selectedButtons = Array.from(
+      document.querySelectorAll(
+        '.device-button.is-selected, .device-button[aria-pressed="true"], .device-button.active'
+      )
+    ).map((button) => button.textContent.trim());
+    const stateDump = {
+      buildStamp: PREFS_UI_BUILD_STAMP,
+      selectedButtons,
+      localStorage: collectPlannerStorage(),
+      sessionStorage: Object.keys(sessionStorage || {}).filter((key) =>
+        key.endsWith('_data') || /endoplanner/i.test(key)
+      ),
+      cookies: typeof document !== 'undefined' ? document.cookie : '',
+      wizardState: {
+        endoplannerState: localStorage.getItem('endoplannerState'),
+        wizardContext: localStorage.getItem('ENDOPLANNER_WIZARD_V1'),
+      },
+    };
+    if (typeof console !== 'undefined') {
+      console.log('[PlannerDebug] dumpState', stateDump);
+    }
+    return stateDump;
   };
 
   const resetFormElements = () => {
@@ -1515,6 +1572,7 @@
     state.lastResetAt = now;
     window.__ENDO_LAST_RESET_AT__ = now;
     clearPlannerStorage();
+    clearPlannerCookies();
     const clearedByElementor = typeof window.EndoPlannerV2?.clearCaseUI === 'function';
     if (clearedByElementor) {
       window.EndoPlannerV2.clearCaseUI();
@@ -1647,4 +1705,20 @@
       init();
     });
   }
+
+  window.PlannerDebug = {
+    dumpState: dumpPlannerState,
+    clearStorage: () => {
+      clearPlannerStorage();
+      clearPlannerCookies();
+      resetPlanner();
+      return true;
+    },
+    showBuildStamp: () => {
+      if (typeof console !== 'undefined') {
+        console.log(`Prefs UI build: ${PREFS_UI_BUILD_STAMP}`);
+      }
+      return PREFS_UI_BUILD_STAMP;
+    },
+  };
 })();
