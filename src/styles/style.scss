@@ -827,12 +827,21 @@ svg .vessel-path:hover {
   margin-top: 1.25rem;
   display: flex;
   justify-content: center;
+  gap: 0.6rem;
 }
 
 .endo-wizard .step4-intervention .prefs-save-btn {
   padding: 0.35rem 1rem;
   font-size: 0.9rem;
   border-radius: 999px;
+}
+
+.endo-wizard .step4-intervention .prefs-reset-btn {
+  padding: 0.3rem 0.9rem;
+  font-size: 0.82rem;
+  border-radius: 999px;
+  background: var(--planner-nav-bg);
+  color: #fff;
 }
 
 .endo-wizard .step4-intervention .prefs-slot-description {

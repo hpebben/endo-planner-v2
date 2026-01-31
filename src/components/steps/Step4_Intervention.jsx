@@ -66,6 +66,7 @@ const preferenceTypes = [
 
 const PREFS_COOKIE_NAME = 'planner_local_prefs';
 const PREFS_COOKIE_DAYS = 180;
+const PREFS_LOCAL_STORAGE_KEYS = [];
 
 const getCookieValue = (name) => {
   if (typeof document === 'undefined') return null;
@@ -77,6 +78,23 @@ const setCookieValue = (name, value, days) => {
   if (typeof document === 'undefined') return;
   const maxAge = days * 24 * 60 * 60;
   document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+};
+
+const clearLocalPreferencesPersistence = () => {
+  if (typeof document !== 'undefined') {
+    document.cookie = `${PREFS_COOKIE_NAME}=; max-age=0; path=/; SameSite=Lax`;
+    if (typeof window !== 'undefined' && window.location?.hostname) {
+      const hostname = window.location.hostname;
+      document.cookie = `${PREFS_COOKIE_NAME}=; max-age=0; path=/; domain=${hostname}; SameSite=Lax`;
+      document.cookie = `${PREFS_COOKIE_NAME}=; max-age=0; path=/; domain=.${hostname}; SameSite=Lax`;
+    }
+  }
+
+  if (typeof window !== 'undefined' && window.localStorage) {
+    PREFS_LOCAL_STORAGE_KEYS.forEach((key) => {
+      window.localStorage.removeItem(key);
+    });
+  }
 };
 
 const debugLog = (...args) => {
@@ -1215,6 +1233,13 @@ export default function Step4({ data, setData }) {
     setPrefsOpen(false);
   };
 
+  const handleResetPreferences = () => {
+    clearLocalPreferencesPersistence();
+    setPrefsData(createEmptyPreferences());
+    setPrefsPicker(null);
+    debugLog('Reset preference slots to defaults');
+  };
+
   const updatePreferenceSlot = (typeKey, slotId, value) => {
     if (!slotId) return;
     debugLog('Preference slot updated', { typeKey, slotId, value });
@@ -1345,6 +1370,9 @@ export default function Step4({ data, setData }) {
               )}
             </div>
             <div className="prefs-actions">
+              <button type="button" className="planner-nav-btn prefs-reset-btn" onClick={handleResetPreferences}>
+                {__('Reset setup', 'endoplanner')}
+              </button>
               <button type="button" className="planner-nav-btn prefs-save-btn" onClick={handleSavePreferences}>
                 {__('Save setup', 'endoplanner')}
               </button>
