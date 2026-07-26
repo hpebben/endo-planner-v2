@@ -19,10 +19,14 @@ const steps = [
 ];
 
 const hasValue = (value) => {
-  if (!value) return false;
+  if (value === null || value === undefined || value === '') return false;
   if (typeof value === 'string') return value.trim().length > 0;
   if (Array.isArray(value)) return value.some(hasValue);
-  if (typeof value === 'object') return Object.values(value).some(hasValue);
+  if (typeof value === 'object') {
+    return Object.entries(value)
+      .filter(([key]) => key !== 'id')
+      .some(([, nestedValue]) => hasValue(nestedValue));
+  }
   return true;
 };
 
