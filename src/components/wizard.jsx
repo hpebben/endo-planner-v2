@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DEFAULTS from './Defaults';
 import exportCaseSummaryToPDF from '../utils/exportCaseSummaryToPDF';
 import { __ } from '@wordpress/i18n';
@@ -7,9 +7,11 @@ import Step2 from './steps/Step2_Patency';
 import Step3 from './steps/Step4_Intervention';
 import Step4 from './steps/Step3_Summary';
 import { ProgressBar } from '@wordpress/components';
+import { getBlockingPlanFindings } from '../utils/planAnalysis';
+import { territoryFromVesselId } from '../utils/lesions';
 
 const STORAGE_KEY = 'endoplannerState';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 const steps = [
   { title: __('Clinical indication', 'endoplanner'), component: Step1 },
@@ -41,8 +43,17 @@ const validateStep = (step, data) => {
     }
   }
 
-  if (step === 1 && !Object.keys(data.patencySegments || {}).length) {
-    errors.push(__('Enter at least one affected arterial segment.', 'endoplanner'));
+  if (step === 1) {
+    const segmentIds = Object.keys(data.patencySegments || {});
+    if (!segmentIds.length) {
+      errors.push(__('Enter at least one affected arterial segment.', 'endoplanner'));
+    }
+    const hasInfrainguinalDisease = segmentIds.some((id) => (
+      ['femoropopliteal', 'infrapopliteal', 'pedal'].includes(territoryFromVesselId(id))
+    ));
+    if (hasInfrainguinalDisease && !(data.targetArterialPath || []).length) {
+      errors.push(__('Select the intended target arterial path.', 'endoplanner'));
+    }
   }
 
   if (step === 2) {
@@ -52,9 +63,10 @@ const validateStep = (step, data) => {
     if (!hasAccess) errors.push(__('Enter an access strategy.', 'endoplanner'));
     if (!hasNavigation) errors.push(__('Enter a navigation or crossing strategy.', 'endoplanner'));
     if (!hasTherapy) errors.push(__('Enter a vessel preparation or treatment strategy.', 'endoplanner'));
+    getBlockingPlanFindings(data).forEach((finding) => errors.push(finding.title));
   }
 
-  return errors;
+  return [...new Set(errors)];
 };
 
 export default function Wizard() {
@@ -68,11 +80,27 @@ export default function Wizard() {
 
     try {
       const parsed = JSON.parse(saved);
-      if (parsed.schemaVersion !== SCHEMA_VERSION) {
+      if (![2, SCHEMA_VERSION].includes(parsed.schemaVersion)) {
         localStorage.removeItem(STORAGE_KEY);
         return;
       }
-      if (parsed.data) setData({ ...DEFAULTS, ...parsed.data });
+      if (parsed.data) {
+        const migratedData = { ...DEFAULTS, ...parsed.data };
+        if (parsed.schemaVersion === 2) {
+          const lesionIds = Object.keys(migratedData.patencySegments || {});
+          if (lesionIds.length === 1) {
+            migratedData.navRows = (migratedData.navRows || []).map((row) => ({
+              ...row,
+              lesionId: row.lesionId || lesionIds[0],
+            }));
+            migratedData.therapyRows = (migratedData.therapyRows || []).map((row) => ({
+              ...row,
+              lesionId: row.lesionId || lesionIds[0],
+            }));
+          }
+        }
+        setData(migratedData);
+      }
       if (typeof parsed.step === 'number') {
         setCurrent(Math.min(Math.max(parsed.step, 0), steps.length - 1));
       }

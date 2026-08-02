@@ -1299,6 +1299,428 @@ svg .vessel-path:hover {
   height: auto;
   margin: 0.5rem auto;
 }
+
+/* Explicit target arterial path ------------------------------------------------ */
+.vessel-segment.targeted {
+  stroke: #2563eb;
+  stroke-width: 8;
+  filter: drop-shadow(0 0 2px rgba(37, 99, 235, 0.85));
+}
+
+.vessel-segment.targeted.selected {
+  stroke: #dc2626;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 3px #2563eb) drop-shadow(0 0 3px #2563eb);
+}
+
+.vessel-svg g[role='button']:focus-visible .vessel-segment {
+  outline: none;
+  stroke: #0f2c86;
+  stroke-width: 7;
+}
+
+.target-path-panel {
+  width: 100%;
+  max-width: 700px;
+  margin: 0.5rem auto 0;
+  padding: 1rem;
+  border: 1px solid #c9d5f5;
+  border-radius: 12px;
+  background: #f7f9ff;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.target-path-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.target-path-heading h4 {
+  margin: 0 0 0.25rem;
+  color: #113195;
+}
+
+.target-path-heading p,
+.target-path-empty {
+  margin: 0;
+  color: #5d6472;
+  font-size: 0.78rem;
+}
+
+.target-path-clear {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  background: #e5e9f5;
+  color: #25314f;
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.target-path-side {
+  margin-top: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.target-path-side > span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+}
+
+.target-path-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.target-path-option {
+  min-height: 76px;
+  padding: 0.65rem;
+  border: 1px solid #cdd6ec;
+  border-radius: 10px;
+  background: #fff;
+  color: #24304c;
+  text-align: left;
+  cursor: pointer;
+}
+
+.target-path-option strong,
+.target-path-option span {
+  display: block;
+}
+
+.target-path-option span {
+  margin-top: 0.2rem;
+  color: #687087;
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+.target-path-option.is-selected {
+  border: 2px solid #2563eb;
+  background: #eef4ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.target-path-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.target-path-route {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  background: #eaf1ff;
+  color: #183c8f;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.target-path-swatch {
+  flex: 0 0 18px;
+  height: 5px;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.target-path-empty {
+  margin-top: 0.75rem;
+  font-style: italic;
+}
+
+/* Lesion-linked device rows ---------------------------------------------------- */
+.target-lesion-select {
+  align-self: center;
+  width: min(100%, 580px);
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #d7dff2;
+  border-radius: 10px;
+  background: #f8faff;
+  text-align: left;
+}
+
+.target-lesion-select > span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #596176;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.target-lesion-select select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #b9c4df;
+  border-radius: 7px;
+  background: #fff;
+  color: #1f2937;
+  padding: 0.4rem 0.55rem;
+}
+
+/* Wire roles ------------------------------------------------------------------ */
+.wire-role-heading {
+  margin: 0.7rem 0 0.35rem;
+  color: #4d5568;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wire-role-explainer,
+.wire-product-profile {
+  display: grid;
+  gap: 0.3rem;
+  max-width: 580px;
+  margin: 0.45rem 0 0.8rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 9px;
+  background: #f1f5ff;
+  color: #3b455e;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.wire-role-caution,
+.wire-product-profile > div:last-child {
+  color: #8a3f22;
+}
+
+.wire-product-profile {
+  background: #f7f8fb;
+  border: 1px solid #e2e5ed;
+}
+
+.prefs-profile-version {
+  display: block;
+  margin-top: 0.2rem;
+  color: #69728a;
+  font-size: 0.65rem;
+  font-weight: 400;
+}
+
+/* Summary recommendations ----------------------------------------------------- */
+#case-summary .target-path-summary {
+  margin-top: 1rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 8px;
+  background: #eef4ff;
+  color: #23458f;
+  font-size: 0.82rem;
+}
+
+#case-summary .lesion-plan-group {
+  margin: 1.1rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid #d9e1f2;
+  border-radius: 10px;
+  background: #fbfcff;
+}
+
+#case-summary .lesion-plan-title {
+  color: #183c8f;
+  font-weight: 750;
+  text-align: left;
+}
+
+#case-summary .lesion-plan-group--unlinked {
+  border-color: #e7b4ad;
+  background: #fff7f5;
+}
+
+#case-summary .recommendations-intro {
+  max-width: 42rem;
+  margin: 0 auto 1rem;
+  color: #5e6472;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+#case-summary .recommendations-list {
+  display: grid;
+  gap: 0.8rem;
+  text-align: left;
+}
+
+#case-summary .recommendation-item {
+  position: relative;
+  padding: 0.85rem 1rem;
+  border-left: 5px solid #4f6bba;
+  border-radius: 8px;
+  background: #f7f9ff;
+}
+
+#case-summary .recommendation-item--error {
+  border-left-color: #b42318;
+  background: #fff4f2;
+}
+
+#case-summary .recommendation-item--warning {
+  border-left-color: #c27803;
+  background: #fff9eb;
+}
+
+#case-summary .recommendation-item--recommendation {
+  border-left-color: #2563eb;
+  background: #f2f6ff;
+}
+
+#case-summary .recommendation-badge {
+  display: inline-block;
+  margin-bottom: 0.3rem;
+  color: #60687a;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+#case-summary .recommendation-item h4,
+#case-summary .recommendation-item p {
+  margin: 0;
+}
+
+#case-summary .recommendation-item p {
+  margin-top: 0.3rem;
+  color: #3d4555;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+#case-summary .recommendation-item details {
+  margin-top: 0.65rem;
+  font-size: 0.76rem;
+}
+
+#case-summary .recommendation-item summary {
+  color: #23458f;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+#case-summary .recommendation-item ol,
+#case-summary .recommendation-references {
+  margin: 0.6rem 0 0;
+  padding-left: 1.25rem;
+}
+
+#case-summary .recommendation-item li + li {
+  margin-top: 0.35rem;
+}
+
+#case-summary .recommendation-references a {
+  color: #1747a6;
+}
+
+#case-summary .recommendations-clear {
+  padding: 0.8rem;
+  border-radius: 8px;
+  background: #edf8f1;
+  color: #24613b;
+  font-size: 0.8rem;
+}
+
+.plan-considerations {
+  text-align: left;
+}
+
+.plan-considerations .section-heading,
+.plan-considerations-intro {
+  text-align: center;
+}
+
+.plan-considerations-intro {
+  max-width: 620px;
+  margin: -1rem auto 1rem;
+  color: #5e6472;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.plan-considerations-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.plan-consideration {
+  padding: 0.85rem 1rem;
+  border-left: 5px solid #2563eb;
+  border-radius: 8px;
+  background: #f3f6ff;
+}
+
+.plan-consideration--error {
+  border-left-color: #b42318;
+  background: #fff4f2;
+}
+
+.plan-consideration--warning {
+  border-left-color: #c27803;
+  background: #fff9eb;
+}
+
+.plan-consideration > span {
+  color: #60687a;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.plan-consideration h4,
+.plan-consideration p {
+  margin: 0;
+}
+
+.plan-consideration h4 {
+  margin-top: 0.2rem;
+}
+
+.plan-consideration p,
+.plan-consideration details {
+  margin-top: 0.35rem;
+  color: #3d4555;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.plan-consideration summary {
+  color: #23458f;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.plan-consideration a {
+  color: #1747a6;
+}
+
+.plan-considerations-clear {
+  padding: 0.8rem;
+  border-radius: 8px;
+  background: #edf8f1;
+  color: #24613b;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .target-path-options {
+    grid-template-columns: 1fr;
+  }
+}
 .ref-image.wifi-img {
   max-width: 350px;
 }

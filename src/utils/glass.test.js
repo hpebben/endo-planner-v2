@@ -16,7 +16,13 @@ describe('GLASS calculation', () => {
       Left_common_femoral_artery: { type: 'stenosis', length: '10-15', calcium: 'moderate' },
       Left_popliteal_artery_artery: { type: 'stenosis', length: '15-20', calcium: 'moderate' },
       Left_peroneal_artery: { type: 'stenosis', length: '3-10', calcium: 'moderate' },
-    });
+    }, [
+      'Left_common_femoral_artery',
+      'Left_superficial_femoral_artery',
+      'Left_popliteal_artery_artery',
+      'Left_tibioperoneal_trunk',
+      'Left_peroneal_artery',
+    ]);
     expect(result).toMatchObject({
       stage: 'II',
       fpGrade: 3,
@@ -40,5 +46,30 @@ describe('GLASS calculation', () => {
     });
     expect(result.isComplete).toBe(false);
     expect(result.reason).toMatch(/limb-specific/i);
+  });
+
+  test('requires an explicit target arterial path', () => {
+    const result = computeGlass({
+      Left_superficial_femoral_artery: { type: 'occlusion', length: '>20', calcium: 'heavy' },
+    });
+    expect(result.isComplete).toBe(false);
+    expect(result.reason).toMatch(/explicit target arterial path/i);
+  });
+
+  test('grades only infrapopliteal disease on the selected target path', () => {
+    const segments = {
+      Left_superficial_femoral_artery: { type: 'stenosis', length: '3-10', calcium: 'none' },
+      Left_anterior_tibial_artery: { type: 'occlusion', length: '>20', calcium: 'heavy' },
+      Left_posterior_tibial_artery: { type: 'stenosis', length: '<3', calcium: 'none' },
+    };
+    const posterior = computeGlass(segments, [
+      'Left_superficial_femoral_artery',
+      'Left_popliteal_artery_artery',
+      'Left_tibioperoneal_trunk',
+      'Left_posterior_tibial_artery',
+      'Left_plantar_arch',
+    ]);
+    expect(posterior.ipGrade).toBe(1);
+    expect(posterior.targetArtery).toBe('posterior tibial artery');
   });
 });

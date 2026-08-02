@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
-import { vesselSegments } from './Step2_Patency';
 import InlineModal from '../UI/InlineModal';
+import { analyzePlan } from '../../utils/planAnalysis';
+import { formatTargetArterialPath, vesselName } from '../../utils/lesions';
 import {
   GVG_CITATION,
   GLASS_STAGE_INFO,
@@ -29,13 +30,17 @@ const summarize = (value) => {
 
 const formatTherapy = (value) => {
   if (!value || typeof value !== 'object') return '';
-  if (value.diameter && value.length) return `${value.diameter} × ${value.length} mm`;
+  if (value.diameter && value.length) {
+    return [
+      `${value.diameter} × ${value.length} mm`,
+      value.platform && `${value.platform}-inch`,
+      value.shaft,
+      value.deliveryMode,
+      value.minimumSheathFr && `min ${value.minimumSheathFr} sheath`,
+    ].filter(Boolean).join(' • ');
+  }
   return summarize(value);
 };
-
-const vesselName = (id) =>
-  vesselSegments.find((segment) => segment.id === id)?.name ||
-  id.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase());
 
 function PlanSection({ title, rows }) {
   const items = rows.filter((row) => row.value);
@@ -55,6 +60,54 @@ function PlanSection({ title, rows }) {
     </div>
   );
 }
+
+const findingOrder = { error: 0, warning: 1, recommendation: 2, info: 3 };
+
+function RecommendationsPanel({ findings }) {
+  const sorted = [...findings].sort((a, b) => findingOrder[a.level] - findingOrder[b.level]);
+  return (
+    <div className="summary-card recommendations-card" data-testid="recommendations-considerations">
+      <div className="card-title">{__('Recommendations & Considerations', 'endoplanner')}</div>
+      <p className="recommendations-intro">
+        {__('Compatibility checks use the recorded platform, sheath profile and working lengths. Technique recommendations respond to the entered anatomy and remain contingent on source imaging and product IFUs.', 'endoplanner')}
+      </p>
+      {sorted.length ? (
+        <div className="recommendations-list">
+          {sorted.map((item) => (
+            <article key={item.id} className={`recommendation-item recommendation-item--${item.level}`}>
+              <div className="recommendation-badge">{item.level === 'error' ? __('Incompatible', 'endoplanner') : item.level}</div>
+              <h4>{item.title}</h4>
+              <p>{item.summary}</p>
+              {(item.details.length > 0 || item.references.length > 0) && (
+                <details>
+                  <summary>{__('Technique notes and sources', 'endoplanner')}</summary>
+                  {item.details.length > 0 && (
+                    <ol>{item.details.map((detail) => <li key={detail}>{detail}</li>)}</ol>
+                  )}
+                  {item.references.length > 0 && (
+                    <ul className="recommendation-references">
+                      {item.references.map((reference) => (
+                        <li key={reference.url}>
+                          <a href={reference.url} target="_blank" rel="noreferrer">{reference.label}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </details>
+              )}
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="recommendations-clear">{__('No incompatibilities or anatomy-triggered considerations were identified from the recorded data.', 'endoplanner')}</p>
+      )}
+    </div>
+  );
+}
+
+RecommendationsPanel.propTypes = {
+  findings: PropTypes.arrayOf(PropTypes.object).isRequired,
+};
 
 function GuidelineModal({ title, isOpen, onRequestClose, recommendations, details }) {
   return (
@@ -108,6 +161,7 @@ export default function StepSummary({ data, setStep }) {
     : __('Incomplete', 'endoplanner');
   const wifiInfo = wifi.isComplete ? WIFI_STAGE_INFO[wifi.wifiStage] : null;
   const glassInfo = glass.stage ? GLASS_STAGE_INFO[glass.stage] : null;
+  const planFindings = analyzePlan(data);
 
   const accessItems = accessRows.flatMap((row) => [
     { label: 'APPROACH', value: [row.approach, row.side, row.vessel].filter(Boolean).join(' ') },
@@ -116,17 +170,26 @@ export default function StepSummary({ data, setStep }) {
     { label: 'CATHETER(S)', value: summarize(row.catheters) },
   ]);
 
-  const navigationItems = navRows.flatMap((row) => [
+  const navigationItems = (rows) => rows.flatMap((row) => [
     { label: 'WIRE', value: summarize(row.wire) },
     { label: 'CATHETER', value: summarize(row.catheter) },
     { label: 'SPECIAL', value: summarize(row.device) },
   ]);
 
-  const therapyItems = therapyRows.flatMap((row) => [
+  const therapyItems = (rows) => rows.flatMap((row) => [
     { label: 'BALLOON', value: formatTherapy(row.balloon) },
     { label: 'STENT', value: formatTherapy(row.stent) },
     { label: 'SPECIAL', value: summarize(row.device) },
   ]);
+
+  const hasNavContent = (row) => [row.wire, row.catheter, row.device].some((value) => summarize(value));
+  const hasTherapyContent = (row) => [row.balloon, row.stent, row.device].some((value) => summarize(value));
+  const linkedLesionIds = [...new Set([
+    ...navRows.filter(hasNavContent),
+    ...therapyRows.filter(hasTherapyContent),
+  ].map((row) => row.lesionId).filter(Boolean))];
+  const unlinkedNavRows = navRows.filter((row) => !row.lesionId && hasNavContent(row));
+  const unlinkedTherapyRows = therapyRows.filter((row) => !row.lesionId && hasTherapyContent(row));
 
   const closureItems = closureRows.map((row) => ({
     label: 'CLOSURE',
@@ -183,6 +246,13 @@ export default function StepSummary({ data, setStep }) {
             <p>{__('No vessel data entered.', 'endoplanner')}</p>
           )}
 
+          <div className="target-path-summary">
+            <b>{__('Target arterial path', 'endoplanner')}:</b>{' '}
+            {data.targetArterialPath?.length
+              ? formatTargetArterialPath(data.targetArterialPath)
+              : __('Not selected', 'endoplanner')}
+          </div>
+
           <div className="glass-line">
             {__('GLASS stage', 'endoplanner')}: <b>{glass.stage || __('Not calculated', 'endoplanner')}</b>
           </div>
@@ -209,13 +279,31 @@ export default function StepSummary({ data, setStep }) {
         <div className="summary-card intervention-plan">
           <div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div>
           <PlanSection title={__('ACCESS', 'endoplanner')} rows={accessItems} />
-          <PlanSection title={__('NAVIGATION & CROSSING', 'endoplanner')} rows={navigationItems} />
-          <PlanSection title={__('VESSEL PREPARATION & THERAPY', 'endoplanner')} rows={therapyItems} />
+          {linkedLesionIds.map((lesionId) => {
+            const linkedNavigation = navRows.filter((row) => row.lesionId === lesionId);
+            const linkedTherapy = therapyRows.filter((row) => row.lesionId === lesionId);
+            return (
+              <div className="lesion-plan-group" key={lesionId}>
+                <div className="lesion-plan-title">{vesselName(lesionId)}</div>
+                <PlanSection title={__('NAVIGATION & CROSSING', 'endoplanner')} rows={navigationItems(linkedNavigation)} />
+                <PlanSection title={__('VESSEL PREPARATION & THERAPY', 'endoplanner')} rows={therapyItems(linkedTherapy)} />
+              </div>
+            );
+          })}
+          {(unlinkedNavRows.length > 0 || unlinkedTherapyRows.length > 0) && (
+            <div className="lesion-plan-group lesion-plan-group--unlinked">
+              <div className="lesion-plan-title">{__('Unlinked plan items', 'endoplanner')}</div>
+              <PlanSection title={__('NAVIGATION & CROSSING', 'endoplanner')} rows={navigationItems(unlinkedNavRows)} />
+              <PlanSection title={__('VESSEL PREPARATION & THERAPY', 'endoplanner')} rows={therapyItems(unlinkedTherapyRows)} />
+            </div>
+          )}
           <PlanSection title={__('CLOSURE', 'endoplanner')} rows={closureItems} />
           <button type="button" className="stage-btn" onClick={() => setStep?.(2)}>
             {__('Edit intervention plan', 'endoplanner')}
           </button>
         </div>
+
+        <RecommendationsPanel findings={planFindings} />
       </div>
 
       {wifi.isComplete && (

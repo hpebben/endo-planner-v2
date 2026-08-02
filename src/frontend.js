@@ -4,7 +4,7 @@ import Wizard from './components/wizard';
 // Import default and named exports in case the file exports differently
 import * as WizardContextModule from './components/WizardContext';
 
-const PREFS_UI_BUILD_STAMP = '2026-08-02-166';
+const PREFS_UI_BUILD_STAMP = '2026-08-02-167';
 const PLANNER_DEBUG = typeof window !== 'undefined' && window.PLANNER_DEBUG === true;
 const logBoot = (message, details = {}) => {
   if (PLANNER_DEBUG && typeof console !== 'undefined' && console.log) {
