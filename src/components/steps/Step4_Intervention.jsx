@@ -6,6 +6,7 @@ import InlineDeviceSelect from '../UI/InlineDeviceSelect';
 import InlineModal from '../UI/InlineModal';
 import { __ } from '@wordpress/i18n';
 import DEFAULTS from '../Defaults';
+import { getWireLengthOptions, getWireProductOptions } from '../../data/wireCatalog';
 // miniature arterial tree icon used for vessel selector
 import vesselTreeIcon from '../../assets/vessel-map.svg';
 // device images for selector buttons
@@ -26,7 +27,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const PREFS_UI_BUILD_STAMP = '2026-01-27-1900';
+const PREFS_UI_BUILD_STAMP = '2026-08-02-166';
 
 const closureDeviceOptions = [
   '6F AngioSeal',
@@ -115,7 +116,13 @@ const createEmptyPreferences = () =>
 const hasPreferenceValue = (value) => {
   if (!value) return false;
   if (typeof value === 'string') return value.trim().length > 0;
-  return Object.values(value).some(Boolean);
+  if (Array.isArray(value)) return value.some(hasPreferenceValue);
+  if (typeof value === 'object') {
+    return Object.entries(value)
+      .filter(([key]) => key !== 'id')
+      .some(([, nestedValue]) => hasPreferenceValue(nestedValue));
+  }
+  return Boolean(value);
 };
 
 // Simple wrapper using shared InlineModal (portal-based)
@@ -458,7 +465,7 @@ CatheterModal.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
-function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
+function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProducts = [] }) {
   const [platform, setPlatform] = useState(values.platform || '');
   const [length, setLength] = useState(values.length || '');
   const [type, setType] = useState(values.type || '');
@@ -475,24 +482,43 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     setTechnique(values.technique || '');
     setProduct(values.product || '');
   }, [values]);
-  const lengths = ['180 cm','260 cm','300 cm'];
   const bodyOpts = ['Light bodied','Intermediate bodied','Heavy bodied'];
-  const supportOpts = ['Rosen wire','Lunderquist wire','Amplatz wire','Bentson wire','Meier wire','Newton wire'];
+  const lengthOptions = getWireLengthOptions(platform, type);
+  const productOptions = getWireProductOptions(
+    { platform, length, category: type, technique },
+    preferredProducts,
+  );
   const handleChange = (field, val) => {
     const newVals = { platform, length, type, body, support, technique, product, [field]: val };
+    if (field === 'platform' || field === 'type') {
+      const validLengths = getWireLengthOptions(newVals.platform, newVals.type);
+      if (!validLengths.includes(newVals.length)) newVals.length = '';
+    }
+    if (['platform', 'length', 'type', 'technique'].includes(field)) {
+      const validProducts = getWireProductOptions(
+        {
+          platform: newVals.platform,
+          length: newVals.length,
+          category: newVals.type,
+          technique: newVals.technique,
+        },
+        preferredProducts,
+      );
+      if (!validProducts.some((option) => option.value === newVals.product)) {
+        newVals.product = '';
+      }
+    }
     switch(field){
-      case 'platform': setPlatform(val); break;
-      case 'length': setLength(val); break;
-      case 'type': setType(val); break;
+      case 'platform': setPlatform(val); setLength(newVals.length); setProduct(newVals.product); break;
+      case 'length': setLength(val); setProduct(newVals.product); break;
+      case 'type': setType(val); setLength(newVals.length); setProduct(newVals.product); break;
       case 'body': setBody(val); break;
       case 'support': setSupport(val); break;
-      case 'technique': setTechnique(val); break;
+      case 'technique': setTechnique(val); setProduct(newVals.product); break;
       case 'product': setProduct(val); break;
       default: break;
     }
-    console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
-    if (newVals.platform && newVals.length && newVals.type && newVals.technique) onRequestClose();
   };
   return (
     <SimpleModal title={__('Wire', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
@@ -503,7 +529,10 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
           ariaLabel={__('Platform', 'endoplanner')}
         />
       <SelectControl label={__('Length', 'endoplanner')} value={length}
-        options={lengths.map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('length', val)}
+        options={[
+          { label: __('Choose length', 'endoplanner'), value: '', disabled: true },
+          ...lengthOptions.map(v => ({ label:v, value:v })),
+        ]} onChange={(val)=>handleChange('length', val)}
       />
         <SegmentedControl
           options={[{label:'Glidewire',value:'Glidewire'},{label:'CTO wire',value:'CTO wire'},{label:'Support wire',value:'Support wire'}]}
@@ -517,14 +546,6 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
           value={body}
           options={[{ label: __('Choose body', 'endoplanner'), value: '', disabled: true }, ...bodyOpts.map(v => ({ label: v, value: v }))]}
           onChange={(val) => handleChange('body', val)}
-        />
-      )}
-      {type === 'Support wire' && (
-        <SelectControl
-          label={__('Support wire', 'endoplanner')}
-          value={support}
-          options={[{ label: __('Choose wire', 'endoplanner'), value: '', disabled: true }, ...supportOpts.map(v => ({ label: v, value: v }))]}
-          onChange={(val) => handleChange('support', val)}
         />
       )}
         <SegmentedControl
@@ -541,12 +562,23 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave }) {
         value={product}
         options={[
           { label: __('Choose product', 'endoplanner'), value: '', disabled: true },
-          { label: __('None', 'endoplanner'), value: 'none' }
+          ...productOptions,
         ]}
         onChange={(val)=>handleChange('product', val)}
+        disabled={!platform || !length || !type || !technique}
       />
+      {platform && length && type && technique && !productOptions.length && (
+        <p className="wire-catalog-empty">
+          {__('No catalogued wire matches all selected filters. Change platform, length or category.', 'endoplanner')}
+        </p>
+      )}
+      <p className="wire-catalog-note">
+        {__('Preferred local wires are marked with a star and listed first.', 'endoplanner')}
+      </p>
       <div className="popup-close-row">
-        <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
+        <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>
+          {__('Done', 'endoplanner')}
+        </button>
       </div>
     </SimpleModal>
   );
@@ -558,6 +590,7 @@ WireModal.propTypes = {
   onRequestClose: PropTypes.func.isRequired,
   values: PropTypes.object,
   onSave: PropTypes.func.isRequired,
+  preferredProducts: PropTypes.arrayOf(PropTypes.string),
 };
 
 function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
@@ -981,7 +1014,7 @@ AccessRow.propTypes = {
   showRemove: PropTypes.bool,
 };
 
-function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
+function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredWireProducts }) {
   const [wireOpen, setWireOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [wireAnchor, setWireAnchor] = useState(null);
@@ -1031,6 +1064,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
         }}
         values={data.wire || {}}
         onSave={(val) => onChange({ ...data, wire: val })}
+        preferredProducts={preferredWireProducts}
       />
       <CatheterModal
         isOpen={catOpen}
@@ -1048,7 +1082,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   );
 }
 
-NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
+NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredWireProducts: PropTypes.arrayOf(PropTypes.string) };
 
 function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const [ballOpen, setBallOpen] = useState(false);
@@ -1175,7 +1209,74 @@ export default function Step4({ data, setData }) {
   const [closureRows, setClosureRows] = useState(initRows(data.closureRows, defaultClosure));
   const [prefsOpen, setPrefsOpen] = useState(false);
   const [prefsData, setPrefsData] = useState(createEmptyPreferences);
+  const [savedPreferences, setSavedPreferences] = useState({});
   const [prefsPicker, setPrefsPicker] = useState(null);
+
+  const preferenceValues = (preferences, key) =>
+    (preferences?.[key] || [])
+      .map((slot) => slot?.value ?? slot?.data ?? slot)
+      .filter(hasPreferenceValue);
+
+  const rowHasContent = (row) => Object.entries(row || {})
+    .filter(([key]) => key !== 'id')
+    .some(([, value]) => hasPreferenceValue(value));
+
+  const applyPreferencesToCase = (preferences, overwrite = false) => {
+    const needles = preferenceValues(preferences, 'needle');
+    const sheaths = preferenceValues(preferences, 'sheath');
+    const catheters = preferenceValues(preferences, 'catheter');
+    const wires = preferenceValues(preferences, 'wire');
+    const balloons = preferenceValues(preferences, 'balloon');
+    const stents = preferenceValues(preferences, 'stent');
+    const specialDevices = preferenceValues(preferences, 'specialDevice');
+    const closureDevices = preferenceValues(preferences, 'closureDevice');
+
+    setAccessRows((previous) => {
+      if (!overwrite && previous.some(rowHasContent)) return previous;
+      const current = previous[0] || { id: uid() };
+      return [{
+        ...current,
+        needles: needles.length ? needles : (current.needles || []),
+        sheaths: sheaths.length ? sheaths : (current.sheaths || []),
+        catheters: catheters.length ? catheters : (current.catheters || []),
+      }];
+    });
+
+    setNavRows((previous) => {
+      if (!overwrite && previous.some(rowHasContent)) return previous;
+      if (!wires.length && !catheters.length && !specialDevices.length) return previous;
+      const rows = wires.length ? wires.map((wireValue, index) => ({
+        id: previous[index]?.id || uid(),
+        wire: wireValue,
+      })) : [{ id: previous[0]?.id || uid() }];
+      if (catheters[0]) rows[0].catheter = catheters[0];
+      const reentryDevice = specialDevices.find((value) => String(value).toLowerCase().includes('re-entry'));
+      if (reentryDevice) rows[0].device = reentryDevice;
+      return rows;
+    });
+
+    setTherapyRows((previous) => {
+      if (!overwrite && previous.some(rowHasContent)) return previous;
+      if (!balloons.length && !stents.length && !specialDevices.length) return previous;
+      const rowCount = Math.max(balloons.length, stents.length, 1);
+      return Array.from({ length: rowCount }, (_, index) => ({
+        id: previous[index]?.id || uid(),
+        ...(balloons[index] ? { balloon: balloons[index] } : {}),
+        ...(stents[index] ? { stent: stents[index] } : {}),
+        ...(index === 0 && specialDevices[0] ? { device: specialDevices[0] } : {}),
+      }));
+    });
+
+    setClosureRows((previous) => {
+      if (!overwrite && previous.some(rowHasContent)) return previous;
+      if (!closureDevices.length) return previous;
+      return closureDevices.map((device, index) => ({
+        id: previous[index]?.id || uid(),
+        method: 'Closure device',
+        device,
+      }));
+    });
+  };
 
   useEffect(() => {
     const saved = getCookieValue(PREFS_COOKIE_NAME);
@@ -1195,6 +1296,8 @@ export default function Step4({ data, setData }) {
       } else {
         const normalized = normalizePreferences(parsed);
         setPrefsData(normalized);
+        setSavedPreferences(normalized);
+        applyPreferencesToCase(normalized, false);
         debugLog('Loaded preference cookie', normalized);
       }
     } catch (err) {
@@ -1229,6 +1332,8 @@ export default function Step4({ data, setData }) {
       return acc;
     }, {});
     setCookieValue(PREFS_COOKIE_NAME, JSON.stringify(serialized), PREFS_COOKIE_DAYS);
+    setSavedPreferences(serialized);
+    applyPreferencesToCase(serialized, true);
     debugLog('Saved preference cookie', serialized);
     setPrefsOpen(false);
   };
@@ -1236,6 +1341,7 @@ export default function Step4({ data, setData }) {
   const handleResetPreferences = () => {
     clearLocalPreferencesPersistence();
     setPrefsData(createEmptyPreferences());
+    setSavedPreferences({});
     setPrefsPicker(null);
     debugLog('Reset preference slots to defaults');
   };
@@ -1288,6 +1394,9 @@ export default function Step4({ data, setData }) {
   const activePreferenceSlot = prefsPicker
     ? (prefsData[prefsPicker.typeKey] || []).find((slot) => slot.id === prefsPicker.slotId)
     : null;
+  const preferredWireProducts = preferenceValues(savedPreferences, 'wire')
+    .map((value) => value.product)
+    .filter(Boolean);
 
   useEffect(() => {
     setData({ ...data, accessRows, navRows, therapyRows, closureRows });
@@ -1408,6 +1517,7 @@ export default function Step4({ data, setData }) {
         onRequestClose={closePreferencePicker}
         values={activePreferenceSlot?.value || {}}
         onSave={(val) => updatePreferenceSlot('wire', prefsPicker?.slotId, val)}
+        preferredProducts={preferredWireProducts}
       />
       <BalloonModal
         isOpen={prefsPicker?.typeKey === 'balloon'}
@@ -1499,6 +1609,7 @@ export default function Step4({ data, setData }) {
             }
             onRemove={() => setNavRows((prev) => prev.filter((r) => r.id !== row.id))}
             showRemove={navRows.length > 1}
+            preferredWireProducts={preferredWireProducts}
           />
         ))}
       </section>

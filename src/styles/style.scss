@@ -115,6 +115,43 @@
   margin-bottom: 0.25rem;
   padding-left: 0.5rem;
 }
+.selected-segments li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding-right: 0.25rem;
+}
+.segment-edit-trigger {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.segment-delete-btn {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #111;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 22px;
+  cursor: pointer;
+}
+.segment-delete-btn:hover,
+.segment-delete-btn:focus-visible {
+  background: #333;
+  outline: 3px solid rgba(17, 49, 149, 0.25);
+  outline-offset: 2px;
+}
 .segment-summary {
   cursor: pointer;
   transition: color 0.2s, text-decoration-color 0.2s;
@@ -442,9 +479,11 @@ svg .vessel-path:hover {
     font-weight: 600;
 }
 .section-subtitle {
-    font-size: 1rem;
+    font-size: 0.78rem;
+    font-style: italic;
     color: #666;
-    margin-bottom: 1rem;
+    margin: -0.25rem auto 1.5rem;
+    max-width: 38rem;
 }
 .wifi-section {
     margin: 2rem 0;
@@ -455,9 +494,11 @@ svg .vessel-path:hover {
     margin-bottom: 0.25rem;
 }
 .wifi-desc {
-    font-size: 0.9rem;
+    font-size: 0.78rem;
+    font-style: italic;
     color: #555;
-    margin-bottom: 0.5rem;
+    margin: 0 auto 0.75rem;
+    max-width: 36rem;
 }
 .wifi-slider {
     width: 100%;
@@ -500,7 +541,7 @@ svg .vessel-path:hover {
 .wp-block-endoplanner-v2-wizard {
   /* Clinical “slider” sections */
   .clinical-section {
-    margin-bottom: 2rem;
+    margin: 2.75rem 0 3.25rem;
     h3 { margin-bottom: 0.5rem; font-size: 1.25rem; }
   }
   .slider-container {
@@ -539,6 +580,22 @@ svg .vessel-path:hover {
 
   }
 
+}
+
+.clinical-center .clear-grade-btn {
+  display: block;
+  margin: 0.75rem auto 0;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: #4f5665;
+  background: #f5f5f5;
+}
+
+.clinical-center .wifi-grade-section .section-title {
+  margin-top: 0;
+  margin-bottom: 0.65rem;
 }
 
 
@@ -1178,6 +1235,24 @@ svg .vessel-path:hover {
   color: #fff;
 }
 
+.wire-done-btn {
+  padding: 0.45rem 1.25rem !important;
+  border-radius: 999px !important;
+}
+
+.wire-catalog-note,
+.wire-catalog-empty {
+  max-width: 520px;
+  margin: 0.5rem 0 0;
+  font-size: 0.72rem;
+  color: #5e6472;
+  font-style: italic;
+}
+
+.wire-catalog-empty {
+  color: #9b2c2c;
+}
+
 .guideline-table {
   width: 100%;
   border-collapse: collapse;
@@ -1314,6 +1389,98 @@ svg .vessel-path:hover {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
+  text-align: left;
+}
+
+.clinical-guidance {
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+  color: #4c5567;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.clinical-guidance p {
+  margin: 0;
+}
+
+.wifi-prediction {
+  margin-top: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.glass-prediction {
+  margin-top: 1rem;
+}
+
+.glass-metrics {
+  display: grid;
+  gap: 0.4rem;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  background: #f6f8ff;
+  border-radius: 10px;
+}
+
+.glass-rationale {
+  margin-top: 0.75rem !important;
+  font-size: 0.76rem;
+  font-style: italic;
+}
+
+.guideline-link {
+  margin-top: 0.8rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #113195;
+  font: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.guideline-link:hover,
+.guideline-link:focus-visible {
+  color: #2563eb;
+}
+
+.guideline-recommendations {
+  max-width: 600px;
+  margin: 0.75rem 0;
+  padding-left: 1.25rem;
+  text-align: left;
+}
+
+.guideline-recommendations li + li {
+  margin-top: 0.6rem;
+}
+
+.guideline-stage-details {
+  max-width: 600px;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  background: #f6f8ff;
+  text-align: left;
+}
+
+.glass-guideline-details > div + div {
+  margin-top: 0.3rem;
+}
+
+.guideline-modal-subtitle {
+  margin: 1rem 0 0.5rem;
+  font-size: 1rem;
+  color: #113195;
+}
+
+.guideline-citation {
+  max-width: 600px;
+  margin-top: 1rem;
+  font-size: 0.68rem;
+  color: #687083;
   text-align: left;
 }
 .summary-row {

@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
 import { vesselSegments } from './Step2_Patency';
+import InlineModal from '../UI/InlineModal';
+import {
+  GVG_CITATION,
+  GLASS_STAGE_INFO,
+  WIFI_STAGE_INFO,
+  getGlassRecommendations,
+  getWifiAction,
+  getWifiRecommendations,
+} from '../../utils/guidelineRecommendations';
 
 const formatStage = (value) => {
   if (!value) return 'Not assessed';
@@ -47,6 +56,32 @@ function PlanSection({ title, rows }) {
   );
 }
 
+function GuidelineModal({ title, isOpen, onRequestClose, recommendations, details }) {
+  return (
+    <InlineModal title={title} isOpen={isOpen} onRequestClose={onRequestClose}>
+      {details}
+      <h3 className="guideline-modal-subtitle">{__('Guideline recommendations', 'endoplanner')}</h3>
+      <ul className="guideline-recommendations">
+        {recommendations.map((recommendation) => <li key={recommendation}>{recommendation}</li>)}
+      </ul>
+      <p className="guideline-citation">{GVG_CITATION}</p>
+      <div className="popup-close-row">
+        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>
+          &times;
+        </button>
+      </div>
+    </InlineModal>
+  );
+}
+
+GuidelineModal.propTypes = {
+  title: PropTypes.string.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  onRequestClose: PropTypes.func.isRequired,
+  recommendations: PropTypes.arrayOf(PropTypes.string).isRequired,
+  details: PropTypes.node,
+};
+
 PlanSection.propTypes = {
   title: PropTypes.string.isRequired,
   rows: PropTypes.arrayOf(
@@ -55,6 +90,8 @@ PlanSection.propTypes = {
 };
 
 export default function StepSummary({ data, setStep }) {
+  const [wifiGuidelineOpen, setWifiGuidelineOpen] = useState(false);
+  const [glassGuidelineOpen, setGlassGuidelineOpen] = useState(false);
   const {
     stage,
     patencySegments = {},
@@ -69,6 +106,8 @@ export default function StepSummary({ data, setStep }) {
   const wifiCode = wifi.isComplete
     ? `W${wifi.wound} I${wifi.ischemia} fI${wifi.infection}`
     : __('Incomplete', 'endoplanner');
+  const wifiInfo = wifi.isComplete ? WIFI_STAGE_INFO[wifi.wifiStage] : null;
+  const glassInfo = glass.stage ? GLASS_STAGE_INFO[glass.stage] : null;
 
   const accessItems = accessRows.flatMap((row) => [
     { label: 'APPROACH', value: [row.approach, row.side, row.vessel].filter(Boolean).join(' ') },
@@ -108,8 +147,13 @@ export default function StepSummary({ data, setStep }) {
             {__('WIfI components', 'endoplanner')}: <b>{wifiCode}</b>
           </div>
           {wifi.isComplete ? (
-            <div className="row-add-label wifi-prediction">
-              {`Clinical stage ${wifi.wifiStage}: ${wifi.riskCategory.toLowerCase()} consensus category for estimated 1-year major amputation risk.`}
+            <div className="clinical-guidance wifi-prediction">
+              <p>
+                {`Clinical stage ${wifi.wifiStage}, approximately ${wifiInfo.riskPercent}% pooled estimated 1-year risk of major amputation. ${getWifiAction(wifi.wifiStage, wifi.ischemia)}`}
+              </p>
+              <button type="button" className="guideline-link" onClick={() => setWifiGuidelineOpen(true)}>
+                {__('See other CLTI guideline recommendations for this WIfI stage', 'endoplanner')}
+              </button>
             </div>
           ) : (
             <div className="row-add-label text-red-500">
@@ -142,7 +186,21 @@ export default function StepSummary({ data, setStep }) {
           <div className="glass-line">
             {__('GLASS stage', 'endoplanner')}: <b>{glass.stage || __('Not calculated', 'endoplanner')}</b>
           </div>
-          <div className="row-add-label glass-prediction">{glass.reason}</div>
+          {glass.isComplete ? (
+            <div className="clinical-guidance glass-prediction">
+              <div className="glass-metrics">
+                <span><b>{__('Technical failure', 'endoplanner')}:</b> {glass.technicalFailure}</span>
+                <span><b>{__('1-year limb-based patency', 'endoplanner')}:</b> {glass.oneYearPatency}</span>
+                <span><b>{__('Pattern', 'endoplanner')}:</b> {glass.anatomicPattern}</span>
+              </div>
+              <p className="glass-rationale">{glass.reason}</p>
+              <button type="button" className="guideline-link" onClick={() => setGlassGuidelineOpen(true)}>
+                {__('See other CLTI guideline recommendations for this GLASS stage', 'endoplanner')}
+              </button>
+            </div>
+          ) : (
+            <div className="row-add-label glass-prediction">{glass.reason}</div>
+          )}
           <button type="button" className="stage-btn" onClick={() => setStep?.(1)}>
             {__('Edit anatomy', 'endoplanner')}
           </button>
@@ -159,6 +217,37 @@ export default function StepSummary({ data, setStep }) {
           </button>
         </div>
       </div>
+
+      {wifi.isComplete && (
+        <GuidelineModal
+          title={`WIfI clinical stage ${wifi.wifiStage}`}
+          isOpen={wifiGuidelineOpen}
+          onRequestClose={() => setWifiGuidelineOpen(false)}
+          recommendations={getWifiRecommendations(wifi.wifiStage, wifi.ischemia)}
+          details={(
+            <div className="guideline-stage-details">
+              <b>{wifiInfo.riskCategory} limb-threat category.</b>
+              <span>{` Pooled observational estimate: ${wifiInfo.riskPercent}% 1-year major amputation risk.`}</span>
+            </div>
+          )}
+        />
+      )}
+      {glass.isComplete && (
+        <GuidelineModal
+          title={`GLASS stage ${glass.stage}`}
+          isOpen={glassGuidelineOpen}
+          onRequestClose={() => setGlassGuidelineOpen(false)}
+          recommendations={getGlassRecommendations(glass.stage)}
+          details={(
+            <div className="guideline-stage-details glass-guideline-details">
+              <div><b>{glassInfo.complexity}</b></div>
+              <div>{`Expected immediate technical failure: ${glassInfo.technicalFailure}`}</div>
+              <div>{`Expected 1-year limb-based patency: ${glassInfo.oneYearPatency}`}</div>
+              <div>{glassInfo.pattern}</div>
+            </div>
+          )}
+        />
+      )}
     </div>
   );
 }
