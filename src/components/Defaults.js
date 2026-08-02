@@ -1,26 +1,23 @@
-// centralised defaults – tweak anytime
+// Empty case defaults. Device preferences must be applied explicitly by the user
+// and should never appear in a case summary merely because a new case was opened.
 export default {
-  // Default selections used when starting a new case
+  stage: null,
+  clinical: {
+    wound: null,
+    ischemia: null,
+    infection: null,
+  },
+  patencySegments: {},
   access: {
-    needle:   { size: '19 Gauge', length: '7cm' },
-    sheath:   { frSize: '6 Fr', length: '12 cm' },
-    catheter: { specific: 'BER2', size: '4 Fr', length: '65 cm' },
+    needle: {},
+    sheath: {},
+    catheter: {},
   },
   navigation: {
-    wire: {
-      platform: '0.018',
-      length: '180 cm',
-      type: 'Glidewire',
-      technique: 'Intimal Tracking',
-    },
+    wire: {},
   },
   vesselPrep: {
-    balloon: {
-      platform: '0.018',
-      diameter: '5',
-      length: '100',
-      shaft: '80 cm',
-    },
+    balloon: {},
   },
-  closure: { method: 'Manual pressure' },
+  closure: {},
 };
