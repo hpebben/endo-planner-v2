@@ -137,7 +137,7 @@ export default function Wizard() {
       </div>
       <ProgressBar value={(current + 1) / steps.length} />
       <div className="wizard-content">
-        <h2>{steps[current].title}</h2>
+        {current !== steps.length - 1 && <h2>{steps[current].title}</h2>}
         <StepComponent data={data} setData={setData} setStep={setStep} />
       </div>
 
@@ -173,7 +173,7 @@ export default function Wizard() {
             type="button"
             id="export-pdf-btn"
             className="stage-btn planner-nav-btn wizard-finish"
-            onClick={exportCaseSummaryToPDF}
+            onClick={() => exportCaseSummaryToPDF(data)}
           >
             {__('Export PDF', 'endoplanner')}
           </button>

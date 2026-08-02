@@ -100,6 +100,15 @@ export default function Step2_Patency({ data, setData }) {
     setActiveSegment(null);
   };
 
+  const removeSegment = (id) => {
+    setData((prev) => {
+      const nextSegments = { ...(prev.patencySegments || {}) };
+      delete nextSegments[id];
+      return { ...prev, patencySegments: nextSegments };
+    });
+    if (activeSegment === id) setActiveSegment(null);
+  };
+
   return (
     <div className="step2-patency">
       <div className="patency-container">
@@ -142,13 +151,23 @@ export default function Step2_Patency({ data, setData }) {
                   const summary = `${vals.type || ''} | ${lengthLabel} | ${vals.calcium}`;
                   return (
                     <li key={id}>
-                      <strong>{name}</strong>{' '}
-                      <span
-                        className="segment-summary"
+                      <button
+                        type="button"
+                        className="segment-edit-trigger"
                         onClick={() => openSegment(id)}
                       >
-                        ({summary})
-                      </span>
+                        <strong>{name}</strong>{' '}
+                        <span className="segment-summary">({summary})</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="segment-delete-btn"
+                        onClick={() => removeSegment(id)}
+                        aria-label={`Remove ${name}`}
+                        title={__('Remove segment', 'endoplanner')}
+                      >
+                        &times;
+                      </button>
                     </li>
                   );
                 })}

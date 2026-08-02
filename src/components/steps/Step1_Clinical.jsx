@@ -60,7 +60,7 @@ function WifiGrade({ title, field, value, onChange }) {
           className="stage-btn clear-grade-btn"
           onClick={() => onChange(null)}
         >
-          {__('Clear assessment', 'endoplanner')}
+          {__('Clear', 'endoplanner')}
         </button>
       )}
     </section>
@@ -87,7 +87,7 @@ export default function Step1({ data, setData }) {
     <div className="clinical-center">
       <h2 className="section-title">{__('Fontaine stage', 'endoplanner')}</h2>
       <p className="section-subtitle">
-        {__('IIa and IIb are separated at a 200 metre walking distance.', 'endoplanner')}
+        {__('Choose the stage that best matches the clinical presentation; IIa and IIb are separated at a 200 metre walking distance.', 'endoplanner')}
       </p>
       <SegmentedControl
         options={stageOptions}
