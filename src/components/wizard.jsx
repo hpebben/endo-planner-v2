@@ -7,11 +7,11 @@ import Step2 from './steps/Step2_Patency';
 import Step3 from './steps/Step4_Intervention';
 import Step4 from './steps/Step3_Summary';
 import { ProgressBar } from '@wordpress/components';
-import { getBlockingPlanFindings } from '../utils/planAnalysis';
-import { territoryFromVesselId } from '../utils/lesions';
+import { migratePlanRowScopes } from '../utils/planScopes';
+import { validateCaseStep } from '../utils/caseValidation';
 
 const STORAGE_KEY = 'endoplannerState';
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 const steps = [
   { title: __('Clinical indication', 'endoplanner'), component: Step1 },
@@ -20,54 +20,7 @@ const steps = [
   { title: __('Case summary', 'endoplanner'), component: Step4 },
 ];
 
-const hasValue = (value) => {
-  if (value === null || value === undefined || value === '') return false;
-  if (typeof value === 'string') return value.trim().length > 0;
-  if (Array.isArray(value)) return value.some(hasValue);
-  if (typeof value === 'object') {
-    return Object.entries(value)
-      .filter(([key]) => key !== 'id')
-      .some(([, nestedValue]) => hasValue(nestedValue));
-  }
-  return true;
-};
-
-const validateStep = (step, data) => {
-  const errors = [];
-
-  if (step === 0) {
-    if (!data.stage) errors.push(__('Select a Fontaine stage.', 'endoplanner'));
-    const clinical = data.clinical || {};
-    if (![clinical.wound, clinical.ischemia, clinical.infection].every(Number.isInteger)) {
-      errors.push(__('Assess all three WIfI components.', 'endoplanner'));
-    }
-  }
-
-  if (step === 1) {
-    const segmentIds = Object.keys(data.patencySegments || {});
-    if (!segmentIds.length) {
-      errors.push(__('Enter at least one affected arterial segment.', 'endoplanner'));
-    }
-    const hasInfrainguinalDisease = segmentIds.some((id) => (
-      ['femoropopliteal', 'infrapopliteal', 'pedal'].includes(territoryFromVesselId(id))
-    ));
-    if (hasInfrainguinalDisease && !(data.targetArterialPath || []).length) {
-      errors.push(__('Select the intended target arterial path.', 'endoplanner'));
-    }
-  }
-
-  if (step === 2) {
-    const hasAccess = (data.accessRows || []).some(hasValue);
-    const hasNavigation = (data.navRows || []).some(hasValue);
-    const hasTherapy = (data.therapyRows || []).some(hasValue);
-    if (!hasAccess) errors.push(__('Enter an access strategy.', 'endoplanner'));
-    if (!hasNavigation) errors.push(__('Enter a navigation or crossing strategy.', 'endoplanner'));
-    if (!hasTherapy) errors.push(__('Enter a vessel preparation or treatment strategy.', 'endoplanner'));
-    getBlockingPlanFindings(data).forEach((finding) => errors.push(finding.title));
-  }
-
-  return [...new Set(errors)];
-};
+const validateStep = (step, data) => validateCaseStep(step, data, __);
 
 export default function Wizard() {
   const [current, setCurrent] = useState(0);
@@ -80,7 +33,7 @@ export default function Wizard() {
 
     try {
       const parsed = JSON.parse(saved);
-      if (![2, SCHEMA_VERSION].includes(parsed.schemaVersion)) {
+      if (![2, 3, SCHEMA_VERSION].includes(parsed.schemaVersion)) {
         localStorage.removeItem(STORAGE_KEY);
         return;
       }
@@ -99,6 +52,18 @@ export default function Wizard() {
             }));
           }
         }
+        const lesionIds = Object.keys(migratedData.patencySegments || {});
+        const defaultLesionId = lesionIds.length === 1 ? lesionIds[0] : '';
+        migratedData.navRows = migratePlanRowScopes(migratedData.navRows || [], {
+          defaultLesionId,
+          targetPath: migratedData.targetArterialPath || [],
+          rowType: 'navigation',
+        });
+        migratedData.therapyRows = migratePlanRowScopes(migratedData.therapyRows || [], {
+          defaultLesionId,
+          targetPath: migratedData.targetArterialPath || [],
+          rowType: 'therapy',
+        });
         setData(migratedData);
       }
       if (typeof parsed.step === 'number') {

@@ -5,7 +5,12 @@ import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
 import InlineModal from '../UI/InlineModal';
 import { analyzePlan } from '../../utils/planAnalysis';
-import { formatTargetArterialPath, vesselName } from '../../utils/lesions';
+import { formatTargetArterialPath, getLesionOptions, vesselName } from '../../utils/lesions';
+import {
+  buildScopeOptions,
+  hasPlanItemContent,
+  scopeKey,
+} from '../../utils/planScopes';
 import {
   GVG_CITATION,
   GLASS_STAGE_INFO,
@@ -182,14 +187,19 @@ export default function StepSummary({ data, setStep }) {
     { label: 'SPECIAL', value: summarize(row.device) },
   ]);
 
-  const hasNavContent = (row) => [row.wire, row.catheter, row.device].some((value) => summarize(value));
-  const hasTherapyContent = (row) => [row.balloon, row.stent, row.device].some((value) => summarize(value));
-  const linkedLesionIds = [...new Set([
-    ...navRows.filter(hasNavContent),
-    ...therapyRows.filter(hasTherapyContent),
-  ].map((row) => row.lesionId).filter(Boolean))];
-  const unlinkedNavRows = navRows.filter((row) => !row.lesionId && hasNavContent(row));
-  const unlinkedTherapyRows = therapyRows.filter((row) => !row.lesionId && hasTherapyContent(row));
+  const activeNavRows = navRows.filter(hasPlanItemContent);
+  const activeTherapyRows = therapyRows.filter(hasPlanItemContent);
+  const lesionOptions = getLesionOptions(patencySegments, data.targetArterialPath || []);
+  const scopeOptions = buildScopeOptions(lesionOptions, data.targetArterialPath || [], {
+    includeTargetPath: true,
+    includeTreatmentZones: true,
+  });
+  const knownScopeKeys = new Set(scopeOptions.map((option) => option.value));
+  const activeScopeOptions = scopeOptions.filter((option) => (
+    [...activeNavRows, ...activeTherapyRows].some((row) => scopeKey(row) === option.value)
+  ));
+  const unlinkedNavRows = activeNavRows.filter((row) => !knownScopeKeys.has(scopeKey(row)));
+  const unlinkedTherapyRows = activeTherapyRows.filter((row) => !knownScopeKeys.has(scopeKey(row)));
 
   const closureItems = closureRows.map((row) => ({
     label: 'CLOSURE',
@@ -251,6 +261,9 @@ export default function StepSummary({ data, setStep }) {
             {data.targetArterialPath?.length
               ? formatTargetArterialPath(data.targetArterialPath)
               : __('Not selected', 'endoplanner')}
+            {data.targetArterialPathNote && (
+              <span className="target-path-summary-note">{` — ${data.targetArterialPathNote}`}</span>
+            )}
           </div>
 
           <div className="glass-line">
@@ -279,14 +292,18 @@ export default function StepSummary({ data, setStep }) {
         <div className="summary-card intervention-plan">
           <div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div>
           <PlanSection title={__('ACCESS', 'endoplanner')} rows={accessItems} />
-          {linkedLesionIds.map((lesionId) => {
-            const linkedNavigation = navRows.filter((row) => row.lesionId === lesionId);
-            const linkedTherapy = therapyRows.filter((row) => row.lesionId === lesionId);
+          {activeScopeOptions.map((option) => {
+            const linkedNavigation = activeNavRows.filter((row) => scopeKey(row) === option.value);
+            const linkedTherapy = activeTherapyRows.filter((row) => scopeKey(row) === option.value);
             return (
-              <div className="lesion-plan-group" key={lesionId}>
-                <div className="lesion-plan-title">{vesselName(lesionId)}</div>
-                <PlanSection title={__('NAVIGATION & CROSSING', 'endoplanner')} rows={navigationItems(linkedNavigation)} />
-                <PlanSection title={__('VESSEL PREPARATION & THERAPY', 'endoplanner')} rows={therapyItems(linkedTherapy)} />
+              <div className="lesion-plan-group" key={option.value}>
+                <div className="lesion-plan-title">{option.label}</div>
+                {linkedNavigation.length > 0 && (
+                  <PlanSection title={__('NAVIGATION & CROSSING', 'endoplanner')} rows={navigationItems(linkedNavigation)} />
+                )}
+                {linkedTherapy.length > 0 && (
+                  <PlanSection title={__('VESSEL PREPARATION & THERAPY', 'endoplanner')} rows={therapyItems(linkedTherapy)} />
+                )}
               </div>
             );
           })}

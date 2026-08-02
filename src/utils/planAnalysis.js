@@ -6,6 +6,15 @@ import {
   territoryFromVesselId,
   vesselName,
 } from './lesions';
+import {
+  formatScopeLabel,
+  getPlanScope,
+  getScopeLesionIds,
+  hasPlanItemContent,
+  isTargetPathScope,
+  rowAppliesToLesion,
+  scopeReferencesMissingLesions,
+} from './planScopes';
 
 export const TECHNIQUE_REFERENCES = {
   btkPosition: {
@@ -53,7 +62,7 @@ const hasValue = (value) => {
   if (Array.isArray(value)) return value.some(hasValue);
   if (typeof value === 'object') {
     return Object.entries(value)
-      .filter(([key]) => !['id', 'lesionId'].includes(key))
+      .filter(([key]) => !['id', 'lesionId', 'scope'].includes(key))
       .some(([, nested]) => hasValue(nested));
   }
   return true;
@@ -103,62 +112,115 @@ const approachForLesion = (data, lesionId) => {
 
 export const analyzePlan = (data = {}) => {
   const findings = [];
-  const lesions = getLesionOptions(data.patencySegments || {});
+  const targetPath = data.targetArterialPath || [];
+  const lesions = getLesionOptions(data.patencySegments || {}, targetPath);
   const lesionIds = new Set(lesions.map((lesion) => lesion.value));
   const navRows = data.navRows || [];
   const therapyRows = data.therapyRows || [];
   navRows.forEach((row, index) => {
-    if (!hasValue(row) || row.lesionId) return;
+    if (!hasPlanItemContent(row) || getPlanScope(row)) return;
     findings.push(finding(
       `nav-${row.id || index}-unlinked`,
       'error',
       'compatibility',
-      'Crossing strategy is not linked to a lesion',
-      'Choose a target lesion for this wire/catheter row so compatibility and the report remain anatomically interpretable.',
+      'Navigation strategy has no procedural scope',
+      'Move this wire/catheter row to PATH, a lesion, or a combined treatment zone.',
     ));
   });
 
   therapyRows.forEach((row, index) => {
-    if (!hasValue(row) || row.lesionId) return;
+    if (!hasPlanItemContent(row) || getPlanScope(row)) return;
     findings.push(finding(
       `therapy-${row.id || index}-unlinked`,
       'error',
       'compatibility',
-      'Therapy is not linked to a lesion',
-      'Choose the lesion treated by this balloon, stent or adjunctive device.',
+      'Therapy has no lesion or treatment-zone scope',
+      'Move this balloon, stent or adjunctive device to a lesion or combined treatment zone.',
     ));
   });
 
   [...navRows, ...therapyRows].forEach((row, index) => {
-    if (!row.lesionId || lesionIds.has(row.lesionId)) return;
+    if (!hasPlanItemContent(row)) return;
+    const missingIds = scopeReferencesMissingLesions(row, [...lesionIds]);
+    if (!missingIds.length) return;
     findings.push(finding(
       `missing-lesion-${row.id || index}`,
       'error',
       'compatibility',
-      'Linked lesion no longer exists',
-      `${vesselName(row.lesionId)} was removed from the anatomy. Relink or remove the corresponding plan row.`,
+      'A linked lesion no longer exists',
+      `${missingIds.map(vesselName).join(', ')} was removed from the anatomy. Move or remove the corresponding plan row.`,
+    ));
+  });
+
+  [...navRows, ...therapyRows].forEach((row, index) => {
+    const scopedLesionIds = getScopeLesionIds(row);
+    const sides = [...new Set(scopedLesionIds.map(sideFromVesselId).filter(Boolean))];
+    if (sides.length <= 1) return;
+    findings.push(finding(
+      `mixed-side-scope-${row.id || index}`,
+      'error',
+      'compatibility',
+      'A treatment scope crosses left and right limbs',
+      'Create separate lesion or treatment-zone rows for each limb.',
+    ));
+  });
+
+  navRows.forEach((row, index) => {
+    if (!hasPlanItemContent(row) || !isTargetPathScope(row)) return;
+    if (!targetPath.length) {
+      findings.push(finding(
+        `path-scope-${row.id || index}-missing`,
+        'error',
+        'compatibility',
+        'PATH-scoped device has no target arterial path',
+        'Select a target arterial path or move this navigation row to a lesion.',
+      ));
+    }
+    const role = normalizeWireRole(row.wire?.role || row.wire?.type);
+    if (role === WIRE_ROLES.CTO) {
+      findings.push(finding(
+        `path-cto-${row.id || index}`,
+        'error',
+        'compatibility',
+        'CTO crossing wire needs a lesion-specific scope',
+        'Move the dedicated CTO wire from PATH to the occlusion or combined crossing zone. PATH is intended for support/exchange wires and route-level catheters.',
+      ));
+    }
+  });
+
+  therapyRows.forEach((row, index) => {
+    if (!hasPlanItemContent(row) || !isTargetPathScope(row)) return;
+    findings.push(finding(
+      `path-therapy-${row.id || index}`,
+      'error',
+      'compatibility',
+      'Therapy cannot use a whole-path scope',
+      'Move the balloon, stent or adjunctive device to a lesion or a combined treatment zone.',
     ));
   });
 
   therapyRows.forEach((row, rowIndex) => {
-    if (!row.lesionId) return;
+    const scopedLesionIds = getScopeLesionIds(row);
+    if (!scopedLesionIds.length) return;
+    const scopeLabel = formatScopeLabel(row, lesions);
+    const primaryLesionId = scopedLesionIds[0];
     const linkedWires = navRows
-      .filter((navRow) => navRow.lesionId === row.lesionId)
+      .filter((navRow) => scopedLesionIds.some((lesionId) => rowAppliesToLesion(navRow, lesionId, targetPath)))
       .map(wireForRow)
       .filter(Boolean);
 
     devicesInTherapyRow(row).forEach(([deviceType, device]) => {
       const deviceLabel = deviceType === 'balloon' ? 'Balloon' : 'Stent';
       const matchingWires = linkedWires.filter((wire) => wire.platform === device.platform);
-      const sheathSizes = availableSheathSizes(data, row.lesionId);
+      const sheathSizes = availableSheathSizes(data, primaryLesionId);
       const largestSheath = sheathSizes.length ? Math.max(...sheathSizes) : null;
       if (device.platform && !matchingWires.length) {
         findings.push(finding(
           `${row.id || rowIndex}-${deviceType}-platform`,
           'error',
           'compatibility',
-          `${deviceLabel} platform has no matching lesion wire`,
-          `${vesselName(row.lesionId)} uses a ${device.platform}-inch ${deviceType}, but no ${device.platform}-inch wire is linked to that lesion.`,
+          `${deviceLabel} platform has no matching scoped wire`,
+          `${scopeLabel} uses a ${device.platform}-inch ${deviceType}, but no ${device.platform}-inch wire is linked to that lesion/zone or its target path.`,
         ));
       }
 
@@ -212,10 +274,13 @@ export const analyzePlan = (data = {}) => {
         ));
       }
 
-      const territory = territoryFromVesselId(row.lesionId);
-      const accessRows = approachForLesion(data, row.lesionId);
+      const territories = scopedLesionIds.map(territoryFromVesselId);
+      const territory = territories.includes('pedal')
+        ? 'pedal'
+        : territories.includes('infrapopliteal') ? 'infrapopliteal' : territories[0];
+      const accessRows = approachForLesion(data, primaryLesionId);
       const contralateral = accessRows.some((access) => (
-        access.side && sideFromVesselId(row.lesionId) && access.side !== sideFromVesselId(row.lesionId)
+        access.side && sideFromVesselId(primaryLesionId) && access.side !== sideFromVesselId(primaryLesionId)
       ));
       if (shaftLength && shaftLength <= 80 && (contralateral || ['infrapopliteal', 'pedal'].includes(territory))) {
         findings.push(finding(
@@ -231,8 +296,8 @@ export const analyzePlan = (data = {}) => {
 
   lesions.forEach((lesion) => {
     const values = lesion.findings || {};
-    const linkedNav = navRows.filter((row) => row.lesionId === lesion.value);
-    const linkedTherapy = therapyRows.filter((row) => row.lesionId === lesion.value);
+    const linkedNav = navRows.filter((row) => rowAppliesToLesion(row, lesion.value, targetPath));
+    const linkedTherapy = therapyRows.filter((row) => rowAppliesToLesion(row, lesion.value, targetPath));
     const roles = linkedNav
       .map((row) => normalizeWireRole(row.wire?.role || row.wire?.type))
       .filter(Boolean);

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:     Endo Planner v2
  * Description:     EndoPlanner Wizard block + Intervention Planning frontend
- * Version:         1.6.167
+ * Version:         1.6.168
  * Author:          hpebben
  * Text Domain:     endoplanner
  */

@@ -1,5 +1,6 @@
 import { analyzePlan, getBlockingPlanFindings, wireLengthRequired } from './planAnalysis';
 import { WIRE_ROLES } from '../data/wireCatalog';
+import { createLesionScope, createTargetPathScope } from './planScopes';
 
 const lesionId = 'Left_superficial_femoral_artery';
 
@@ -44,9 +45,42 @@ describe('compatibility and anatomy recommendations', () => {
   test('detects platform and sheath incompatibilities', () => {
     const blocking = getBlockingPlanFindings(baseCase);
     expect(blocking.map((item) => item.title)).toEqual(expect.arrayContaining([
-      'Balloon platform has no matching lesion wire',
+      'Balloon platform has no matching scoped wire',
       'Balloon requires a larger sheath',
     ]));
+  });
+
+  test('uses a path-scoped support wire for downstream device compatibility', () => {
+    const data = {
+      ...baseCase,
+      accessRows: [{ ...baseCase.accessRows[0], sheaths: [{ frSize: '6 Fr' }] }],
+      navRows: [{
+        id: 'nav-path',
+        scope: createTargetPathScope(),
+        wire: { platform: '0.018', length: '300 cm', role: WIRE_ROLES.SUPPORT },
+      }],
+      therapyRows: [{
+        ...baseCase.therapyRows[0],
+        lesionId: undefined,
+        scope: createLesionScope(lesionId),
+        balloon: { ...baseCase.therapyRows[0].balloon, platform: '0.018', minimumSheathFr: '5 Fr' },
+      }],
+    };
+    expect(getBlockingPlanFindings(data).some((item) => /matching scoped wire/i.test(item.title))).toBe(false);
+  });
+
+  test('requires a path-scoped CTO wire to move to a lesion or crossing zone', () => {
+    const data = {
+      ...baseCase,
+      navRows: [{
+        id: 'nav-path-cto',
+        scope: createTargetPathScope(),
+        wire: { platform: '0.018', length: '300 cm', role: WIRE_ROLES.CTO },
+      }],
+    };
+    expect(getBlockingPlanFindings(data).map((item) => item.title)).toContain(
+      'CTO crossing wire needs a lesion-specific scope',
+    );
   });
 
   test('validates over-the-wire exchange length against the linked wire', () => {

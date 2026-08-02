@@ -1,4 +1,5 @@
 import { GLASS_STAGE_INFO } from './guidelineRecommendations';
+import { validateTargetArterialPath } from './lesions';
 
 const GLASS_MATRIX = [
   [null, 'I', 'I', 'II', 'III'],
@@ -168,6 +169,19 @@ export default function computeGlass(segments = {}, targetPath = null) {
       hasAnatomy: true,
       side,
       reason: `The ${pathSide.toLowerCase()} target path does not match the recorded ${side.toLowerCase()} limb anatomy.`,
+    };
+  }
+  const pathValidation = validateTargetArterialPath(explicitIds);
+  if (!pathValidation.isValid) {
+    return {
+      stage: null,
+      fpGrade: null,
+      ipGrade: null,
+      pedalModifier: pedalModifier(anatomicEntries),
+      isComplete: false,
+      hasAnatomy: true,
+      side,
+      reason: `The selected target path is invalid: ${pathValidation.reason}`,
     };
   }
 

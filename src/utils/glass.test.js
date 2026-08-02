@@ -63,6 +63,7 @@ describe('GLASS calculation', () => {
       Left_posterior_tibial_artery: { type: 'stenosis', length: '<3', calcium: 'none' },
     };
     const posterior = computeGlass(segments, [
+      'Left_common_femoral_artery',
       'Left_superficial_femoral_artery',
       'Left_popliteal_artery_artery',
       'Left_tibioperoneal_trunk',
