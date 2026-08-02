@@ -168,7 +168,11 @@ test('edits and validates the target arterial path directly on the vessel map', 
 
   await page.getByRole('button', { name: 'Edit on map' }).click();
   await expect(page.getByTestId('target-path-editor')).toBeVisible();
-  await page.getByRole('button', { name: 'Set target route to Left plantar arch' }).click();
+  const plantarEndpoint = page.getByRole('button', {
+    name: 'Set target route to Left plantar arch',
+  });
+  await plantarEndpoint.focus();
+  await page.keyboard.press('Enter');
   await expect(page.getByLabel('Selected target route')).toContainText('posterior tibial artery');
   await expect(page.getByRole('button', { name: 'Use route' })).toBeEnabled();
   await page.getByRole('button', { name: 'Use route' }).click();
