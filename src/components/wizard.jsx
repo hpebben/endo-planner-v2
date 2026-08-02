@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DEFAULTS from './Defaults';
 import exportCaseSummaryToPDF from '../utils/exportCaseSummaryToPDF';
 import { __ } from '@wordpress/i18n';
