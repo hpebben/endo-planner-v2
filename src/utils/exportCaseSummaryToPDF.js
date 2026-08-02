@@ -3,7 +3,8 @@ import computeGlass from './glass';
 import rawVesselData from '../assets/vessel-map.json';
 import { WIFI_STAGE_INFO, getWifiAction } from './guidelineRecommendations';
 import { analyzePlan } from './planAnalysis';
-import { formatTargetArterialPath, sideFromVesselId } from './lesions';
+import { formatTargetArterialPath, getLesionOptions, sideFromVesselId } from './lesions';
+import { formatScopeLabel, getScopeLesionIds } from './planScopes';
 
 const vesselSegments = Array.isArray(rawVesselData?.segments) ? rawVesselData.segments : [];
 const vesselName = (id) => vesselSegments.find((segment) => segment.id === id)?.name || id.replace(/_/g, ' ');
@@ -49,6 +50,12 @@ const reportFilename = (data) => {
 
 const planLines = (data) => {
   const lines = [];
+  const lesionOptions = getLesionOptions(data.patencySegments || {}, data.targetArterialPath || []);
+  const scopeText = (row) => {
+    const label = formatScopeLabel(row, lesionOptions);
+    const ids = getScopeLesionIds(row);
+    return ids.length === 1 ? `${label} ${vesselName(ids[0])}` : label;
+  };
   (data.accessRows || []).forEach((row, index) => {
     lines.push(`Approach ${index + 1}: ${[row.approach, row.side, row.vessel].filter(Boolean).join(' ') || 'Not entered'}`);
     if (valuesOnly(row.needles)) lines.push(`Needle: ${valuesOnly(row.needles)}`);
@@ -57,17 +64,17 @@ const planLines = (data) => {
   });
   lines.push('::NAVIGATION & CROSSING');
   (data.navRows || []).forEach((row) => {
-    const lesion = row.lesionId ? vesselName(row.lesionId) : 'Unlinked lesion';
-    if (valuesOnly(row.wire)) lines.push(`${lesion} - wire: ${valuesOnly(row.wire)}`);
-    if (valuesOnly(row.catheter)) lines.push(`${lesion} - catheter: ${valuesOnly(row.catheter)}`);
-    if (valuesOnly(row.device)) lines.push(`${lesion} - special: ${valuesOnly(row.device)}`);
+    const scope = scopeText(row);
+    if (valuesOnly(row.wire)) lines.push(`${scope} - wire: ${valuesOnly(row.wire)}`);
+    if (valuesOnly(row.catheter)) lines.push(`${scope} - catheter: ${valuesOnly(row.catheter)}`);
+    if (valuesOnly(row.device)) lines.push(`${scope} - special: ${valuesOnly(row.device)}`);
   });
   lines.push('::VESSEL PREPARATION & THERAPY');
   (data.therapyRows || []).forEach((row) => {
-    const lesion = row.lesionId ? vesselName(row.lesionId) : 'Unlinked lesion';
-    if (valuesOnly(row.balloon)) lines.push(`${lesion} - balloon: ${valuesOnly(row.balloon)}`);
-    if (valuesOnly(row.stent)) lines.push(`${lesion} - stent: ${valuesOnly(row.stent)}`);
-    if (valuesOnly(row.device)) lines.push(`${lesion} - special: ${valuesOnly(row.device)}`);
+    const scope = scopeText(row);
+    if (valuesOnly(row.balloon)) lines.push(`${scope} - balloon: ${valuesOnly(row.balloon)}`);
+    if (valuesOnly(row.stent)) lines.push(`${scope} - stent: ${valuesOnly(row.stent)}`);
+    if (valuesOnly(row.device)) lines.push(`${scope} - special: ${valuesOnly(row.device)}`);
   });
   lines.push('::CLOSURE');
   (data.closureRows || []).forEach((row) => {
@@ -155,6 +162,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
   anatomyLines.push(data.targetArterialPath?.length
     ? `Target path: ${formatTargetArterialPath(data.targetArterialPath)}`
     : 'Target path: not selected');
+  if (data.targetArterialPathNote) anatomyLines.push(`Route note: ${data.targetArterialPathNote}`);
   if (glass.isComplete) {
     anatomyLines.push(`GLASS ${glass.stage}: FP ${glass.fpGrade}, IP ${glass.ipGrade}, ${glass.pedalModifier}`);
     anatomyLines.push(`Technical failure ${glass.technicalFailure}; 1-year limb-based patency ${glass.oneYearPatency}`);
@@ -179,7 +187,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     28,
     806,
   );
-  doc.text('EndoPlanner v1.6.167', pageWidth - 28, 806, { align: 'right' });
+  doc.text('EndoPlanner v1.6.168', pageWidth - 28, 806, { align: 'right' });
 
   doc.save(reportFilename(data));
 }

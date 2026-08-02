@@ -6,10 +6,14 @@ import { __ } from '@wordpress/i18n';
 import rawVesselData from '../../assets/vessel-map.json';
 import {
   buildTargetArterialPath,
-  formatTargetArterialPath,
+  buildTargetPathToSegment,
+  getLesionOptions,
   inferTargetPathKey,
+  shortVesselName,
   sideFromVesselId,
   TARGET_PATH_OPTIONS,
+  TARGET_ROUTE_ENDPOINT_IDS,
+  validateTargetArterialPath,
 } from '../../utils/lesions';
 
 // Parse vessel-map JSON
@@ -43,11 +47,25 @@ export default function Step2_Patency({ data, setData }) {
   const savedTargetPath = Array.isArray(data.targetArterialPath) ? data.targetArterialPath : [];
   const savedTargetSide = data.targetArterialPathSide || sideFromVesselId(savedTargetPath[0]);
   const [targetSide, setTargetSide] = useState(savedTargetSide || (selectedSides.length === 1 ? selectedSides[0] : ''));
+  const [routeEditMode, setRouteEditMode] = useState(false);
+  const [draftTargetPath, setDraftTargetPath] = useState(savedTargetPath);
+  const [routeEditMessage, setRouteEditMessage] = useState('');
+  const [routeNote, setRouteNote] = useState(data.targetArterialPathNote || '');
   const selectedTargetKey = data.targetArterialPathKey || inferTargetPathKey(savedTargetPath);
+  const activeTargetPath = routeEditMode ? draftTargetPath : savedTargetPath;
+  const activeTargetKey = routeEditMode ? inferTargetPathKey(draftTargetPath) : selectedTargetKey;
+  const activePathValidation = validateTargetArterialPath(activeTargetPath);
+  const lesionOptions = getLesionOptions(data.patencySegments || {}, savedTargetPath);
+  const lesionById = new Map(lesionOptions.map((lesion) => [lesion.value, lesion]));
+  const endpointCandidates = TARGET_ROUTE_ENDPOINT_IDS.filter((id) => sideFromVesselId(id) === targetSide);
 
   useEffect(() => {
     if (!targetSide && selectedSides.length === 1) setTargetSide(selectedSides[0]);
   }, [selectedSides.join('|'), targetSide]);
+
+  useEffect(() => {
+    if (!routeEditMode) setDraftTargetPath(savedTargetPath);
+  }, [savedTargetPath.join('|'), routeEditMode]);
 
   // Adjust tooltip position once it is rendered and handle fade out
   useEffect(() => {
@@ -135,6 +153,54 @@ export default function Step2_Patency({ data, setData }) {
       targetArterialPathKey: targetKey,
       targetArterialPathSide: targetSide,
     }));
+    setRouteEditMode(false);
+    setRouteEditMessage('');
+  };
+
+  const beginRouteEdit = () => {
+    if (!targetSide) return;
+    const initialPath = savedTargetPath.length
+      ? savedTargetPath
+      : buildTargetArterialPath(targetSide, selectedTargetKey || 'anterior');
+    setDraftTargetPath(initialPath);
+    setRouteNote(data.targetArterialPathNote || '');
+    setRouteEditMessage('Choose the intended distal target directly on the arterial map.');
+    setRouteEditMode(true);
+    setActiveSegment(null);
+  };
+
+  const chooseRouteEndpoint = (endpointId) => {
+    const path = buildTargetPathToSegment(targetSide, endpointId);
+    if (!path.length) {
+      setRouteEditMessage('Choose an infrapopliteal or pedal endpoint on the planned limb.');
+      return;
+    }
+    setDraftTargetPath(path);
+    setRouteEditMessage(`Proposed continuous route to ${shortVesselName(endpointId)}.`);
+  };
+
+  const saveEditedRoute = () => {
+    const validation = validateTargetArterialPath(draftTargetPath);
+    if (!validation.isValid) {
+      setRouteEditMessage(validation.reason);
+      return;
+    }
+    setData((prev) => ({
+      ...prev,
+      targetArterialPath: draftTargetPath,
+      targetArterialPathKey: inferTargetPathKey(draftTargetPath),
+      targetArterialPathSide: validation.side,
+      targetArterialPathNote: routeNote.trim(),
+    }));
+    setRouteEditMode(false);
+    setRouteEditMessage('');
+  };
+
+  const cancelRouteEdit = () => {
+    setDraftTargetPath(savedTargetPath);
+    setRouteNote(data.targetArterialPathNote || '');
+    setRouteEditMode(false);
+    setRouteEditMessage('');
   };
 
   const clearTargetPath = () => {
@@ -143,7 +209,11 @@ export default function Step2_Patency({ data, setData }) {
       targetArterialPath: [],
       targetArterialPathKey: '',
       targetArterialPathSide: '',
+      targetArterialPathNote: '',
     }));
+    setDraftTargetPath([]);
+    setRouteEditMode(false);
+    setRouteEditMessage('');
   };
 
   return (
@@ -153,10 +223,17 @@ export default function Step2_Patency({ data, setData }) {
           <div className="svg-wrapper patency-svg vessel-map-wrapper">
             <VesselMap
               selectedSegments={selectedSegments}
-              targetSegments={savedTargetPath}
-              toggleSegment={(id) => openSegment(id)}
+              targetSegments={activeTargetPath}
+              targetEndpointCandidates={endpointCandidates}
+              routeEditMode={routeEditMode}
+              toggleSegment={routeEditMode ? chooseRouteEndpoint : openSegment}
               setTooltip={handleTooltip}
             />
+            {routeEditMode && (
+              <div className="route-edit-map-badge" role="status">
+                {__('Editing target route', 'endoplanner')}
+              </div>
+            )}
             {tooltip && (
               <div
                 ref={tooltipRef}
@@ -177,6 +254,7 @@ export default function Step2_Patency({ data, setData }) {
                 {selectedSegments.map((id) => {
                   const seg = vesselSegments.find((s) => s.id === id);
                   const name = seg ? seg.name : id;
+                  const lesion = lesionById.get(id);
                   const vals = data.patencySegments[id] || {};
                   const lengthMap = {
                     '<3': '<3cm',
@@ -194,6 +272,7 @@ export default function Step2_Patency({ data, setData }) {
                         className="segment-edit-trigger"
                         onClick={() => openSegment(id)}
                       >
+                        <span className="lesion-code-chip">{lesion?.code}</span>
                         <strong>{name}</strong>{' '}
                         <span className="segment-summary">({summary})</span>
                       </button>
@@ -219,11 +298,36 @@ export default function Step2_Patency({ data, setData }) {
                 <h4>{__('Target arterial path', 'endoplanner')}</h4>
                 <p>{__('Select the intended inline route to the foot. The blue outline is used for GLASS and lesion-linked planning.', 'endoplanner')}</p>
               </div>
-              {savedTargetPath.length > 0 && (
-                <button type="button" className="target-path-clear" onClick={clearTargetPath}>
-                  {__('Clear', 'endoplanner')}
-                </button>
-              )}
+              <div className="target-path-actions">
+                {routeEditMode ? (
+                  <>
+                    <button type="button" className="target-path-clear" onClick={cancelRouteEdit}>
+                      {__('Cancel', 'endoplanner')}
+                    </button>
+                    <button
+                      type="button"
+                      className="target-path-save"
+                      onClick={saveEditedRoute}
+                      disabled={!activePathValidation.isValid}
+                    >
+                      {__('Use route', 'endoplanner')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {targetSide && (
+                      <button type="button" className="target-path-edit" onClick={beginRouteEdit}>
+                        {__('Edit on map', 'endoplanner')}
+                      </button>
+                    )}
+                    {savedTargetPath.length > 0 && (
+                      <button type="button" className="target-path-clear" onClick={clearTargetPath}>
+                        {__('Clear', 'endoplanner')}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
 
             {(selectedSides.length > 1 || !targetSide) && (
@@ -234,14 +338,17 @@ export default function Step2_Patency({ data, setData }) {
                   value={targetSide}
                   onChange={(side) => {
                     setTargetSide(side);
-                    if (selectedTargetKey) {
-                      const path = buildTargetArterialPath(side, selectedTargetKey);
-                      setData((prev) => ({
-                        ...prev,
-                        targetArterialPath: path,
-                        targetArterialPathKey: selectedTargetKey,
-                        targetArterialPathSide: side,
-                      }));
+                    if (activeTargetKey) {
+                      const path = buildTargetArterialPath(side, activeTargetKey);
+                      setDraftTargetPath(path);
+                      if (!routeEditMode) {
+                        setData((prev) => ({
+                          ...prev,
+                          targetArterialPath: path,
+                          targetArterialPathKey: activeTargetKey,
+                          targetArterialPathSide: side,
+                        }));
+                      }
                     }
                   }}
                   ariaLabel={__('Planned limb', 'endoplanner')}
@@ -251,7 +358,7 @@ export default function Step2_Patency({ data, setData }) {
 
             <div className="target-path-options" role="radiogroup" aria-label={__('Distal target artery', 'endoplanner')}>
               {TARGET_PATH_OPTIONS.map((option) => {
-                const selected = selectedTargetKey === option.key && Boolean(savedTargetPath.length);
+                const selected = activeTargetKey === option.key && Boolean(activeTargetPath.length);
                 return (
                   <button
                     key={option.key}
@@ -260,7 +367,7 @@ export default function Step2_Patency({ data, setData }) {
                     aria-checked={selected}
                     className={`target-path-option${selected ? ' is-selected' : ''}`}
                     onClick={() => chooseTargetPath(option.key)}
-                    disabled={!targetSide}
+                    disabled={!targetSide || routeEditMode}
                   >
                     <strong>{option.shortLabel}</strong>
                     <span>{option.description}</span>
@@ -269,13 +376,37 @@ export default function Step2_Patency({ data, setData }) {
               })}
             </div>
 
-            {savedTargetPath.length > 0 ? (
+            {routeEditMode && (
+              <div className="target-path-editor" data-testid="target-path-editor">
+                <strong>{__('Choose the distal endpoint on the map', 'endoplanner')}</strong>
+                <span>{__('EndoPlanner will draw and validate the continuous route from the common femoral artery. Lesion editing is paused until the route is saved or cancelled.', 'endoplanner')}</span>
+                <label>
+                  <span>{__('Variant, bypass or route note (optional)', 'endoplanner')}</span>
+                  <input
+                    type="text"
+                    value={routeNote}
+                    onChange={(event) => setRouteNote(event.target.value)}
+                    placeholder={__('e.g. prior bypass used as inflow', 'endoplanner')}
+                  />
+                </label>
+                <p className={activePathValidation.isValid ? 'route-edit-valid' : 'route-edit-error'}>
+                  {routeEditMessage || activePathValidation.reason}
+                </p>
+              </div>
+            )}
+
+            {activeTargetPath.length > 0 ? (
               <div className="target-path-route" aria-live="polite">
                 <span className="target-path-swatch" aria-hidden="true" />
-                <span>{formatTargetArterialPath(savedTargetPath)}</span>
+                <ol className="target-path-breadcrumb" aria-label={__('Selected target route', 'endoplanner')}>
+                  {activeTargetPath.map((id) => <li key={id}>{shortVesselName(id)}</li>)}
+                </ol>
               </div>
             ) : (
               <p className="target-path-empty">{__('No target path selected. GLASS will remain incomplete.', 'endoplanner')}</p>
+            )}
+            {!routeEditMode && data.targetArterialPathNote && (
+              <p className="target-path-note"><b>{__('Route note', 'endoplanner')}:</b> {data.targetArterialPathNote}</p>
             )}
           </div>
 
@@ -293,7 +424,7 @@ export default function Step2_Patency({ data, setData }) {
             />
           )}
 
-          {showInstruction && (
+          {showInstruction && !routeEditMode && (
             <div className="instruction-box">
               {__(
                 'Select affected segments and specify patency, length and level of calcification.',

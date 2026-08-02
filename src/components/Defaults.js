@@ -11,6 +11,7 @@ export default {
   targetArterialPath: [],
   targetArterialPathKey: '',
   targetArterialPathSide: '',
+  targetArterialPathNote: '',
   appliedPreferenceProfile: null,
   access: {
     needle: {},

@@ -15,7 +15,19 @@ import {
   WIRE_ROLES,
   WIRE_ROLE_INFO,
 } from '../../data/wireCatalog';
-import { getLesionOptions } from '../../utils/lesions';
+import { formatTargetArterialPath, getLesionOptions } from '../../utils/lesions';
+import {
+  buildScopeOptions,
+  createLesionScope,
+  createTargetPathScope,
+  formatScopeLabel,
+  getPlanScope,
+  hasPlanItemContent,
+  migratePlanRowScopes,
+  scopeFromValue,
+  scopeKey,
+  scopeToValue,
+} from '../../utils/planScopes';
 import {
   clearPreferenceProfile,
   loadPreferenceProfile,
@@ -43,7 +55,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.167';
+const APPLICATION_VERSION = '1.6.168';
 
 const closureDeviceOptions = [
   '6F AngioSeal',
@@ -1107,27 +1119,51 @@ AccessRow.propTypes = {
   showRemove: PropTypes.bool,
 };
 
-function TargetLesionSelect({ value, options, onChange }) {
+function ScopeChip({ value, options, onChange }) {
+  const [editing, setEditing] = useState(false);
+  const currentValue = scopeToValue(value || {});
+  const currentOption = options.find((option) => option.value === currentValue);
+  const shortLabel = currentOption?.shortLabel || __('UNASSIGNED', 'endoplanner');
   return (
-    <label className="target-lesion-select">
-      <span>{__('Target lesion', 'endoplanner')}</span>
-      <select
-        value={value || ''}
-        onChange={(event) => onChange(event.target.value)}
-        aria-label={__('Target lesion', 'endoplanner')}
-        data-testid="target-lesion-select"
-      >
-        <option value="">{__('Choose lesion', 'endoplanner')}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>{option.label}</option>
-        ))}
-      </select>
-    </label>
+    <div className="plan-scope-control" data-testid="plan-scope-control">
+      <span className={`plan-scope-chip${!currentOption ? ' is-unassigned' : ''}`}>
+        {shortLabel}
+      </span>
+      {(options.length > 1 || !currentOption) && options.length > 0 && (
+        <button
+          type="button"
+          className="plan-scope-move"
+          onClick={() => setEditing((open) => !open)}
+          aria-expanded={editing}
+        >
+          {__('Move', 'endoplanner')}
+        </button>
+      )}
+      {editing && (
+        <label className="plan-scope-picker">
+          <span>{__('Device scope', 'endoplanner')}</span>
+          <select
+            value={currentOption ? currentValue : ''}
+            onChange={(event) => {
+              const nextScope = scopeFromValue(event.target.value);
+              if (nextScope) onChange(nextScope);
+              setEditing(false);
+            }}
+            aria-label={__('Move device to scope', 'endoplanner')}
+          >
+            <option value="" disabled>{__('Choose scope', 'endoplanner')}</option>
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </label>
+      )}
+    </div>
   );
 }
 
-TargetLesionSelect.propTypes = {
-  value: PropTypes.string,
+ScopeChip.propTypes = {
+  value: PropTypes.object,
   options: PropTypes.arrayOf(PropTypes.shape({
     value: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
@@ -1135,7 +1171,7 @@ TargetLesionSelect.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredWireProducts, lesionOptions }) {
+function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredWireProducts, scopeOptions }) {
   const [wireOpen, setWireOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [wireAnchor, setWireAnchor] = useState(null);
@@ -1147,10 +1183,10 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
   return (
     <div className="intervention-row">
       <div className="row-inner">
-        <TargetLesionSelect
-          value={data.lesionId || ''}
-          options={lesionOptions}
-          onChange={(lesionId) => onChange({ ...data, lesionId })}
+        <ScopeChip
+          value={getPlanScope(data)}
+          options={scopeOptions}
+          onChange={(scope) => onChange({ ...data, scope })}
         />
         <div className="device-row">
         <DeviceButton
@@ -1179,7 +1215,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
           buttonLabel={__('Special', 'endoplanner')}
         />
       </div>
-      <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
+      <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} showAdd={false} />
       <WireModal
         isOpen={wireOpen}
         anchor={wireAnchor}
@@ -1208,9 +1244,9 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
   );
 }
 
-NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredWireProducts: PropTypes.arrayOf(PropTypes.string), lesionOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
+NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredWireProducts: PropTypes.arrayOf(PropTypes.string), scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
 
-function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, lesionOptions }) {
+function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, scopeOptions }) {
   const [ballOpen, setBallOpen] = useState(false);
   const [stentOpen, setStentOpen] = useState(false);
   const [ballAnchor, setBallAnchor] = useState(null);
@@ -1222,10 +1258,10 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, lesi
   return (
     <div className="intervention-row">
       <div className="row-inner">
-        <TargetLesionSelect
-          value={data.lesionId || ''}
-          options={lesionOptions}
-          onChange={(lesionId) => onChange({ ...data, lesionId })}
+        <ScopeChip
+          value={getPlanScope(data)}
+          options={scopeOptions}
+          onChange={(scope) => onChange({ ...data, scope })}
         />
         <div className="device-row">
         <DeviceButton
@@ -1254,7 +1290,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, lesi
           buttonLabel={__('Special', 'endoplanner')}
         />
       </div>
-      <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} />
+      <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} showAdd={false} />
         <BalloonModal
           isOpen={ballOpen}
           anchor={ballAnchor}
@@ -1282,7 +1318,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, lesi
   );
 }
 
-TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, lesionOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
+TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
 
 function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const data = values || {};
@@ -1320,16 +1356,16 @@ ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.o
 
 // --- Main Step Component --------------------------------------------------
 export default function Step4({ data, setData }) {
-  const lesionOptions = getLesionOptions(data.patencySegments || {});
+  const targetPath = data.targetArterialPath || [];
+  const lesionOptions = getLesionOptions(data.patencySegments || {}, targetPath);
   const defaultLesionId = lesionOptions.length === 1 ? lesionOptions[0].value : '';
-  const initRows = (arr, def, linkLesion = false) =>
+  const initRows = (arr, def) =>
     arr && arr.length
       ? arr.map((r) => ({
         id: r.id || uid(),
         ...r,
-        ...(linkLesion && defaultLesionId && !r.lesionId ? { lesionId: defaultLesionId } : {}),
       }))
-      : [{ id: uid(), ...def, ...(linkLesion && defaultLesionId ? { lesionId: defaultLesionId } : {}) }];
+      : [{ id: uid(), ...def }];
 
   const defaultAccess = {
     needles: [DEFAULTS.access.needle],
@@ -1341,8 +1377,16 @@ export default function Step4({ data, setData }) {
   const defaultClosure = { method: DEFAULTS.closure.method };
 
   const [accessRows, setAccessRows] = useState(initRows(data.accessRows, defaultAccess));
-  const [navRows, setNavRows] = useState(initRows(data.navRows, defaultNav, true));
-  const [therapyRows, setTherapyRows] = useState(initRows(data.therapyRows, defaultTherapy, true));
+  const [navRows, setNavRows] = useState(() => migratePlanRowScopes(data.navRows || [], {
+    defaultLesionId,
+    targetPath,
+    rowType: 'navigation',
+  }).map((row) => ({ id: row.id || uid(), ...row })));
+  const [therapyRows, setTherapyRows] = useState(() => migratePlanRowScopes(data.therapyRows || [], {
+    defaultLesionId,
+    targetPath,
+    rowType: 'therapy',
+  }).map((row) => ({ id: row.id || uid(), ...row })));
   const [closureRows, setClosureRows] = useState(initRows(data.closureRows, defaultClosure));
   const [prefsOpen, setPrefsOpen] = useState(false);
   const [prefsData, setPrefsData] = useState(createEmptyPreferences);
@@ -1355,9 +1399,7 @@ export default function Step4({ data, setData }) {
       .map((slot) => slot?.value ?? slot?.data ?? slot)
       .filter(hasPreferenceValue);
 
-  const rowHasContent = (row) => Object.entries(row || {})
-    .filter(([key]) => !['id', 'lesionId'].includes(key))
-    .some(([, value]) => hasPreferenceValue(value));
+  const rowHasContent = (row) => hasPlanItemContent(row);
 
   const applyPreferencesToCase = (preferences, overwrite = false) => {
     const needles = preferenceValues(preferences, 'needle');
@@ -1383,11 +1425,22 @@ export default function Step4({ data, setData }) {
     setNavRows((previous) => {
       if (!overwrite && previous.some(rowHasContent)) return previous;
       if (!wires.length && !catheters.length && !specialDevices.length) return previous;
-      const rows = wires.length ? wires.map((wireValue, index) => ({
-        id: previous[index]?.id || uid(),
-        lesionId: previous[index]?.lesionId || defaultLesionId,
-        wire: wireValue,
-      })) : [{ id: previous[0]?.id || uid(), lesionId: previous[0]?.lesionId || defaultLesionId }];
+      const rows = wires.length ? wires.map((wireValue, index) => {
+        const isSupportWire = normalizeWireRole(wireValue.role || wireValue.type) === WIRE_ROLES.SUPPORT;
+        const preferredScope = isSupportWire && targetPath.length
+          ? createTargetPathScope()
+          : (defaultLesionId ? createLesionScope(defaultLesionId) : null);
+        return {
+          id: previous[index]?.id || uid(),
+          ...(preferredScope ? { scope: preferredScope } : {}),
+          wire: wireValue,
+        };
+      }) : [{
+        id: previous[0]?.id || uid(),
+        ...(targetPath.length
+          ? { scope: createTargetPathScope() }
+          : (defaultLesionId ? { scope: createLesionScope(defaultLesionId) } : {})),
+      }];
       if (catheters[0]) rows[0].catheter = catheters[0];
       const reentryDevice = specialDevices.find((value) => String(value).toLowerCase().includes('re-entry'));
       if (reentryDevice) rows[0].device = reentryDevice;
@@ -1400,7 +1453,7 @@ export default function Step4({ data, setData }) {
       const rowCount = Math.max(balloons.length, stents.length, 1);
       return Array.from({ length: rowCount }, (_, index) => ({
         id: previous[index]?.id || uid(),
-        lesionId: previous[index]?.lesionId || defaultLesionId,
+        ...(defaultLesionId ? { scope: createLesionScope(defaultLesionId) } : {}),
         ...(balloons[index] ? { balloon: balloons[index] } : {}),
         ...(stents[index] ? { stent: stents[index] } : {}),
         ...(index === 0 && specialDevices[0] ? { device: specialDevices[0] } : {}),
@@ -1532,6 +1585,61 @@ export default function Step4({ data, setData }) {
   const preferredWireProducts = preferenceValues(savedPreferences, 'wire')
     .map((value) => value.product)
     .filter(Boolean);
+  const navigationScopeOptions = buildScopeOptions(lesionOptions, targetPath, {
+    includeTargetPath: true,
+    includeTreatmentZones: true,
+  });
+  const therapyScopeOptions = buildScopeOptions(lesionOptions, targetPath, {
+    includeTargetPath: false,
+    includeTreatmentZones: true,
+  });
+  const allKnownScopeKeys = new Set([...navigationScopeOptions, ...therapyScopeOptions].map((option) => option.value));
+  const pathScope = createTargetPathScope();
+  const rowsInScope = (rows, scope) => rows.filter((row) => scopeKey(row) === scopeKey(scope));
+  const zoneOptions = therapyScopeOptions.filter((option) => (
+    option.scope.type === 'treatmentZone'
+    && [...navRows, ...therapyRows].some((row) => scopeKey(row) === option.value)
+  ));
+  const unassignedNavRows = navRows.filter((row) => (
+    hasPlanItemContent(row) && !allKnownScopeKeys.has(scopeKey(row))
+  ));
+  const unassignedTherapyRows = therapyRows.filter((row) => (
+    hasPlanItemContent(row) && !allKnownScopeKeys.has(scopeKey(row))
+  ));
+
+  const addNavigationRow = (scope) => setNavRows((previous) => [
+    ...previous,
+    { id: uid(), ...defaultNav, scope },
+  ]);
+  const addTherapyRow = (scope) => setTherapyRows((previous) => [
+    ...previous,
+    { id: uid(), ...defaultTherapy, scope },
+  ]);
+  const renderNavigationRows = (rows) => rows.map((row) => (
+    <NavRow
+      key={row.id}
+      index={Math.max(navRows.indexOf(row), 0)}
+      values={row}
+      onChange={(value) => setNavRows((previous) => previous.map((item) => (item.id === row.id ? value : item)))}
+      onAdd={() => {}}
+      onRemove={() => setNavRows((previous) => previous.filter((item) => item.id !== row.id))}
+      showRemove
+      preferredWireProducts={preferredWireProducts}
+      scopeOptions={navigationScopeOptions}
+    />
+  ));
+  const renderTherapyRows = (rows) => rows.map((row) => (
+    <TherapyRow
+      key={row.id}
+      index={Math.max(therapyRows.indexOf(row), 0)}
+      values={row}
+      onChange={(value) => setTherapyRows((previous) => previous.map((item) => (item.id === row.id ? value : item)))}
+      onAdd={() => {}}
+      onRemove={() => setTherapyRows((previous) => previous.filter((item) => item.id !== row.id))}
+      showRemove
+      scopeOptions={therapyScopeOptions}
+    />
+  ));
   const currentPlanData = { ...data, accessRows, navRows, therapyRows, closureRows };
   const planFindings = analyzePlan(currentPlanData);
 
@@ -1740,44 +1848,114 @@ export default function Step4({ data, setData }) {
         />
       </section>
 
-      <section className="intervention-section">
-        <div className="section-heading">{__('Navigation & Crossing', 'endoplanner')}</div>
-        {navRows.map((row, i) => (
-          <NavRow
-            key={row.id}
-            index={i}
-            values={row}
-            onChange={(val) => setNavRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
-            onAdd={() =>
-              setNavRows((prev) => [...prev, { id: uid(), ...defaultNav, ...(defaultLesionId ? { lesionId: defaultLesionId } : {}) }])
-            }
-            onRemove={() => setNavRows((prev) => prev.filter((r) => r.id !== row.id))}
-            showRemove={navRows.length > 1}
-            preferredWireProducts={preferredWireProducts}
-            lesionOptions={lesionOptions}
-          />
-        ))}
-      </section>
+      <section className="intervention-section scoped-plan-section" data-testid="scoped-intervention-plan">
+        <div className="section-heading">{__('Device sequence by target path and lesion', 'endoplanner')}</div>
+        <p className="scoped-plan-intro">
+          {__('Add devices inside PATH or a lesion group; EndoPlanner assigns the scope automatically. Use Move only to reassign a row or combine two adjacent lesions into one treatment zone.', 'endoplanner')}
+        </p>
 
-      <section className="intervention-section">
-        <div className="section-heading">{__('Vessel preparation & therapy', 'endoplanner')}</div>
-        {therapyRows.map((row, i) => (
-          <TherapyRow
-            key={row.id}
-            index={i}
-            values={row}
-            onChange={(val) => setTherapyRows((prev) => prev.map((r) => (r.id === row.id ? val : r)))}
-            onAdd={() =>
-              setTherapyRows((prev) => [
-                ...prev,
-                { id: uid(), ...defaultTherapy, ...(defaultLesionId ? { lesionId: defaultLesionId } : {}) },
-              ])
-            }
-            onRemove={() => setTherapyRows((prev) => prev.filter((r) => r.id !== row.id))}
-            showRemove={therapyRows.length > 1}
-            lesionOptions={lesionOptions}
-          />
-        ))}
+        {targetPath.length > 0 && (
+          <article className="plan-scope-group plan-scope-group--path" data-testid="plan-scope-group-PATH">
+            <header className="plan-scope-group-header">
+              <span className="plan-scope-group-code">PATH</span>
+              <div>
+                <h3>{`${data.targetArterialPathSide || 'Primary'} target arterial path`}</h3>
+                <p>{formatTargetArterialPath(targetPath)}</p>
+              </div>
+            </header>
+            <div className="plan-scope-subsection">
+              <h4>{__('Navigation & route support', 'endoplanner')}</h4>
+              {rowsInScope(navRows, pathScope).length
+                ? renderNavigationRows(rowsInScope(navRows, pathScope))
+                : <p className="plan-scope-empty">{__('No path-level support wire or catheter added.', 'endoplanner')}</p>}
+              <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(pathScope)}>
+                <span aria-hidden="true">+</span>{__('Add path support / exchange device', 'endoplanner')}
+              </button>
+            </div>
+          </article>
+        )}
+
+        {lesionOptions.map((lesion) => {
+          const lesionScope = createLesionScope(lesion.value);
+          const linkedNavigation = rowsInScope(navRows, lesionScope);
+          const linkedTherapy = rowsInScope(therapyRows, lesionScope);
+          const findings = [lesion.findings.type, lesion.findings.length && `${lesion.findings.length} cm`, lesion.findings.calcium && `${lesion.findings.calcium} calcium`]
+            .filter(Boolean)
+            .join(' • ');
+          return (
+            <article className="plan-scope-group" data-testid={`plan-scope-group-${lesion.code}`} key={lesion.value}>
+              <header className="plan-scope-group-header">
+                <span className="plan-scope-group-code">{lesion.code}</span>
+                <div>
+                  <h3>{lesion.name}</h3>
+                  <p>{findings}</p>
+                </div>
+              </header>
+              <div className="plan-scope-subsection">
+                <h4>{__('Navigation & crossing', 'endoplanner')}</h4>
+                {linkedNavigation.length
+                  ? renderNavigationRows(linkedNavigation)
+                  : <p className="plan-scope-empty">{__('No crossing device added.', 'endoplanner')}</p>}
+                <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(lesionScope)}>
+                  <span aria-hidden="true">+</span>{__('Add crossing device', 'endoplanner')}
+                </button>
+              </div>
+              <div className="plan-scope-subsection">
+                <h4>{__('Vessel preparation & therapy', 'endoplanner')}</h4>
+                {linkedTherapy.length
+                  ? renderTherapyRows(linkedTherapy)
+                  : <p className="plan-scope-empty">{__('No treatment device added.', 'endoplanner')}</p>}
+                <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addTherapyRow(lesionScope)}>
+                  <span aria-hidden="true">+</span>{__('Add treatment device', 'endoplanner')}
+                </button>
+              </div>
+            </article>
+          );
+        })}
+
+        {zoneOptions.map((option) => {
+          const zoneNavigation = rowsInScope(navRows, option.scope);
+          const zoneTherapy = rowsInScope(therapyRows, option.scope);
+          return (
+            <article className="plan-scope-group plan-scope-group--zone" key={option.value}>
+              <header className="plan-scope-group-header">
+                <span className="plan-scope-group-code">{formatScopeLabel(option.scope, lesionOptions)}</span>
+                <div>
+                  <h3>{__('Combined treatment zone', 'endoplanner')}</h3>
+                  <p>{option.label.replace(/^ZONE [^—]+ — /, '')}</p>
+                </div>
+              </header>
+              <div className="plan-scope-subsection">
+                <h4>{__('Navigation & crossing', 'endoplanner')}</h4>
+                {renderNavigationRows(zoneNavigation)}
+                <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(option.scope)}>
+                  <span aria-hidden="true">+</span>{__('Add crossing device', 'endoplanner')}
+                </button>
+              </div>
+              <div className="plan-scope-subsection">
+                <h4>{__('Vessel preparation & therapy', 'endoplanner')}</h4>
+                {renderTherapyRows(zoneTherapy)}
+                <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addTherapyRow(option.scope)}>
+                  <span aria-hidden="true">+</span>{__('Add treatment device', 'endoplanner')}
+                </button>
+              </div>
+            </article>
+          );
+        })}
+
+        {(unassignedNavRows.length > 0 || unassignedTherapyRows.length > 0) && (
+          <article className="plan-scope-group plan-scope-group--unassigned" data-testid="plan-scope-group-UNASSIGNED">
+            <header className="plan-scope-group-header">
+              <span className="plan-scope-group-code">?</span>
+              <div>
+                <h3>{__('Assign preferred or legacy devices', 'endoplanner')}</h3>
+                <p>{__('Use the small Move control once; subsequent devices inherit their group automatically.', 'endoplanner')}</p>
+              </div>
+            </header>
+            {renderNavigationRows(unassignedNavRows)}
+            {renderTherapyRows(unassignedTherapyRows)}
+          </article>
+        )}
       </section>
 
       <section className="intervention-section">

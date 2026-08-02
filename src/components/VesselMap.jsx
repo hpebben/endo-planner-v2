@@ -60,6 +60,8 @@ const getTooltipPlacement = (segRect, wrapperRect, tipSize = { width: 0, height:
 export default function VesselMap({
   selectedSegments = [],
   targetSegments = [],
+  targetEndpointCandidates = [],
+  routeEditMode = false,
   toggleSegment = () => {},
   setTooltip,
 }) {
@@ -84,10 +86,12 @@ export default function VesselMap({
   };
 
   const handleClick = (id) => () => {
+    if (routeEditMode && !targetEndpointCandidates.includes(id)) return;
     toggleSegment(id);
   };
 
   const handleKeyDown = (id) => (event) => {
+    if (routeEditMode && !targetEndpointCandidates.includes(id)) return;
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       toggleSegment(id);
@@ -108,6 +112,7 @@ export default function VesselMap({
         {vesselSegments.map((seg) => {
           const isSelected = selectedSegments.includes(seg.id);
           const isTargeted = targetSegments.includes(seg.id);
+          const isTargetEndpointCandidate = targetEndpointCandidates.includes(seg.id);
           const isHover = hoverSegment === seg.id;
           const shapes = seg.paths || seg.polygons || [];
           return (
@@ -116,9 +121,11 @@ export default function VesselMap({
               id={seg.id}
               data-name={seg.name}
               role="button"
-              tabIndex={0}
-              aria-label={seg.name}
-              aria-pressed={isSelected}
+              tabIndex={routeEditMode && !isTargetEndpointCandidate ? -1 : 0}
+              aria-label={routeEditMode ? `Set target route to ${seg.name}` : seg.name}
+              aria-pressed={routeEditMode ? isTargeted : isSelected}
+              aria-disabled={routeEditMode && !isTargetEndpointCandidate}
+              data-route-endpoint={isTargetEndpointCandidate ? 'true' : undefined}
               onMouseEnter={handleEnter(seg.id, seg.name)}
               onMouseLeave={handleLeave(seg.id)}
               onFocus={handleEnter(seg.id, seg.name)}
@@ -138,6 +145,8 @@ export default function VesselMap({
                   'vessel-segment',
                   isSelected ? 'selected' : '',
                   isTargeted ? 'targeted' : '',
+                  routeEditMode && isTargetEndpointCandidate ? 'target-endpoint-candidate' : '',
+                  routeEditMode && !isTargetEndpointCandidate ? 'route-edit-disabled' : '',
                   isHover ? 'hovered' : '',
                 ]
                   .filter(Boolean)

@@ -161,3 +161,60 @@ test('exports a PDF report from case data', async ({ page }) => {
   const stream = await download.createReadStream();
   expect(stream).not.toBeNull();
 });
+
+test('edits and validates the target arterial path directly on the vessel map', async ({ page }) => {
+  await seed(page, baseCase(), 1);
+  await page.goto('./');
+
+  await page.getByRole('button', { name: 'Edit on map' }).click();
+  await expect(page.getByTestId('target-path-editor')).toBeVisible();
+  const plantarEndpoint = page.getByRole('button', {
+    name: 'Set target route to Left plantar arch',
+  });
+  await plantarEndpoint.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByLabel('Selected target route')).toContainText('posterior tibial artery');
+  await expect(page.getByRole('button', { name: 'Use route' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Use route' }).click();
+
+  await expect.poll(() => page.evaluate((key) => {
+    const stored = JSON.parse(localStorage.getItem(key));
+    return {
+      schemaVersion: stored?.schemaVersion,
+      key: stored?.data?.targetArterialPathKey,
+      endpoint: stored?.data?.targetArterialPath?.at(-1),
+    };
+  }, STATE_KEY)).toEqual({
+    schemaVersion: 4,
+    key: 'posterior',
+    endpoint: 'Left_plantar_arch',
+  });
+});
+
+test('creates devices inside PATH and lesion groups without repeated lesion selectors', async ({ page }) => {
+  await seed(page, baseCase(), 2);
+  await page.goto('./');
+
+  const pathGroup = page.getByTestId('plan-scope-group-PATH');
+  const lesionGroup = page.getByTestId('plan-scope-group-L1');
+  await expect(pathGroup).toBeVisible();
+  await expect(lesionGroup).toContainText('Left superficial femoral artery');
+
+  await pathGroup.getByRole('button', { name: /Add path support/ }).click();
+  await lesionGroup.getByRole('button', { name: 'Add crossing device' }).click();
+  await lesionGroup.getByRole('button', { name: 'Add treatment device' }).click();
+  await expect(pathGroup.getByText('PATH', { exact: true }).last()).toBeVisible();
+  await expect(lesionGroup.getByText('L1', { exact: true }).last()).toBeVisible();
+  await expect(page.getByTestId('target-lesion-select')).toHaveCount(0);
+
+  await expect.poll(() => page.evaluate((key) => {
+    const stored = JSON.parse(localStorage.getItem(key));
+    return {
+      navScopes: (stored?.data?.navRows || []).map((row) => row.scope?.type).sort(),
+      therapyScopes: (stored?.data?.therapyRows || []).map((row) => row.scope?.type).sort(),
+    };
+  }, STATE_KEY)).toEqual({
+    navScopes: ['lesion', 'targetPath'],
+    therapyScopes: ['lesion'],
+  });
+});
