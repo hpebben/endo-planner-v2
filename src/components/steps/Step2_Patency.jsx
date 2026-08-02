@@ -1,8 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import VesselMap from '../VesselMap';
 import ParameterPopup from '../UI/ParameterPopup';
+import SegmentedControl from '../UI/SegmentedControl';
 import { __ } from '@wordpress/i18n';
 import rawVesselData from '../../assets/vessel-map.json';
+import {
+  buildTargetArterialPath,
+  formatTargetArterialPath,
+  inferTargetPathKey,
+  sideFromVesselId,
+  TARGET_PATH_OPTIONS,
+} from '../../utils/lesions';
 
 // Parse vessel-map JSON
 const parseVesselData = (data) => {
@@ -31,6 +39,15 @@ export default function Step2_Patency({ data, setData }) {
   const [showInstruction, setShowInstruction] = useState(true);
 
   const selectedSegments = Object.keys(data.patencySegments || {});
+  const selectedSides = [...new Set(selectedSegments.map(sideFromVesselId).filter(Boolean))];
+  const savedTargetPath = Array.isArray(data.targetArterialPath) ? data.targetArterialPath : [];
+  const savedTargetSide = data.targetArterialPathSide || sideFromVesselId(savedTargetPath[0]);
+  const [targetSide, setTargetSide] = useState(savedTargetSide || (selectedSides.length === 1 ? selectedSides[0] : ''));
+  const selectedTargetKey = data.targetArterialPathKey || inferTargetPathKey(savedTargetPath);
+
+  useEffect(() => {
+    if (!targetSide && selectedSides.length === 1) setTargetSide(selectedSides[0]);
+  }, [selectedSides.join('|'), targetSide]);
 
   // Adjust tooltip position once it is rendered and handle fade out
   useEffect(() => {
@@ -109,6 +126,26 @@ export default function Step2_Patency({ data, setData }) {
     if (activeSegment === id) setActiveSegment(null);
   };
 
+  const chooseTargetPath = (targetKey) => {
+    if (!targetSide) return;
+    const path = buildTargetArterialPath(targetSide, targetKey);
+    setData((prev) => ({
+      ...prev,
+      targetArterialPath: path,
+      targetArterialPathKey: targetKey,
+      targetArterialPathSide: targetSide,
+    }));
+  };
+
+  const clearTargetPath = () => {
+    setData((prev) => ({
+      ...prev,
+      targetArterialPath: [],
+      targetArterialPathKey: '',
+      targetArterialPathSide: '',
+    }));
+  };
+
   return (
     <div className="step2-patency">
       <div className="patency-container">
@@ -116,6 +153,7 @@ export default function Step2_Patency({ data, setData }) {
           <div className="svg-wrapper patency-svg vessel-map-wrapper">
             <VesselMap
               selectedSegments={selectedSegments}
+              targetSegments={savedTargetPath}
               toggleSegment={(id) => openSegment(id)}
               setTooltip={handleTooltip}
             />
@@ -174,6 +212,72 @@ export default function Step2_Patency({ data, setData }) {
               </ul>
             </div>
           )}
+
+          <div className="target-path-panel" data-testid="target-path-selector">
+            <div className="target-path-heading">
+              <div>
+                <h4>{__('Target arterial path', 'endoplanner')}</h4>
+                <p>{__('Select the intended inline route to the foot. The blue outline is used for GLASS and lesion-linked planning.', 'endoplanner')}</p>
+              </div>
+              {savedTargetPath.length > 0 && (
+                <button type="button" className="target-path-clear" onClick={clearTargetPath}>
+                  {__('Clear', 'endoplanner')}
+                </button>
+              )}
+            </div>
+
+            {(selectedSides.length > 1 || !targetSide) && (
+              <div className="target-path-side">
+                <span>{__('Planned limb', 'endoplanner')}</span>
+                <SegmentedControl
+                  options={['Left', 'Right'].map((side) => ({ label: side, value: side }))}
+                  value={targetSide}
+                  onChange={(side) => {
+                    setTargetSide(side);
+                    if (selectedTargetKey) {
+                      const path = buildTargetArterialPath(side, selectedTargetKey);
+                      setData((prev) => ({
+                        ...prev,
+                        targetArterialPath: path,
+                        targetArterialPathKey: selectedTargetKey,
+                        targetArterialPathSide: side,
+                      }));
+                    }
+                  }}
+                  ariaLabel={__('Planned limb', 'endoplanner')}
+                />
+              </div>
+            )}
+
+            <div className="target-path-options" role="radiogroup" aria-label={__('Distal target artery', 'endoplanner')}>
+              {TARGET_PATH_OPTIONS.map((option) => {
+                const selected = selectedTargetKey === option.key && Boolean(savedTargetPath.length);
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    className={`target-path-option${selected ? ' is-selected' : ''}`}
+                    onClick={() => chooseTargetPath(option.key)}
+                    disabled={!targetSide}
+                  >
+                    <strong>{option.shortLabel}</strong>
+                    <span>{option.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {savedTargetPath.length > 0 ? (
+              <div className="target-path-route" aria-live="polite">
+                <span className="target-path-swatch" aria-hidden="true" />
+                <span>{formatTargetArterialPath(savedTargetPath)}</span>
+              </div>
+            ) : (
+              <p className="target-path-empty">{__('No target path selected. GLASS will remain incomplete.', 'endoplanner')}</p>
+            )}
+          </div>
 
           {activeSegment && (
             <ParameterPopup

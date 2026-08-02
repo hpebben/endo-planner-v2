@@ -1,116 +1,193 @@
+export const WIRE_ROLES = {
+  WORKHORSE: 'Workhorse',
+  JACKETED: 'Polymer-jacketed / hydrophilic',
+  CTO: 'CTO crossing',
+  SUPPORT: 'Support / exchange',
+};
+
+export const CTO_PROFILES = {
+  SLIDING: 'Jacketed / sliding',
+  TORQUE: 'Torque-controlled / directional',
+  PENETRATION: 'Penetration',
+  HIGH_PENETRATION: 'High penetration',
+};
+
+const ROLE_ALIASES = {
+  Glidewire: WIRE_ROLES.JACKETED,
+  'CTO wire': WIRE_ROLES.CTO,
+  'Support wire': WIRE_ROLES.SUPPORT,
+};
+
+export const normalizeWireRole = (value) => ROLE_ALIASES[value] || value || '';
+
+export const WIRE_ROLE_INFO = {
+  [WIRE_ROLES.WORKHORSE]: {
+    purpose: 'Controlled navigation, branch selection and safer device delivery after crossing.',
+    design: 'Low-to-moderate tip force with balanced torque, tactile feedback and support.',
+    caution: 'May lack the lubricity or penetration needed for resistant chronic occlusions.',
+  },
+  [WIRE_ROLES.JACKETED]: {
+    purpose: 'Low-friction tracking through tortuosity, soft plaque or a deliberately created loop/subintimal plane.',
+    design: 'Hydrophilic coating and, for many products, a polymer jacket that reduces friction and tactile feedback.',
+    caution: 'Can preferentially enter branches or an extraplaque plane. Confirm tip position frequently and exchange after crossing when appropriate.',
+  },
+  [WIRE_ROLES.CTO]: {
+    purpose: 'Directional control, drilling or penetration of resistant CTO caps and body.',
+    design: 'Specialty construction with progressively greater torque response and/or tip force.',
+    caution: 'Escalate only with support-catheter control and orthogonal imaging; higher penetration increases perforation risk.',
+  },
+  [WIRE_ROLES.SUPPORT]: {
+    purpose: 'Exchange and rail support for delivery of balloons, stents and other devices.',
+    design: 'Stiffer shaft and/or supportive tip geometry rather than a primary lesion-crossing design.',
+    caution: 'Do not document this as the sole crossing wire for a CTO unless it was genuinely used to cross.',
+  },
+};
+
 const BOTH_TECHNIQUES = [
-  'Intimal Tracking',
+  'Intraluminal tracking',
   'Limited sub-intimal dissection and re-entry',
+  'Limited subintimal dissection and re-entry',
+  // Retain compatibility with cases saved by release 1.6.166.
+  'Intimal Tracking',
 ];
 
-const wire = (manufacturer, name, platform, lengths, category, techniques = BOTH_TECHNIQUES) => ({
+const wire = (
+  manufacturer,
+  name,
+  platform,
+  lengths,
+  role,
+  options = {},
+) => ({
   id: `${manufacturer}-${name}-${platform}`.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
   manufacturer,
   name,
   platform,
   lengths,
-  category,
-  techniques,
+  role,
+  techniques: options.techniques || BOTH_TECHNIQUES,
+  ctoProfile: options.ctoProfile || '',
+  purpose: options.purpose || WIRE_ROLE_INFO[role].purpose,
+  design: options.design || WIRE_ROLE_INFO[role].design,
+  caution: options.caution || WIRE_ROLE_INFO[role].caution,
   label: `${manufacturer} — ${name}`,
 });
 
-// Peripheral guidewires listed in the cited lower-extremity reviews and the
-// Endovascular Today European Device Guide. The catalogue is deliberately
-// data-driven so additional device classes can be added without changing the UI.
+const workhorse = (...args) => wire(...args, WIRE_ROLES.WORKHORSE);
+const jacketed = (...args) => wire(...args, WIRE_ROLES.JACKETED);
+const support = (...args) => wire(...args, WIRE_ROLES.SUPPORT);
+const cto = (manufacturer, name, platform, lengths, ctoProfile) => wire(
+  manufacturer,
+  name,
+  platform,
+  lengths,
+  WIRE_ROLES.CTO,
+  { ctoProfile },
+);
+
+// Product availability and exact IFU specifications vary by market. This
+// catalogue provides functional filtering; the selected product IFU remains
+// authoritative for tip load, coating, usable length and device compatibility.
 export const WIRE_CATALOG = [
-  wire('Terumo', 'Radifocus Glidewire Advantage', '0.014', [180, 300], 'Glidewire'),
-  wire('Terumo', 'Radifocus Glidewire Advantage Track', '0.014', [180, 300], 'Glidewire'),
-  wire('Medtronic', 'Cougar LS', '0.014', [190, 300], 'Glidewire'),
-  wire('Medtronic', 'Cougar XT', '0.014', [190, 300], 'Glidewire'),
-  wire('Medtronic', 'Intuition', '0.014', [180, 300], 'Glidewire'),
-  wire('Medtronic', 'Nitrex', '0.014', [180, 300], 'Glidewire'),
-  wire('Medtronic', 'Zinger Light', '0.014', [180, 300], 'Glidewire'),
-  wire('Boston Scientific', 'Thruway', '0.014', [190, 300], 'Glidewire'),
-  wire('Boston Scientific', 'Platinum Plus', '0.014', [180, 260, 300], 'Glidewire'),
-  wire('Cordis', 'Stabilizer', '0.014', [180, 300], 'Glidewire'),
+  jacketed('Terumo', 'Radifocus Glidewire Advantage', '0.014', [180, 300]),
+  jacketed('Terumo', 'Radifocus Glidewire Advantage Track', '0.014', [180, 300]),
+  workhorse('Medtronic', 'Cougar LS', '0.014', [190, 300]),
+  workhorse('Medtronic', 'Cougar XT', '0.014', [190, 300]),
+  workhorse('Medtronic', 'Intuition', '0.014', [180, 300]),
+  workhorse('Medtronic', 'Nitrex', '0.014', [180, 300]),
+  workhorse('Medtronic', 'Zinger Light', '0.014', [180, 300]),
+  workhorse('Boston Scientific', 'Thruway', '0.014', [190, 300]),
+  workhorse('Boston Scientific', 'Platinum Plus', '0.014', [180, 260, 300]),
+  workhorse('Cordis', 'Stabilizer', '0.014', [180, 300]),
 
-  wire('Terumo', 'Radifocus Glidewire Advantage', '0.018', [180, 300], 'Glidewire'),
-  wire('Terumo', 'Radifocus Glidewire Advantage Track', '0.018', [180, 300], 'Glidewire'),
-  wire('Terumo', 'Radifocus Guide Wire M', '0.018', [180, 260, 300], 'Glidewire'),
-  wire('Cook Medical', 'Roadrunner UniGlide', '0.018', [180, 260], 'Glidewire'),
-  wire('Merit Medical', 'Splash Hydrophilic Guide Wire', '0.018', [180, 260], 'Glidewire'),
-  wire('Medtronic', 'Nitrex', '0.018', [180, 300], 'Glidewire'),
-  wire('Boston Scientific', 'Thruway', '0.018', [190, 300], 'Glidewire'),
-  wire('Boston Scientific', 'Platinum Plus', '0.018', [180, 260, 300], 'Glidewire'),
-  wire('Merit Medical', 'InQwire PTFE Coated', '0.018', [180, 260], 'Glidewire'),
+  jacketed('Terumo', 'Radifocus Glidewire Advantage', '0.018', [180, 300]),
+  jacketed('Terumo', 'Radifocus Glidewire Advantage Track', '0.018', [180, 300]),
+  jacketed('Terumo', 'Radifocus Guide Wire M', '0.018', [180, 260, 300]),
+  jacketed('Cook Medical', 'Roadrunner UniGlide', '0.018', [180, 260]),
+  jacketed('Merit Medical', 'Splash Hydrophilic Guide Wire', '0.018', [180, 260]),
+  workhorse('Medtronic', 'Nitrex', '0.018', [180, 300]),
+  workhorse('Boston Scientific', 'Thruway', '0.018', [190, 300]),
+  workhorse('Boston Scientific', 'Platinum Plus', '0.018', [180, 260, 300]),
+  support('Merit Medical', 'InQwire PTFE Coated', '0.018', [180, 260]),
 
-  wire('Terumo', 'Radifocus Guide Wire M', '0.035', [180, 260, 300], 'Glidewire'),
-  wire('Terumo', 'Radifocus Glidewire Advantage', '0.035', [180, 260], 'Glidewire'),
-  wire('Cook Medical', 'Roadrunner PC', '0.035', [180, 260], 'Glidewire'),
-  wire('Cook Medical', 'Roadrunner UniGlide', '0.035', [180, 260], 'Glidewire'),
-  wire('Merit Medical', 'Splash Hydrophilic Guide Wire', '0.035', [180, 260], 'Glidewire'),
-  wire('Medtronic', 'Wholey Guidewire System', '0.035', [175, 260, 300], 'Glidewire'),
+  jacketed('Terumo', 'Radifocus Guide Wire M', '0.035', [180, 260, 300]),
+  jacketed('Terumo', 'Radifocus Glidewire Advantage', '0.035', [180, 260]),
+  jacketed('Cook Medical', 'Roadrunner PC', '0.035', [180, 260]),
+  jacketed('Cook Medical', 'Roadrunner UniGlide', '0.035', [180, 260]),
+  jacketed('Merit Medical', 'Splash Hydrophilic Guide Wire', '0.035', [180, 260]),
+  jacketed('Medtronic', 'Wholey Guidewire System', '0.035', [175, 260, 300]),
 
-  wire('Cook Medical', 'Approach CTO', '0.014', [190, 300], 'CTO wire'),
-  wire('Asahi Intecc', 'Gladius MG PV', '0.014', [200, 300], 'CTO wire'),
-  wire('Asahi Intecc', 'Halberd', '0.014', [200, 235, 300], 'CTO wire'),
-  wire('Asahi Intecc', 'Astato XS 20', '0.014', [180, 300], 'CTO wire'),
-  wire('Asahi Intecc', 'Astato XS 40', '0.014', [200, 300], 'CTO wire'),
-  wire('Medtronic', 'ProVia 3', '0.014', [180, 300], 'CTO wire'),
-  wire('Medtronic', 'ProVia 6', '0.014', [180, 300], 'CTO wire'),
-  wire('Medtronic', 'ProVia 9', '0.014', [180, 300], 'CTO wire'),
-  wire('Medtronic', 'ProVia 12', '0.014', [180, 300], 'CTO wire'),
-  wire('Abbott', 'Hi-Torque Proceed', '0.014', [190, 300], 'CTO wire'),
-  wire('Abbott', 'Hi-Torque Winn 40', '0.014', [190, 300], 'CTO wire'),
-  wire('Abbott', 'Hi-Torque Winn 80', '0.014', [190, 300], 'CTO wire'),
-  wire('Abbott', 'Hi-Torque Winn 200', '0.014', [190, 300], 'CTO wire'),
-  wire('Boston Scientific', 'V-14 ControlWire', '0.014', [182, 300], 'CTO wire'),
-  wire('Boston Scientific', 'Victory 14', '0.014', [195, 300], 'CTO wire'),
+  cto('Cook Medical', 'Approach CTO', '0.014', [190, 300], CTO_PROFILES.PENETRATION),
+  cto('Asahi Intecc', 'Gladius MG PV', '0.014', [200, 300], CTO_PROFILES.SLIDING),
+  cto('Asahi Intecc', 'Halberd', '0.014', [200, 235, 300], CTO_PROFILES.TORQUE),
+  cto('Asahi Intecc', 'Astato XS 20', '0.014', [180, 300], CTO_PROFILES.HIGH_PENETRATION),
+  cto('Asahi Intecc', 'Astato XS 40', '0.014', [200, 300], CTO_PROFILES.HIGH_PENETRATION),
+  cto('Medtronic', 'ProVia 3', '0.014', [180, 300], CTO_PROFILES.PENETRATION),
+  cto('Medtronic', 'ProVia 6', '0.014', [180, 300], CTO_PROFILES.PENETRATION),
+  cto('Medtronic', 'ProVia 9', '0.014', [180, 300], CTO_PROFILES.PENETRATION),
+  cto('Medtronic', 'ProVia 12', '0.014', [180, 300], CTO_PROFILES.HIGH_PENETRATION),
+  cto('Abbott', 'Hi-Torque Proceed', '0.014', [190, 300], CTO_PROFILES.PENETRATION),
+  cto('Abbott', 'Hi-Torque Winn 40', '0.014', [190, 300], CTO_PROFILES.PENETRATION),
+  cto('Abbott', 'Hi-Torque Winn 80', '0.014', [190, 300], CTO_PROFILES.PENETRATION),
+  cto('Abbott', 'Hi-Torque Winn 200', '0.014', [190, 300], CTO_PROFILES.HIGH_PENETRATION),
+  cto('Boston Scientific', 'V-14 ControlWire', '0.014', [182, 300], CTO_PROFILES.TORQUE),
+  cto('Boston Scientific', 'Victory 14', '0.014', [195, 300], CTO_PROFILES.PENETRATION),
 
-  wire('Asahi Intecc', 'Gaia PV', '0.018', [200, 235, 300], 'CTO wire'),
-  wire('Asahi Intecc', 'Gladius', '0.018', [200, 235, 300], 'CTO wire'),
-  wire('Asahi Intecc', 'Gladius MG PV', '0.018', [200, 300], 'CTO wire'),
-  wire('Asahi Intecc', 'Halberd', '0.018', [200, 235, 300], 'CTO wire'),
-  wire('Asahi Intecc', 'Astato 30', '0.018', [180, 300], 'CTO wire'),
-  wire('Abbott', 'Hi-Torque Connect 250T', '0.018', [145, 195, 300], 'CTO wire'),
-  wire('Boston Scientific', 'V-18 ControlWire', '0.018', [200, 300], 'CTO wire'),
-  wire('Boston Scientific', 'Victory 18', '0.018', [195, 300], 'CTO wire'),
-  wire('Cook Medical', 'Roadrunner Extra-Support', '0.018', [180, 270, 300], 'CTO wire'),
-  wire('Cordis', 'Jindo Steerable Guidewire', '0.035', [180, 300], 'CTO wire'),
+  cto('Asahi Intecc', 'Gaia PV', '0.018', [200, 235, 300], CTO_PROFILES.TORQUE),
+  cto('Asahi Intecc', 'Gladius', '0.018', [200, 235, 300], CTO_PROFILES.SLIDING),
+  cto('Asahi Intecc', 'Gladius MG PV', '0.018', [200, 300], CTO_PROFILES.SLIDING),
+  cto('Asahi Intecc', 'Halberd', '0.018', [200, 235, 300], CTO_PROFILES.TORQUE),
+  cto('Asahi Intecc', 'Astato 30', '0.018', [180, 300], CTO_PROFILES.HIGH_PENETRATION),
+  cto('Abbott', 'Hi-Torque Connect 250T', '0.018', [145, 195, 300], CTO_PROFILES.TORQUE),
+  cto('Boston Scientific', 'V-18 ControlWire', '0.018', [200, 300], CTO_PROFILES.TORQUE),
+  cto('Boston Scientific', 'Victory 18', '0.018', [195, 300], CTO_PROFILES.PENETRATION),
+  jacketed('Cordis', 'Jindo Steerable Guidewire', '0.035', [180, 300]),
 
-  wire('Abbott', 'Hi-Torque Spartacore 14', '0.014', [190, 300], 'Support wire'),
-  wire('Cordis', 'ATW Eco Pacs', '0.014', [195, 300], 'Support wire'),
-  wire('Boston Scientific', 'Platinum Plus', '0.014', [180, 260, 300], 'Support wire'),
-  wire('Abbott', 'Hi-Torque Steelcore 18', '0.018', [190, 300], 'Support wire'),
-  wire('Abbott', 'Hi-Torque Steelcore 18 LT', '0.018', [190, 300], 'Support wire'),
-  wire('Medtronic', 'Nitrex', '0.018', [180, 300], 'Support wire'),
-  wire('Boston Scientific', 'Platinum Plus', '0.018', [180, 260, 300], 'Support wire'),
-  wire('Cook Medical', 'Classic Bentson', '0.018', [180, 260], 'Support wire'),
-  wire('Cook Medical', 'Amplatz Extra Stiff', '0.035', [180, 260, 300], 'Support wire'),
-  wire('Cook Medical', 'Amplatz Stiff', '0.035', [180, 260], 'Support wire'),
-  wire('Boston Scientific', 'Amplatz Super Stiff', '0.035', [180, 260], 'Support wire'),
-  wire('Cook Medical', 'Amplatz Ultra Stiff', '0.035', [180, 260], 'Support wire'),
-  wire('Boston Scientific', 'Back-up Meier', '0.035', [185, 300], 'Support wire'),
-  wire('Cook Medical', 'Classic Rosen', '0.035', [180, 260], 'Support wire'),
-  wire('Cook Medical', 'Lunderquist', '0.035', [180, 260, 300], 'Support wire'),
-  wire('Medtronic', 'Nitrex Flexible Shaft', '0.035', [180, 260], 'Support wire'),
-  wire('Medtronic', 'Nitrex Stiff Shaft', '0.035', [180, 260, 300], 'Support wire'),
-  wire('Abbott', 'Hi-Torque Supra Core 35', '0.035', [190, 300], 'Support wire'),
-  wire('Abbott', 'Hi-Torque Versacore', '0.035', [175, 260, 300], 'Support wire'),
-  wire('Cordis', 'Storq', '0.035', [180, 300], 'Support wire'),
+  support('Abbott', 'Hi-Torque Spartacore 14', '0.014', [190, 300]),
+  support('Cordis', 'ATW Eco Pacs', '0.014', [195, 300]),
+  support('Boston Scientific', 'Platinum Plus', '0.014', [180, 260, 300]),
+  support('Abbott', 'Hi-Torque Steelcore 18', '0.018', [190, 300]),
+  support('Abbott', 'Hi-Torque Steelcore 18 LT', '0.018', [190, 300]),
+  support('Medtronic', 'Nitrex', '0.018', [180, 300]),
+  support('Boston Scientific', 'Platinum Plus', '0.018', [180, 260, 300]),
+  support('Cook Medical', 'Classic Bentson', '0.018', [180, 260]),
+  support('Cook Medical', 'Roadrunner Extra-Support', '0.018', [180, 270, 300]),
+  support('Cook Medical', 'Amplatz Extra Stiff', '0.035', [180, 260, 300]),
+  support('Cook Medical', 'Amplatz Stiff', '0.035', [180, 260]),
+  support('Boston Scientific', 'Amplatz Super Stiff', '0.035', [180, 260]),
+  support('Cook Medical', 'Amplatz Ultra Stiff', '0.035', [180, 260]),
+  support('Boston Scientific', 'Back-up Meier', '0.035', [185, 300]),
+  support('Cook Medical', 'Classic Rosen', '0.035', [180, 260]),
+  support('Cook Medical', 'Lunderquist', '0.035', [180, 260, 300]),
+  support('Medtronic', 'Nitrex Flexible Shaft', '0.035', [180, 260]),
+  support('Medtronic', 'Nitrex Stiff Shaft', '0.035', [180, 260, 300]),
+  support('Abbott', 'Hi-Torque Supra Core 35', '0.035', [190, 300]),
+  support('Abbott', 'Hi-Torque Versacore', '0.035', [175, 260, 300]),
+  support('Cordis', 'Storq', '0.035', [180, 300]),
 ];
 
 const numericLength = (value) => Number.parseInt(String(value || '').replace(/[^0-9]/g, ''), 10);
 
-export const getWireLengthOptions = (platform, category = '') => {
+export const getWireLengthOptions = (platform, role = '', ctoProfile = '') => {
+  const normalizedRole = normalizeWireRole(role);
   if (!platform) return [];
   return [...new Set(
     WIRE_CATALOG
-      .filter((item) => item.platform === platform && (!category || item.category === category))
+      .filter((item) => (
+        item.platform === platform &&
+        (!normalizedRole || item.role === normalizedRole) &&
+        (!ctoProfile || item.ctoProfile === ctoProfile)
+      ))
       .flatMap((item) => item.lengths),
   )].sort((a, b) => a - b).map((length) => `${length} cm`);
 };
 
 export const getWireProductOptions = (
-  { platform, length, category, technique },
+  { platform, length, role, category, technique, ctoProfile },
   preferredProducts = [],
 ) => {
   const selectedLength = numericLength(length);
+  const selectedRole = normalizeWireRole(role || category);
   const preferredOrder = new Map(
     preferredProducts.filter(Boolean).map((product, index) => [product, index]),
   );
@@ -118,9 +195,10 @@ export const getWireProductOptions = (
   return WIRE_CATALOG
     .filter((item) => (
       item.platform === platform &&
-      item.category === category &&
+      item.role === selectedRole &&
       item.lengths.includes(selectedLength) &&
-      (!technique || item.techniques.includes(technique))
+      (!technique || item.techniques.includes(technique)) &&
+      (!ctoProfile || item.ctoProfile === ctoProfile)
     ))
     .sort((a, b) => {
       const aPreferred = preferredOrder.has(a.label) ? preferredOrder.get(a.label) : Infinity;
@@ -134,3 +212,7 @@ export const getWireProductOptions = (
       preferred: preferredOrder.has(item.label),
     }));
 };
+
+export const getWireByLabel = (label, platform = '') => WIRE_CATALOG.find((item) => (
+  item.label === label && (!platform || item.platform === platform)
+)) || null;

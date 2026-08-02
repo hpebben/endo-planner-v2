@@ -3,3 +3,5 @@
 .DS_Store
 # macOS metadata
 node_modules/
+playwright-report/
+test-results/

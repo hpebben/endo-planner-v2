@@ -8,6 +8,10 @@ export default {
     infection: null,
   },
   patencySegments: {},
+  targetArterialPath: [],
+  targetArterialPathKey: '',
+  targetArterialPathSide: '',
+  appliedPreferenceProfile: null,
   access: {
     needle: {},
     sheath: {},

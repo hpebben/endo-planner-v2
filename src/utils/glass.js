@@ -63,43 +63,41 @@ const pedalModifier = (entries) => {
 };
 
 const selectTargetPath = (entries, explicitTargetPath) => {
-  const tptEntries = entries.filter(([id]) => isTibioperonealTrunk(id));
-  const cruralEntries = entries.filter(([id]) => isCruralTarget(id));
   const explicitIds = Array.isArray(explicitTargetPath)
-    ? explicitTargetPath
+    ? explicitTargetPath.filter(Boolean)
     : explicitTargetPath ? [explicitTargetPath] : [];
-  const explicitCrural = cruralEntries.filter(([id]) => explicitIds.includes(id));
-  const candidates = explicitCrural.length ? explicitCrural : cruralEntries;
-
-  if (!candidates.length) {
-    const tptGrade = tptEntries.reduce(
-      (highest, [id, values]) => Math.max(highest, lesionGrade(values, 'IP', id)),
-      0,
-    );
+  if (!explicitIds.length) {
     return {
-      id: tptEntries[0]?.[0] || null,
-      grade: tptGrade,
-      inferred: !explicitIds.length,
-      description: tptEntries.length
-        ? 'Tibioperoneal disease recorded; distal target inferred as the least-diseased runoff artery.'
-        : 'No infrapopliteal lesion was recorded; IP grade 0 was inferred.',
+      id: null,
+      grade: null,
+      isComplete: false,
+      description: 'Select an explicit target arterial path before calculating GLASS.',
     };
   }
 
-  const ranked = candidates.map(([id, values]) => ({
-    id,
-    grade: Math.max(
-      lesionGrade(values, 'IP', id),
-      ...tptEntries.map(([tptId, tptValues]) => lesionGrade(tptValues, 'IP', tptId)),
-    ),
-  })).sort((a, b) => a.grade - b.grade);
+  const targetId = [...explicitIds].reverse().find((id) => isCruralTarget(id));
+  if (!targetId) {
+    return {
+      id: null,
+      grade: null,
+      isComplete: false,
+      description: 'The selected target path must include an anterior tibial, posterior tibial or peroneal target artery.',
+    };
+  }
+
+  const pathIds = new Set(explicitIds);
+  const pathDisease = entries.filter(([id]) => pathIds.has(id) && isIp(id));
+  const grade = pathDisease.reduce(
+    (highest, [id, values]) => Math.max(highest, lesionGrade(values, 'IP', id)),
+    0,
+  );
 
   return {
-    ...ranked[0],
-    inferred: !explicitCrural.length,
-    description: explicitCrural.length
-      ? `Selected target path uses the ${targetName(ranked[0].id)}.`
-      : `Target path inferred through the least-complex recorded runoff: ${targetName(ranked[0].id)}.`,
+    id: targetId,
+    grade,
+    inferred: false,
+    isComplete: true,
+    description: `Selected target path uses the ${targetName(targetId)}. Only disease on that explicit path contributes to the IP grade.`,
   };
 };
 
@@ -146,13 +144,53 @@ export default function computeGlass(segments = {}, targetPath = null) {
   }
 
   const side = sides[0];
+  const explicitIds = Array.isArray(targetPath) ? targetPath.filter(Boolean) : [];
+  const pathSide = sideFromId(explicitIds[0]);
+  if (!explicitIds.length) {
+    return {
+      stage: null,
+      fpGrade: null,
+      ipGrade: null,
+      pedalModifier: pedalModifier(anatomicEntries),
+      isComplete: false,
+      hasAnatomy: true,
+      side,
+      reason: 'Select an explicit target arterial path before calculating GLASS.',
+    };
+  }
+  if (pathSide && pathSide !== side) {
+    return {
+      stage: null,
+      fpGrade: null,
+      ipGrade: null,
+      pedalModifier: pedalModifier(anatomicEntries),
+      isComplete: false,
+      hasAnatomy: true,
+      side,
+      reason: `The ${pathSide.toLowerCase()} target path does not match the recorded ${side.toLowerCase()} limb anatomy.`,
+    };
+  }
+
   const limbEntries = anatomicEntries.filter(([id]) => sideFromId(id) === side);
-  const fpEntries = limbEntries.filter(([id]) => isFp(id));
+  const pathIds = new Set(explicitIds);
+  const fpEntries = limbEntries.filter(([id]) => isFp(id) && pathIds.has(id));
   const fpGrade = fpEntries.reduce(
     (highest, [id, values]) => Math.max(highest, lesionGrade(values, 'FP', id)),
     0,
   );
   const target = selectTargetPath(limbEntries.filter(([id]) => isIp(id)), targetPath);
+  if (!target.isComplete) {
+    return {
+      stage: null,
+      fpGrade,
+      ipGrade: null,
+      pedalModifier: pedalModifier(limbEntries),
+      isComplete: false,
+      hasAnatomy: true,
+      side,
+      reason: target.description,
+    };
+  }
   const ipGrade = target.grade;
   const stage = GLASS_MATRIX[fpGrade][ipGrade];
 

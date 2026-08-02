@@ -59,6 +59,7 @@ const getTooltipPlacement = (segRect, wrapperRect, tipSize = { width: 0, height:
 
 export default function VesselMap({
   selectedSegments = [],
+  targetSegments = [],
   toggleSegment = () => {},
   setTooltip,
 }) {
@@ -86,6 +87,13 @@ export default function VesselMap({
     toggleSegment(id);
   };
 
+  const handleKeyDown = (id) => (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleSegment(id);
+    }
+  };
+
   if (!Array.isArray(vesselSegments)) {
     return (
       <div className="vessel-map-wrapper">
@@ -99,10 +107,25 @@ export default function VesselMap({
       <svg {...vesselRoot} className="vessel-svg">
         {vesselSegments.map((seg) => {
           const isSelected = selectedSegments.includes(seg.id);
+          const isTargeted = targetSegments.includes(seg.id);
           const isHover = hoverSegment === seg.id;
           const shapes = seg.paths || seg.polygons || [];
           return (
-            <g key={seg.id} id={seg.id} data-name={seg.name}>
+            <g
+              key={seg.id}
+              id={seg.id}
+              data-name={seg.name}
+              role="button"
+              tabIndex={0}
+              aria-label={seg.name}
+              aria-pressed={isSelected}
+              onMouseEnter={handleEnter(seg.id, seg.name)}
+              onMouseLeave={handleLeave(seg.id)}
+              onFocus={handleEnter(seg.id, seg.name)}
+              onBlur={handleLeave(seg.id)}
+              onClick={handleClick(seg.id)}
+              onKeyDown={handleKeyDown(seg.id)}
+            >
               {shapes.map((p, i) => {
                 const attrs = p.attrs
                   ? { ...p.attrs }
@@ -114,6 +137,7 @@ export default function VesselMap({
                   attrs.class,
                   'vessel-segment',
                   isSelected ? 'selected' : '',
+                  isTargeted ? 'targeted' : '',
                   isHover ? 'hovered' : '',
                 ]
                   .filter(Boolean)
@@ -123,9 +147,6 @@ export default function VesselMap({
                   key: i,
                   ...attrs,
                   className: classes,
-                  onMouseEnter: handleEnter(seg.id, seg.name),
-                  onMouseLeave: handleLeave(seg.id),
-                  onClick: handleClick(seg.id),
                 });
               })}
             </g>
