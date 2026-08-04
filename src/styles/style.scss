@@ -2037,6 +2037,421 @@ svg .vessel-path:hover {
   font-size: 0.75rem;
 }
 
+/* Map-centred intervention planner ------------------------------------------- */
+.visual-plan-workspace {
+  display: grid;
+  grid-template-columns: minmax(470px, 1.08fr) minmax(370px, 0.92fr);
+  gap: 1rem;
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  border: 1px solid #d5deef;
+  border-radius: 18px;
+  background: #f7f9fd;
+  box-shadow: 0 8px 24px rgba(25, 49, 105, 0.08);
+}
+
+.visual-plan-context {
+  display: grid;
+  grid-template-columns: minmax(235px, 1fr) minmax(190px, 0.76fr);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dce3f1;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.visual-plan-map {
+  min-width: 0;
+  padding: 0.75rem 0.35rem 0.55rem;
+  border-right: 1px solid #e1e6f0;
+  background: linear-gradient(180deg, #fbfcff 0%, #f3f6fc 100%);
+}
+
+.visual-plan-map .vessel-map-wrapper svg {
+  width: 250px;
+  height: 445px;
+}
+
+.visual-plan-map-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: 235px;
+  margin: 0.25rem auto 0;
+  color: #697286;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.visual-plan-route-key {
+  flex: 0 0 18px;
+  height: 4px;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.vessel-segment.plan-edit-disabled {
+  cursor: default;
+}
+
+.vessel-segment.plan-selectable {
+  cursor: pointer;
+}
+
+.vessel-svg g[aria-pressed='true'] .vessel-segment.plan-active {
+  stroke: #d91f4b;
+  stroke-width: 10;
+  filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.85)) drop-shadow(0 0 5px rgba(217, 31, 75, 0.55));
+}
+
+.visual-plan-schematic {
+  min-width: 0;
+  max-height: 520px;
+  overflow-y: auto;
+  padding: 0.65rem;
+}
+
+.visual-plan-schematic-heading {
+  display: grid;
+  gap: 0.1rem;
+  margin-bottom: 0.55rem;
+  text-align: left;
+}
+
+.visual-plan-schematic-heading strong {
+  color: #193b83;
+  font-size: 0.76rem;
+}
+
+.visual-plan-schematic-heading span {
+  color: #7a8290;
+  font-size: 0.62rem;
+}
+
+.visual-scope-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 0.45rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.55rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.visual-scope-summary + .visual-scope-summary {
+  margin-top: 0.25rem;
+}
+
+.visual-scope-summary:hover,
+.visual-scope-summary:focus-visible {
+  border-color: #b6c6e9;
+  background: #f3f6fc;
+  outline: none;
+}
+
+.visual-scope-summary.is-active {
+  border-color: #7f9ddd;
+  background: #eaf1ff;
+  box-shadow: inset 3px 0 0 #1747a6;
+}
+
+.visual-scope-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 31px;
+  min-height: 24px;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: #123b93;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.visual-scope-body,
+.visual-scope-body > strong {
+  display: block;
+  min-width: 0;
+}
+
+.visual-scope-body > strong {
+  overflow: hidden;
+  color: #34415b;
+  font-size: 0.65rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visual-device-sequence {
+  display: grid;
+  gap: 0.22rem;
+  margin-top: 0.35rem;
+}
+
+.visual-device-chip {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  color: #47536b;
+  font-size: 0.58rem;
+}
+
+.visual-device-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visual-device-chip:not(:last-child)::after {
+  content: '';
+}
+
+.visual-scope-empty,
+.visual-device-more {
+  display: block;
+  margin-top: 0.3rem;
+  color: #8a91a0;
+  font-size: 0.58rem;
+  font-style: italic;
+}
+
+.device-glyph {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: #1747a6;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.device-glyph circle,
+.device-glyph rect {
+  fill: #eef4ff;
+}
+
+.visual-device-chip .device-glyph {
+  width: 42px;
+  height: 18px;
+}
+
+.device-button .device-glyph {
+  width: 62px;
+  height: 32px;
+  margin-bottom: 0.35rem;
+}
+
+.visual-plan-composer {
+  min-width: 0;
+  overflow: visible;
+  border: 1px solid #dce3f1;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.visual-plan-composer-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-height: 74px;
+  padding: 0.85rem;
+  border-bottom: 1px solid #dce3f1;
+  background: #f2f6ff;
+  border-radius: 13px 13px 0 0;
+}
+
+.visual-plan-composer-header > div {
+  min-width: 0;
+}
+
+.visual-plan-composer-header > div > span {
+  color: #69748a;
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.visual-plan-composer-header h3,
+.visual-plan-composer-header p {
+  margin: 0;
+  text-align: left;
+}
+
+.visual-plan-composer-header h3 {
+  overflow: hidden;
+  margin-top: 0.08rem;
+  color: #193b83;
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visual-plan-composer-header p {
+  margin-top: 0.2rem;
+  color: #606a7d;
+  font-size: 0.65rem;
+  line-height: 1.3;
+}
+
+.quick-plan-stage {
+  padding: 0.8rem;
+}
+
+.quick-plan-stage + .quick-plan-stage {
+  border-top: 1px dashed #cfd8ea;
+}
+
+.quick-plan-stage-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+  text-align: left;
+}
+
+.quick-plan-stage-heading > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #123b93;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.quick-plan-stage-heading h4,
+.quick-plan-stage-heading p {
+  margin: 0;
+}
+
+.quick-plan-stage-heading h4 {
+  color: #3f4a61;
+  font-size: 0.76rem;
+}
+
+.quick-plan-stage-heading p {
+  margin-top: 0.08rem;
+  color: #7a8290;
+  font-size: 0.6rem;
+  line-height: 1.25;
+}
+
+.visual-plan-composer .intervention-row {
+  margin: 0 0 0.55rem;
+  padding: 0.55rem;
+  border: 1px solid #e0e5ef;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.visual-plan-composer .row-inner {
+  position: relative;
+  gap: 0.4rem;
+}
+
+.visual-plan-composer .plan-scope-chip {
+  display: none;
+}
+
+.visual-plan-composer .plan-scope-control {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.15rem;
+  z-index: 5;
+}
+
+.visual-plan-composer .plan-scope-picker {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.visual-plan-composer .device-row {
+  gap: 0.45rem;
+  padding-top: 0.85rem;
+}
+
+.visual-plan-composer .device-button {
+  width: 82px;
+  height: 74px;
+  padding: 0.35rem;
+  border: 1px solid #dbe2ef;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.visual-plan-composer .device-button:hover,
+.visual-plan-composer .device-button:focus-visible {
+  border-color: #8ca7df;
+  background: #f2f6ff;
+  box-shadow: 0 4px 10px rgba(17, 49, 149, 0.12);
+  outline: none;
+  transform: none;
+}
+
+.visual-plan-composer .device-button-label,
+.visual-plan-composer .device-button > span {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.62rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visual-plan-unassigned {
+  width: min(100%, 780px);
+  margin: 1rem auto 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #d69a8f;
+  border-radius: 12px;
+  background: #fff7f5;
+  color: #5e443f;
+  text-align: left;
+}
+
+.visual-plan-unassigned > summary {
+  cursor: pointer;
+  color: #8d3427;
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.visual-plan-unassigned > p {
+  font-size: 0.68rem;
+}
+
+.visual-plan-empty {
+  padding: 1rem;
+  border: 1px dashed #b8c5df;
+  border-radius: 12px;
+  background: #f7f9fd;
+  color: #59657b;
+  font-size: 0.76rem;
+  text-align: center;
+}
+
 @media (max-width: 700px) {
   .target-path-heading,
   .plan-scope-group-header {
@@ -2049,6 +2464,26 @@ svg .vessel-path:hover {
 
   .plan-scope-group .device-row {
     gap: 0.55rem;
+  }
+
+  .visual-plan-workspace,
+  .visual-plan-context {
+    grid-template-columns: 1fr;
+  }
+
+  .visual-plan-map {
+    border-right: 0;
+    border-bottom: 1px solid #e1e6f0;
+  }
+
+  .visual-plan-schematic {
+    max-height: none;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 1040px) {
+  .visual-plan-workspace {
+    grid-template-columns: 1fr;
   }
 }
 .ref-image.wifi-img {

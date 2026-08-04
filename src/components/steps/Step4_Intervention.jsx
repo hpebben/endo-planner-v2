@@ -4,6 +4,8 @@ import { SelectControl } from '@wordpress/components';
 import SegmentedControl from '../UI/SegmentedControl';
 import InlineDeviceSelect from '../UI/InlineDeviceSelect';
 import InlineModal from '../UI/InlineModal';
+import DeviceGlyph from '../UI/DeviceGlyph';
+import VisualPlanWorkspace from '../VisualPlanWorkspace';
 import { __ } from '@wordpress/i18n';
 import DEFAULTS from '../Defaults';
 import {
@@ -15,12 +17,11 @@ import {
   WIRE_ROLES,
   WIRE_ROLE_INFO,
 } from '../../data/wireCatalog';
-import { formatTargetArterialPath, getLesionOptions } from '../../utils/lesions';
+import { getLesionOptions } from '../../utils/lesions';
 import {
   buildScopeOptions,
   createLesionScope,
   createTargetPathScope,
-  formatScopeLabel,
   getPlanScope,
   hasPlanItemContent,
   migratePlanRowScopes,
@@ -55,7 +56,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.168';
+const APPLICATION_VERSION = '1.6.169';
 
 const closureDeviceOptions = [
   '6F AngioSeal',
@@ -139,20 +140,16 @@ SimpleModal.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-// Generic card-like button used for selecting a device
-// Generic card-like button used for selecting a device
-function DeviceButton({ label, subtitle, img, onClick, className, isSelected }) {
+// Generic card-like button used for selecting a device.
+function DeviceButton({ label, subtitle, img, glyphType, onClick, className, isSelected }) {
   return (
     <button
       type="button"
       className={`device-button${className ? ` ${className}` : ''}`}
-      onClick={(e) => {
-        console.log('Device button clicked', label);
-        onClick(e);
-      }}
+      onClick={onClick}
       aria-pressed={isSelected}
     >
-      <img src={img} alt="" />
+      {glyphType ? <DeviceGlyph type={glyphType} /> : <img src={img} alt="" />}
       <span className="device-button-label">{label}</span>
       {subtitle ? <span className="device-button-subtitle">{subtitle}</span> : null}
     </button>
@@ -162,7 +159,8 @@ function DeviceButton({ label, subtitle, img, onClick, className, isSelected }) 
 DeviceButton.propTypes = {
   label: PropTypes.string.isRequired,
   subtitle: PropTypes.string,
-  img: PropTypes.string.isRequired,
+  img: PropTypes.string,
+  glyphType: PropTypes.oneOf(['wire', 'catheter', 'balloon', 'stent', 'special']),
   onClick: PropTypes.func.isRequired,
   className: PropTypes.string,
   isSelected: PropTypes.bool,
@@ -1191,7 +1189,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
         <div className="device-row">
         <DeviceButton
           label={wireLabel}
-          img={wireImg}
+          glyphType="wire"
           onClick={(e) => {
             console.log('Open wire modal', index);
             setWireAnchor(e.currentTarget.getBoundingClientRect());
@@ -1200,7 +1198,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
         />
         <DeviceButton
           label={catheterLabel}
-          img={catheterImg}
+          glyphType="catheter"
           onClick={(e) => {
             console.log('Open catheter modal', index);
             setCatAnchor(e.currentTarget.getBoundingClientRect());
@@ -1266,7 +1264,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, scop
         <div className="device-row">
         <DeviceButton
           label={balloonLabel}
-          img={balloonImg}
+          glyphType="balloon"
           onClick={(e) => {
             console.log('Open balloon modal', index);
             setBallAnchor(e.currentTarget.getBoundingClientRect());
@@ -1275,7 +1273,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, scop
         />
         <DeviceButton
           label={stentLabel}
-          img={stentImg}
+          glyphType="stent"
           onClick={(e) => {
             console.log('Open stent modal', index);
             setStentAnchor(e.currentTarget.getBoundingClientRect());
@@ -1594,8 +1592,6 @@ export default function Step4({ data, setData }) {
     includeTreatmentZones: true,
   });
   const allKnownScopeKeys = new Set([...navigationScopeOptions, ...therapyScopeOptions].map((option) => option.value));
-  const pathScope = createTargetPathScope();
-  const rowsInScope = (rows, scope) => rows.filter((row) => scopeKey(row) === scopeKey(scope));
   const zoneOptions = therapyScopeOptions.filter((option) => (
     option.scope.type === 'treatmentZone'
     && [...navRows, ...therapyRows].some((row) => scopeKey(row) === option.value)
@@ -1849,112 +1845,30 @@ export default function Step4({ data, setData }) {
       </section>
 
       <section className="intervention-section scoped-plan-section" data-testid="scoped-intervention-plan">
-        <div className="section-heading">{__('Device sequence by target path and lesion', 'endoplanner')}</div>
+        <div className="section-heading">{__('Visual device plan', 'endoplanner')}</div>
         <p className="scoped-plan-intro">
-          {__('Add devices inside PATH or a lesion group; EndoPlanner assigns the scope automatically. Use Move only to reassign a row or combine two adjacent lesions into one treatment zone.', 'endoplanner')}
+          {__('Select PATH or a lesion beside the arterial tree, then add the devices for that part of the procedure. Only one planning panel is shown at a time.', 'endoplanner')}
         </p>
 
-        {targetPath.length > 0 && (
-          <article className="plan-scope-group plan-scope-group--path" data-testid="plan-scope-group-PATH">
-            <header className="plan-scope-group-header">
-              <span className="plan-scope-group-code">PATH</span>
-              <div>
-                <h3>{`${data.targetArterialPathSide || 'Primary'} target arterial path`}</h3>
-                <p>{formatTargetArterialPath(targetPath)}</p>
-              </div>
-            </header>
-            <div className="plan-scope-subsection">
-              <h4>{__('Navigation & route support', 'endoplanner')}</h4>
-              {rowsInScope(navRows, pathScope).length
-                ? renderNavigationRows(rowsInScope(navRows, pathScope))
-                : <p className="plan-scope-empty">{__('No path-level support wire or catheter added.', 'endoplanner')}</p>}
-              <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(pathScope)}>
-                <span aria-hidden="true">+</span>{__('Add path support / exchange device', 'endoplanner')}
-              </button>
-            </div>
-          </article>
-        )}
-
-        {lesionOptions.map((lesion) => {
-          const lesionScope = createLesionScope(lesion.value);
-          const linkedNavigation = rowsInScope(navRows, lesionScope);
-          const linkedTherapy = rowsInScope(therapyRows, lesionScope);
-          const findings = [lesion.findings.type, lesion.findings.length && `${lesion.findings.length} cm`, lesion.findings.calcium && `${lesion.findings.calcium} calcium`]
-            .filter(Boolean)
-            .join(' • ');
-          return (
-            <article className="plan-scope-group" data-testid={`plan-scope-group-${lesion.code}`} key={lesion.value}>
-              <header className="plan-scope-group-header">
-                <span className="plan-scope-group-code">{lesion.code}</span>
-                <div>
-                  <h3>{lesion.name}</h3>
-                  <p>{findings}</p>
-                </div>
-              </header>
-              <div className="plan-scope-subsection">
-                <h4>{__('Navigation & crossing', 'endoplanner')}</h4>
-                {linkedNavigation.length
-                  ? renderNavigationRows(linkedNavigation)
-                  : <p className="plan-scope-empty">{__('No crossing device added.', 'endoplanner')}</p>}
-                <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(lesionScope)}>
-                  <span aria-hidden="true">+</span>{__('Add crossing device', 'endoplanner')}
-                </button>
-              </div>
-              <div className="plan-scope-subsection">
-                <h4>{__('Vessel preparation & therapy', 'endoplanner')}</h4>
-                {linkedTherapy.length
-                  ? renderTherapyRows(linkedTherapy)
-                  : <p className="plan-scope-empty">{__('No treatment device added.', 'endoplanner')}</p>}
-                <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addTherapyRow(lesionScope)}>
-                  <span aria-hidden="true">+</span>{__('Add treatment device', 'endoplanner')}
-                </button>
-              </div>
-            </article>
-          );
-        })}
-
-        {zoneOptions.map((option) => {
-          const zoneNavigation = rowsInScope(navRows, option.scope);
-          const zoneTherapy = rowsInScope(therapyRows, option.scope);
-          return (
-            <article className="plan-scope-group plan-scope-group--zone" key={option.value}>
-              <header className="plan-scope-group-header">
-                <span className="plan-scope-group-code">{formatScopeLabel(option.scope, lesionOptions)}</span>
-                <div>
-                  <h3>{__('Combined treatment zone', 'endoplanner')}</h3>
-                  <p>{option.label.replace(/^ZONE [^—]+ — /, '')}</p>
-                </div>
-              </header>
-              <div className="plan-scope-subsection">
-                <h4>{__('Navigation & crossing', 'endoplanner')}</h4>
-                {renderNavigationRows(zoneNavigation)}
-                <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(option.scope)}>
-                  <span aria-hidden="true">+</span>{__('Add crossing device', 'endoplanner')}
-                </button>
-              </div>
-              <div className="plan-scope-subsection">
-                <h4>{__('Vessel preparation & therapy', 'endoplanner')}</h4>
-                {renderTherapyRows(zoneTherapy)}
-                <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addTherapyRow(option.scope)}>
-                  <span aria-hidden="true">+</span>{__('Add treatment device', 'endoplanner')}
-                </button>
-              </div>
-            </article>
-          );
-        })}
+        <VisualPlanWorkspace
+          targetPath={targetPath}
+          lesionOptions={lesionOptions}
+          zoneOptions={zoneOptions}
+          navRows={navRows}
+          therapyRows={therapyRows}
+          renderNavigationRows={renderNavigationRows}
+          renderTherapyRows={renderTherapyRows}
+          addNavigationRow={addNavigationRow}
+          addTherapyRow={addTherapyRow}
+        />
 
         {(unassignedNavRows.length > 0 || unassignedTherapyRows.length > 0) && (
-          <article className="plan-scope-group plan-scope-group--unassigned" data-testid="plan-scope-group-UNASSIGNED">
-            <header className="plan-scope-group-header">
-              <span className="plan-scope-group-code">?</span>
-              <div>
-                <h3>{__('Assign preferred or legacy devices', 'endoplanner')}</h3>
-                <p>{__('Use the small Move control once; subsequent devices inherit their group automatically.', 'endoplanner')}</p>
-              </div>
-            </header>
+          <details className="visual-plan-unassigned" data-testid="plan-scope-group-UNASSIGNED">
+            <summary>{__('Assign unlinked preferred or legacy devices', 'endoplanner')}</summary>
+            <p>{__('Use Move once to place each item on PATH, a lesion or a combined treatment zone.', 'endoplanner')}</p>
             {renderNavigationRows(unassignedNavRows)}
             {renderTherapyRows(unassignedTherapyRows)}
-          </article>
+          </details>
         )}
       </section>
 
