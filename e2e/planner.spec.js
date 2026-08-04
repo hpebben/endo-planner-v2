@@ -227,11 +227,11 @@ test('plans one visual scope at a time and inherits PATH and lesion scopes', asy
   const pathComposer = workspace.getByTestId('plan-scope-group-PATH');
   await pathComposer.getByRole('button', { name: /Add support device/ }).click();
 
-  await page
-    .getByRole('button', {
-      name: 'Plan devices for Left superficial femoral artery',
-    })
-    .click();
+  const sfaPlanningTarget = page.getByRole('button', {
+    name: 'Plan devices for Left superficial femoral artery',
+  });
+  await sfaPlanningTarget.focus();
+  await page.keyboard.press('Enter');
   const lesionComposer = workspace.getByTestId('plan-scope-group-L1');
   await lesionComposer.getByRole('button', { name: 'Add crossing device' }).click();
   await lesionComposer.getByRole('button', { name: 'Add treatment device' }).click();
