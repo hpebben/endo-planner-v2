@@ -21,13 +21,11 @@ const getTooltipPlacement = (segRect, wrapperRect, tipSize = { width: 0, height:
   const margin = 8;
   const containerCenter = wrapperRect.left + wrapperRect.width / 2;
   let side = segRect.left + segRect.width / 2 < containerCenter ? 'left' : 'right';
-  let x = side === 'left'
-    ? segRect.left - wrapperRect.left - margin
-    : segRect.right - wrapperRect.left + margin;
+  let x = side === 'left' ? segRect.left - wrapperRect.left - margin : segRect.right - wrapperRect.left + margin;
   let y = segRect.top - wrapperRect.top + segRect.height / 2;
 
   // Horizontal overflow check
-  if (side === 'left' && (x - tipSize.width) < 0) {
+  if (side === 'left' && x - tipSize.width < 0) {
     // Not enough space on the left, flip
     if (segRect.right - wrapperRect.left + margin + tipSize.width <= wrapperRect.width) {
       side = 'right';
@@ -36,7 +34,7 @@ const getTooltipPlacement = (segRect, wrapperRect, tipSize = { width: 0, height:
       // Clamp within container
       x = tipSize.width;
     }
-  } else if (side === 'right' && (x + tipSize.width) > wrapperRect.width) {
+  } else if (side === 'right' && x + tipSize.width > wrapperRect.width) {
     // Not enough space on the right, flip
     if (segRect.left - wrapperRect.left - margin - tipSize.width >= 0) {
       side = 'left';
@@ -62,6 +60,9 @@ export default function VesselMap({
   targetSegments = [],
   targetEndpointCandidates = [],
   routeEditMode = false,
+  planningMode = false,
+  planningSegmentIds = [],
+  activePlanningSegment = '',
   toggleSegment = () => {},
   setTooltip,
 }) {
@@ -87,11 +88,13 @@ export default function VesselMap({
 
   const handleClick = (id) => () => {
     if (routeEditMode && !targetEndpointCandidates.includes(id)) return;
+    if (planningMode && !planningSegmentIds.includes(id)) return;
     toggleSegment(id);
   };
 
   const handleKeyDown = (id) => (event) => {
     if (routeEditMode && !targetEndpointCandidates.includes(id)) return;
+    if (planningMode && !planningSegmentIds.includes(id)) return;
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       toggleSegment(id);
@@ -113,6 +116,8 @@ export default function VesselMap({
           const isSelected = selectedSegments.includes(seg.id);
           const isTargeted = targetSegments.includes(seg.id);
           const isTargetEndpointCandidate = targetEndpointCandidates.includes(seg.id);
+          const isPlanningSegment = planningSegmentIds.includes(seg.id);
+          const isActivePlanningSegment = activePlanningSegment === seg.id;
           const isHover = hoverSegment === seg.id;
           const shapes = seg.paths || seg.polygons || [];
           return (
@@ -121,10 +126,10 @@ export default function VesselMap({
               id={seg.id}
               data-name={seg.name}
               role="button"
-              tabIndex={routeEditMode && !isTargetEndpointCandidate ? -1 : 0}
-              aria-label={routeEditMode ? `Set target route to ${seg.name}` : seg.name}
-              aria-pressed={routeEditMode ? isTargeted : isSelected}
-              aria-disabled={routeEditMode && !isTargetEndpointCandidate}
+              tabIndex={(routeEditMode && !isTargetEndpointCandidate) || (planningMode && !isPlanningSegment) ? -1 : 0}
+              aria-label={routeEditMode ? `Set target route to ${seg.name}` : planningMode ? `Plan devices for ${seg.name}` : seg.name}
+              aria-pressed={routeEditMode ? isTargeted : planningMode ? isActivePlanningSegment : isSelected}
+              aria-disabled={(routeEditMode && !isTargetEndpointCandidate) || (planningMode && !isPlanningSegment)}
               data-route-endpoint={isTargetEndpointCandidate ? 'true' : undefined}
               onMouseEnter={handleEnter(seg.id, seg.name)}
               onMouseLeave={handleLeave(seg.id)}
@@ -134,11 +139,7 @@ export default function VesselMap({
               onKeyDown={handleKeyDown(seg.id)}
             >
               {shapes.map((p, i) => {
-                const attrs = p.attrs
-                  ? { ...p.attrs }
-                  : p.d
-                  ? { d: p.d }
-                  : { points: p.points };
+                const attrs = p.attrs ? { ...p.attrs } : p.d ? { d: p.d } : { points: p.points };
                 const tag = p.name || (p.points ? 'polygon' : 'path');
                 const classes = [
                   attrs.class,
@@ -147,6 +148,9 @@ export default function VesselMap({
                   isTargeted ? 'targeted' : '',
                   routeEditMode && isTargetEndpointCandidate ? 'target-endpoint-candidate' : '',
                   routeEditMode && !isTargetEndpointCandidate ? 'route-edit-disabled' : '',
+                  planningMode && isPlanningSegment ? 'plan-selectable' : '',
+                  planningMode && !isPlanningSegment ? 'plan-edit-disabled' : '',
+                  isActivePlanningSegment ? 'plan-active' : '',
                   isHover ? 'hovered' : '',
                 ]
                   .filter(Boolean)
