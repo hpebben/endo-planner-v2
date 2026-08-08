@@ -138,7 +138,7 @@ test('applies a versioned local setup to access, crossing, therapy and closure',
 
   await expect(page.getByRole('heading', { name: 'Intervention plan' })).toBeVisible();
   await expect(page.getByRole('button', { name: '6 Fr' })).toBeVisible();
-  await expect(page.getByRole('button', { name: '0.018' }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'ASAHI Gladius MG 18 PV ES' }).first()).toBeVisible();
   await expect(page.getByRole('radio', { name: 'Closure device' })).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByText('6F AngioSeal')).toBeVisible();
 
@@ -263,4 +263,93 @@ test('shows chosen devices as schematics beside the arterial tree', async ({ pag
   await expect(lesionSummary).toContainText('5 × 120 mm');
   await expect(lesionSummary.locator('.device-glyph--wire')).toHaveCount(1);
   await expect(lesionSummary.locator('.device-glyph--balloon')).toHaveCount(1);
+});
+
+test('starts device selection with preferred products and inline variants', async ({ page }) => {
+  const productFirstProfile = {
+    ...profile,
+    applicationVersion: '1.6.170',
+    preferences: {
+      ...profile.preferences,
+      wire: [
+        {
+          id: 'pref-wire-product-first',
+          value: {
+            platform: '0.018',
+            length: '300 cm',
+            role: 'CTO crossing',
+            ctoProfile: 'Torque-controlled / directional',
+            technique: 'Intraluminal tracking',
+            product: 'Asahi Intecc — Halberd',
+          },
+        },
+      ],
+      balloon: [
+        {
+          id: 'pref-balloon-product-first',
+          value: {
+            product: 'Local preferred PTA balloon',
+            platform: '0.018',
+            functionalRole: 'Definitive angioplasty',
+            diameter: '5',
+            length: '120',
+            shaft: '135 cm',
+            deliveryMode: 'Over-the-wire',
+            minimumSheathFr: '5 Fr',
+          },
+        },
+      ],
+    },
+  };
+
+  await seed(page, baseCase(), 2, productFirstProfile);
+  await page.goto('./');
+
+  // The saved profile is applied in a mount effect. Wait for that transaction
+  // to finish so opening a picker cannot be interrupted by the resulting row
+  // rerender.
+  await expect
+    .poll(() =>
+      page.evaluate((key) => {
+        const stored = JSON.parse(localStorage.getItem(key));
+        return stored?.data?.appliedPreferenceProfile;
+      }, STATE_KEY)
+    )
+    .toMatchObject({ profileId: 'e2e-local-setup', revision: 2 });
+
+  const lesionComposer = page
+    .getByTestId('visual-intervention-planner')
+    .getByTestId('plan-scope-group-L1');
+  await lesionComposer
+    .getByRole('button', { name: 'Asahi Intecc — Halberd', exact: true })
+    .click();
+  let dialog = page.getByRole('dialog');
+  const wireProduct = dialog.getByRole('combobox', { name: 'Product' });
+  await expect(wireProduct.locator('option:checked')).toHaveText('★ Asahi Intecc — Halberd');
+  await expect(dialog.getByTestId('variant-length').getByRole('button', { name: '235 cm' })).toBeVisible();
+  await expect(dialog.getByTestId('filter-platform').getByRole('button', { name: '0.035' })).toHaveCount(0);
+  await dialog.getByTestId('variant-length').getByRole('button', { name: '235 cm' }).click();
+  await dialog.getByRole('button', { name: 'Done' }).click();
+
+  await lesionComposer
+    .getByRole('button', { name: 'Local preferred PTA balloon', exact: true })
+    .click();
+  dialog = page.getByRole('dialog');
+  const balloonProduct = dialog.getByRole('combobox', { name: 'Product' });
+  await expect(balloonProduct.locator('option:checked')).toHaveText('★ Local preferred PTA balloon');
+  await expect(dialog.getByTestId('variant-shaft').getByRole('button', { name: '130 cm' })).toBeVisible();
+  await dialog.getByTestId('variant-shaft').getByRole('button', { name: '130 cm' }).click();
+  await dialog.getByRole('button', { name: 'Done' }).click();
+
+  await expect
+    .poll(() =>
+      page.evaluate((key) => {
+        const stored = JSON.parse(localStorage.getItem(key));
+        return {
+          wireLength: stored?.data?.navRows?.[0]?.wire?.length,
+          balloonShaft: stored?.data?.therapyRows?.[0]?.balloon?.shaft,
+        };
+      }, STATE_KEY)
+    )
+    .toEqual({ wireLength: '235 cm', balloonShaft: '130 cm' });
 });

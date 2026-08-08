@@ -21,8 +21,22 @@ const valuesOnly = (value) => {
   if (Array.isArray(value)) return value.map(valuesOnly).filter(Boolean).join('; ');
   if (typeof value === 'object') {
     if (value.product) {
-      return [value.product, value.platform, value.length, value.type, value.technique]
-        .concat([value.role, value.ctoProfile])
+      const dimensions = value.diameter && value.length
+        ? `${value.diameter} x ${value.length} mm`
+        : value.length;
+      const product = value.product === 'Product not specified' ? '' : value.product;
+      return [
+        product,
+        value.platform,
+        value.functionalRole || value.role,
+        dimensions,
+        value.shaft,
+        value.type,
+        value.material,
+        value.technique || value.deliveryMode,
+        value.ctoProfile,
+        value.minimumSheathFr ? `minimum sheath ${value.minimumSheathFr}` : '',
+      ]
         .filter(Boolean).join(' | ');
     }
     return Object.entries(value)
@@ -187,7 +201,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     28,
     806,
   );
-  doc.text('EndoPlanner v1.6.169', pageWidth - 28, 806, { align: 'right' });
+  doc.text('EndoPlanner v1.6.170', pageWidth - 28, 806, { align: 'right' });
 
   doc.save(reportFilename(data));
 }

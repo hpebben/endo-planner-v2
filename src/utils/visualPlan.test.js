@@ -10,6 +10,7 @@ describe('visual intervention plan', () => {
       })
     ).toBe('ASAHI Gladius MG 18 PV ES');
     expect(compactDeviceLabel('balloon', { diameter: '5', length: '120' })).toBe('5 × 120 mm');
+    expect(compactDeviceLabel('balloon', { product: 'Preferred PTA', diameter: '5', length: '120' })).toBe('Preferred PTA · 5 × 120 mm');
     expect(compactDeviceLabel('stent', { type: 'self expandable' })).toBe('self expandable');
   });
 
