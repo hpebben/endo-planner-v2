@@ -305,6 +305,18 @@ test('starts device selection with preferred products and inline variants', asyn
   await seed(page, baseCase(), 2, productFirstProfile);
   await page.goto('./');
 
+  // The saved profile is applied in a mount effect. Wait for that transaction
+  // to finish so opening a picker cannot be interrupted by the resulting row
+  // rerender.
+  await expect
+    .poll(() =>
+      page.evaluate((key) => {
+        const stored = JSON.parse(localStorage.getItem(key));
+        return stored?.data?.appliedPreferenceProfile;
+      }, STATE_KEY)
+    )
+    .toMatchObject({ profileId: 'e2e-local-setup', revision: 2 });
+
   await page.getByRole('button', { name: 'Asahi Intecc — Halberd' }).first().click();
   let dialog = page.getByRole('dialog');
   const wireProduct = dialog.getByRole('combobox', { name: 'Product' });
