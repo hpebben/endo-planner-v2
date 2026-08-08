@@ -5,14 +5,21 @@ import SegmentedControl from '../UI/SegmentedControl';
 import InlineDeviceSelect from '../UI/InlineDeviceSelect';
 import InlineModal from '../UI/InlineModal';
 import DeviceGlyph from '../UI/DeviceGlyph';
+import {
+  FilterChips,
+  ProductFirstLayout,
+} from '../UI/ProductFirstPicker';
 import VisualPlanWorkspace from '../VisualPlanWorkspace';
 import { __ } from '@wordpress/i18n';
 import DEFAULTS from '../Defaults';
 import {
   CTO_PROFILES,
   getWireByLabel,
-  getWireLengthOptions,
+  getWireLengthsForProduct,
+  getWirePlatformsForProduct,
   getWireProductOptions,
+  getWireProductVariants,
+  getWireRolesForProduct,
   normalizeWireRole,
   WIRE_ROLES,
   WIRE_ROLE_INFO,
@@ -56,7 +63,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.169';
+const APPLICATION_VERSION = '1.6.170';
 
 const closureDeviceOptions = [
   '6F AngioSeal',
@@ -181,11 +188,17 @@ const shortLabel = (type, obj) => {
     case 'sheath':
       return obj.frSize || '';
     case 'catheter':
-      return obj.specific || '';
+      return obj.specific || obj.product || '';
     case 'wire':
+      return obj.product || obj.platform || '';
     case 'balloon':
     case 'stent':
-      return obj.platform || '';
+      return (obj.product && obj.product !== PRODUCT_NOT_SPECIFIED)
+        ? obj.product
+        : joinPreferenceParts([
+          obj.diameter && obj.length ? `${obj.diameter} × ${obj.length} mm` : '',
+          obj.platform,
+        ]);
     default:
       return summarize(obj);
   }
@@ -202,6 +215,40 @@ const joinPreferenceParts = (parts) =>
     .filter((part) => part && String(part).trim().length > 0)
     .join(' • ');
 
+const PRODUCT_NOT_SPECIFIED = 'Product not specified';
+
+const productProfileFields = {
+  catheter: ['specific', 'size', 'length'],
+  balloon: ['product', 'platform', 'functionalRole', 'diameter', 'length', 'shaft', 'deliveryMode', 'minimumSheathFr'],
+  stent: ['product', 'platform', 'functionalRole', 'type', 'material', 'diameter', 'length', 'shaft', 'deliveryMode', 'minimumSheathFr'],
+};
+
+const profileMatches = (candidate = {}, profile = {}, fields = []) => fields.every((field) => (
+  String(candidate?.[field] || '') === String(profile?.[field] || '')
+));
+
+const preferredProfileOptions = (profiles = [], type, formatter) => profiles
+  .filter((profile) => profile && typeof profile === 'object')
+  .map((profile, index) => {
+    const product = type === 'catheter'
+      ? profile.specific || profile.product
+      : profile.product;
+    return {
+      value: product || `__preferred_${type}_${index}`,
+      label: product || formatter(profile) || `${__('Preferred', 'endoplanner')} ${index + 1}`,
+      preferred: true,
+      profile,
+    };
+  });
+
+const selectedPreferredProfile = (values, options, type) => options.find((option) => (
+  profileMatches(values, option.profile, productProfileFields[type])
+));
+
+const filterPreferredProfiles = (options, filters = {}) => options.filter((option) => Object.entries(filters).every(
+  ([field, value]) => !value || String(option.profile?.[field] || '') === String(value),
+));
+
 const formatWireLabel = (value) => {
   const size = value.platform || '';
   const length = value.length || '';
@@ -215,21 +262,23 @@ const formatWireLabel = (value) => {
 };
 
 const formatBalloonLabel = (value) => {
+  const product = value.product && value.product !== PRODUCT_NOT_SPECIFIED ? value.product : '';
   const size = value.platform || '';
   const diameter = value.diameter ? `${value.diameter}mm` : '';
   const length = value.length ? `${value.length}mm` : '';
   const shaft = value.shaft || '';
-  return joinPreferenceParts([size, diameter, length, shaft]);
+  return joinPreferenceParts([product, size, diameter, length, shaft]);
 };
 
 const formatStentLabel = (value) => {
+  const product = value.product && value.product !== PRODUCT_NOT_SPECIFIED ? value.product : '';
   const size = value.platform || '';
   const diameter = value.diameter ? `${value.diameter}mm` : '';
   const length = value.length ? `${value.length}mm` : '';
   const type = value.type || '';
   const material = value.material || '';
   const shaft = value.shaft || '';
-  return joinPreferenceParts([size, diameter, length, type, material, shaft]);
+  return joinPreferenceParts([product, size, diameter, length, type, material, shaft]);
 };
 
 const getPreferenceLabel = (type, value) => {
@@ -410,7 +459,7 @@ SheathModal.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
-function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
+function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
   const sizes = ['2.3 Fr','2.6 Fr','4 Fr','5 Fr','6 Fr','7 Fr'];
   const lengths = ['40 cm','65 cm','80 cm','90 cm','105 cm','110 cm','125 cm','135 cm','150 cm'];
   const [size, setSize] = useState('');
@@ -422,6 +471,16 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     setSpecific(values.specific || '');
   }, [values]);
   const specifics = ['BER2','BHW','Cobra 1','Cobra 2','Cobra 3','Cobra Glidecath','CXI 0.018','CXI 0.014','Navicross 0.018','Navicross 0.035','MultiPurpose','PIER','Pigtail Flush','Straight Flush','Universal Flush','Rim','Simmons 1','Simmons 2','Simmons 3','Vertebral'];
+  const preferenceOptions = preferredProfileOptions(
+    preferredProfiles,
+    'catheter',
+    (profile) => joinPreferenceParts([profile.specific || profile.product, profile.size, profile.length]),
+  );
+  const selectedPreference = selectedPreferredProfile(values, preferenceOptions, 'catheter');
+  const productOptions = [
+    ...filterPreferredProfiles(preferenceOptions, { size }),
+    ...specifics.map((value) => ({ value, label: value })),
+  ];
   const handleChange = (field, val) => {
     const newVals = { size, length, specific, [field]: val };
     if (field === 'size') setSize(val);
@@ -429,30 +488,52 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave }) {
     if (field === 'specific') setSpecific(val);
     console.log('[Popup] Updated: ', newVals);
     onSave(newVals);
-    if (newVals.size && newVals.length && newVals.specific) onRequestClose();
+  };
+  const handleProduct = (value) => {
+    const preference = preferenceOptions.find((option) => option.value === value);
+    if (preference) {
+      const next = { ...preference.profile, specific: preference.profile.specific || preference.profile.product || '' };
+      setSpecific(next.specific || '');
+      setSize(next.size || '');
+      setLength(next.length || '');
+      onSave(next);
+      return;
+    }
+    handleChange('specific', value);
+  };
+  const resetFilters = () => {
+    setSize('');
+    setLength('');
+    onSave({ ...values, specific, size: '', length: '' });
   };
   return (
     <SimpleModal title={__('Catheter', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl
-        label={__('Specific catheter', 'endoplanner')}
-        value={specific}
-        options={[{ label: __('Choose catheter', 'endoplanner'), value: '', disabled: true }, ...specifics.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('specific', val)}
-      />
-      <SelectControl
-        label={__('French size', 'endoplanner')}
-        value={size}
-        options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('size', val)}
-      />
-      <SelectControl
-        label={__('Length', 'endoplanner')}
-        value={length}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
+      <ProductFirstLayout
+        product={selectedPreference?.value || specific}
+        productOptions={productOptions}
+        onProductChange={handleProduct}
+        onCustomProductChange={(value) => handleChange('specific', value)}
+        variantGroups={[{
+          key: 'catheter-length',
+          label: __('Length', 'endoplanner'),
+          value: length,
+          options: lengths,
+          onChange: (value) => handleChange('length', value),
+          testId: 'variant-length',
+        }]}
+        matchCount={new Set(productOptions.map((option) => option.value)).size}
+        onResetFilters={resetFilters}
+      >
+        <FilterChips
+          label={__('French size', 'endoplanner')}
+          value={size}
+          options={sizes}
+          onChange={(value) => handleChange('size', value)}
+          testId="filter-catheter-size"
+        />
+      </ProductFirstLayout>
       <div className="popup-close-row">
-        <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
+        <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>{__('Done', 'endoplanner')}</button>
       </div>
     </SimpleModal>
   );
@@ -464,134 +545,216 @@ CatheterModal.propTypes = {
   onRequestClose: PropTypes.func.isRequired,
   values: PropTypes.object,
   onSave: PropTypes.func.isRequired,
+  preferredProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
-function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProducts = [] }) {
-  const [platform, setPlatform] = useState(values.platform || '');
-  const [length, setLength] = useState(values.length || '');
-  const [role, setRole] = useState(normalizeWireRole(values.role || values.type));
-  const [ctoProfile, setCtoProfile] = useState(values.ctoProfile || '');
-  const [technique, setTechnique] = useState(values.technique || '');
-  const [product, setProduct] = useState(values.product || '');
+const normalizeWireForm = (values = {}) => ({
+  ...values,
+  platform: values.platform || '',
+  length: values.length || '',
+  role: normalizeWireRole(values.role || values.type),
+  ctoProfile: values.ctoProfile || '',
+  technique: values.technique || '',
+  product: values.product || '',
+});
+
+const wireProfileMatchesFilters = (profile = {}, filters = {}) => (
+  (!filters.platform || profile.platform === filters.platform) &&
+  (!filters.length || profile.length === filters.length) &&
+  (!filters.role || normalizeWireRole(profile.role || profile.type) === filters.role) &&
+  (!filters.technique || profile.technique === filters.technique) &&
+  (!filters.ctoProfile || profile.ctoProfile === filters.ctoProfile)
+);
+
+function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
+  const [form, setForm] = useState(() => normalizeWireForm(values));
   useEffect(() => {
-    setPlatform(values.platform || '');
-    setLength(values.length || '');
-    setRole(normalizeWireRole(values.role || values.type));
-    setCtoProfile(values.ctoProfile || '');
-    setTechnique(values.technique || '');
-    setProduct(values.product || '');
+    setForm(normalizeWireForm(values));
   }, [values]);
-  const lengthOptions = getWireLengthOptions(platform, role, ctoProfile);
-  const productOptions = getWireProductOptions(
-    { platform, length, role, technique, ctoProfile },
-    preferredProducts,
-  );
-  const selectedProduct = getWireByLabel(product, platform);
-  const handleChange = (field, val) => {
-    const newVals = {
-      platform,
-      length,
-      role,
-      ctoProfile,
-      technique,
-      product,
-      [field]: val,
-    };
-    if (field === 'role' && val !== WIRE_ROLES.CTO) newVals.ctoProfile = '';
-    if (field === 'platform' || field === 'role' || field === 'ctoProfile') {
-      const validLengths = getWireLengthOptions(newVals.platform, newVals.role, newVals.ctoProfile);
-      if (!validLengths.includes(newVals.length)) newVals.length = '';
-    }
-    if (['platform', 'length', 'role', 'technique', 'ctoProfile'].includes(field)) {
-      const validProducts = getWireProductOptions(
-        {
-          platform: newVals.platform,
-          length: newVals.length,
-          role: newVals.role,
-          technique: newVals.technique,
-          ctoProfile: newVals.ctoProfile,
-        },
-        preferredProducts,
-      );
-      if (!validProducts.some((option) => option.value === newVals.product)) {
-        newVals.product = '';
-      }
-    }
-    switch(field){
-      case 'platform': setPlatform(val); setLength(newVals.length); setProduct(newVals.product); break;
-      case 'length': setLength(val); setProduct(newVals.product); break;
-      case 'role': setRole(val); setCtoProfile(newVals.ctoProfile); setLength(newVals.length); setProduct(newVals.product); break;
-      case 'ctoProfile': setCtoProfile(val); setLength(newVals.length); setProduct(newVals.product); break;
-      case 'technique': setTechnique(val); setProduct(newVals.product); break;
-      case 'product': setProduct(val); break;
-      default: break;
-    }
-    onSave(newVals);
+
+  const filters = {
+    platform: form.platform,
+    length: form.length,
+    role: form.role,
+    technique: form.technique,
+    ctoProfile: form.ctoProfile,
   };
+  const preferredProducts = preferredProfiles.map((value) => value.product).filter(Boolean);
+  const preferredOptions = preferredProfiles
+    .filter((profile) => profile.product && wireProfileMatchesFilters(profile, filters))
+    .map((profile) => ({ value: profile.product, label: profile.product, preferred: true }));
+  const catalogOptions = getWireProductOptions(filters, preferredProducts);
+  const preferredValues = new Set(preferredOptions.map((option) => option.value));
+  const productOptions = [
+    ...preferredOptions,
+    ...catalogOptions.filter((option) => !preferredValues.has(option.value)),
+  ];
+  const lengthOptions = form.product && form.product !== PRODUCT_NOT_SPECIFIED
+    ? getWireLengthsForProduct(form.product, {
+      platform: form.platform,
+      role: form.role,
+      technique: form.technique,
+      ctoProfile: form.ctoProfile,
+    })
+    : [];
+  const selectedProduct = getWireProductVariants(form.product, filters)[0]
+    || getWireByLabel(form.product, form.platform);
+  const cataloguedProduct = Boolean(getWireByLabel(form.product));
+  const platformOptions = cataloguedProduct
+    ? getWirePlatformsForProduct(form.product, {
+      role: form.role,
+      technique: form.technique,
+      ctoProfile: form.ctoProfile,
+    })
+    : ['0.014','0.018','0.035'];
+  const roleOptions = cataloguedProduct
+    ? getWireRolesForProduct(form.product, {
+      platform: form.platform,
+      technique: form.technique,
+      ctoProfile: form.ctoProfile,
+    })
+    : Object.values(WIRE_ROLES);
+  const wireRoleLabels = {
+    [WIRE_ROLES.WORKHORSE]: __('Workhorse', 'endoplanner'),
+    [WIRE_ROLES.JACKETED]: __('Jacketed / hydrophilic', 'endoplanner'),
+    [WIRE_ROLES.CTO]: __('CTO crossing', 'endoplanner'),
+    [WIRE_ROLES.SUPPORT]: __('Support / exchange', 'endoplanner'),
+  };
+
+  const commit = (next) => {
+    const normalized = normalizeWireForm(next);
+    setForm(normalized);
+    onSave(normalized);
+  };
+
+  const selectProduct = (value) => {
+    const preferred = preferredProfiles.find((profile) => (
+      profile.product === value && wireProfileMatchesFilters(profile, {
+        platform: form.platform,
+        role: form.role,
+        technique: form.technique,
+        ctoProfile: form.ctoProfile,
+      })
+    ));
+    if (preferred) {
+      commit({ ...form, ...preferred, product: value });
+      return;
+    }
+
+    const variants = getWireProductVariants(value, {
+      platform: form.platform,
+      role: form.role,
+      technique: form.technique,
+      ctoProfile: form.ctoProfile,
+    });
+    const variant = variants[0] || getWireProductVariants(value)[0];
+    if (!variant) {
+      commit({ ...form, product: value });
+      return;
+    }
+    const availableLengths = getWireLengthsForProduct(value, {
+      platform: variant.platform,
+      role: variant.role,
+      technique: form.technique || variant.techniques[0],
+      ctoProfile: variant.ctoProfile,
+    });
+    commit({
+      ...form,
+      product: value,
+      platform: variant.platform,
+      role: variant.role,
+      ctoProfile: variant.ctoProfile,
+      technique: form.technique && variant.techniques.includes(form.technique)
+        ? form.technique
+        : variant.techniques[0],
+      length: availableLengths.includes(form.length) ? form.length : availableLengths[0] || '',
+    });
+  };
+
+  const changeFilter = (field, value) => {
+    const next = { ...form, [field]: value };
+    if (field === 'role' && value !== WIRE_ROLES.CTO) next.ctoProfile = '';
+    if (next.product && next.product !== PRODUCT_NOT_SPECIFIED && getWireByLabel(next.product)) {
+      const productStillMatches = getWireProductVariants(next.product, {
+        platform: next.platform,
+        length: next.length,
+        role: next.role,
+        technique: next.technique,
+        ctoProfile: next.ctoProfile,
+      }).length > 0;
+      if (!productStillMatches) next.product = '';
+    }
+    commit(next);
+  };
+
+  const resetFilters = () => commit({
+    ...form,
+    platform: '',
+    length: '',
+    role: '',
+    ctoProfile: '',
+    technique: '',
+  });
+
   return (
     <SimpleModal title={__('Wire', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-        <SegmentedControl
-          options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
-          value={platform}
-          onChange={(val)=>handleChange('platform', val)}
-          ariaLabel={__('Platform', 'endoplanner')}
+      <ProductFirstLayout
+        product={form.product}
+        productOptions={productOptions}
+        onProductChange={selectProduct}
+        onCustomProductChange={(value) => commit({ ...form, product: value })}
+        variantGroups={[{
+          key: 'wire-length',
+          label: __('Length', 'endoplanner'),
+          value: form.length,
+          options: lengthOptions,
+          onChange: (value) => changeFilter('length', value),
+          testId: 'variant-length',
+        }]}
+        matchCount={new Set([...preferredOptions, ...catalogOptions].map((option) => option.value)).size}
+        onResetFilters={resetFilters}
+      >
+        <FilterChips
+          label={__('Platform', 'endoplanner')}
+          value={form.platform}
+          options={platformOptions}
+          onChange={(value) => changeFilter('platform', value)}
+          testId="filter-platform"
         />
-      <SelectControl label={__('Length', 'endoplanner')} value={length}
-        options={[
-          { label: __('Choose length', 'endoplanner'), value: '', disabled: true },
-          ...lengthOptions.map(v => ({ label:v, value:v })),
-        ]} onChange={(val)=>handleChange('length', val)}
-      />
-      <div className="wire-role-heading">{__('Functional role', 'endoplanner')}</div>
-      <SegmentedControl
-        options={[
-          { label: __('Workhorse', 'endoplanner'), value: WIRE_ROLES.WORKHORSE },
-          { label: __('Jacketed / hydrophilic', 'endoplanner'), value: WIRE_ROLES.JACKETED },
-          { label: __('CTO crossing', 'endoplanner'), value: WIRE_ROLES.CTO },
-          { label: __('Support / exchange', 'endoplanner'), value: WIRE_ROLES.SUPPORT },
-        ]}
-        value={role}
-        onChange={(val)=>handleChange('role', val)}
-        ariaLabel={__('Wire functional role', 'endoplanner')}
-      />
-      {role && (
+        <FilterChips
+          label={__('Functional role', 'endoplanner')}
+          value={form.role}
+          options={roleOptions.map((value) => ({ label: wireRoleLabels[value] || value, value }))}
+          onChange={(value) => changeFilter('role', value)}
+          testId="filter-functional-role"
+        />
+        <FilterChips
+          label={__('Technique', 'endoplanner')}
+          value={form.technique}
+          options={[
+            { label: __('Intraluminal', 'endoplanner'), value: 'Intraluminal tracking' },
+            { label: __('Subintimal + re-entry', 'endoplanner'), value: 'Limited sub-intimal dissection and re-entry' },
+          ]}
+          onChange={(value) => changeFilter('technique', value)}
+          testId="filter-technique"
+        />
+        {(form.role === WIRE_ROLES.CTO || form.ctoProfile) && (
+          <FilterChips
+            label={__('CTO behavior', 'endoplanner')}
+            value={form.ctoProfile}
+            options={Object.values(CTO_PROFILES)}
+            onChange={(value) => changeFilter('ctoProfile', value)}
+            testId="filter-cto-profile"
+          />
+        )}
+      </ProductFirstLayout>
+      {form.role && (
         <div className="wire-role-explainer" data-testid="wire-role-explainer">
-          <strong>{WIRE_ROLE_INFO[role]?.purpose}</strong>
-          <span>{WIRE_ROLE_INFO[role]?.design}</span>
-          <span className="wire-role-caution">{WIRE_ROLE_INFO[role]?.caution}</span>
+          <strong>{WIRE_ROLE_INFO[form.role]?.purpose}</strong>
+          <span>{WIRE_ROLE_INFO[form.role]?.design}</span>
+          <span className="wire-role-caution">{WIRE_ROLE_INFO[form.role]?.caution}</span>
         </div>
       )}
-      {role === WIRE_ROLES.CTO && (
-        <SelectControl
-          label={__('CTO crossing behavior', 'endoplanner')}
-          value={ctoProfile}
-          options={[
-            { label: __('All CTO crossing wires', 'endoplanner'), value: '' },
-            ...Object.values(CTO_PROFILES).map((value) => ({ label: value, value })),
-          ]}
-          onChange={(val) => handleChange('ctoProfile', val)}
-        />
-      )}
-      <div className="wire-role-heading">{__('Intended tracking technique', 'endoplanner')}</div>
-      <SegmentedControl
-          options={[
-            {label:'Intraluminal tracking',value:'Intraluminal tracking'},
-            {label:'Limited sub-intimal dissection and re-entry',value:'Limited sub-intimal dissection and re-entry'}
-          ]}
-          value={technique}
-          onChange={(val)=>handleChange('technique', val)}
-          ariaLabel={__('Technique', 'endoplanner')}
-        />
-      <SelectControl
-        label={__('Product', 'endoplanner')}
-        value={product}
-        options={[
-          { label: __('Choose product', 'endoplanner'), value: '', disabled: true },
-          ...productOptions,
-        ]}
-        onChange={(val)=>handleChange('product', val)}
-        disabled={!platform || !length || !role || !technique}
-      />
       {selectedProduct && (
         <div className="wire-product-profile">
           <div><b>{__('Role', 'endoplanner')}:</b> {selectedProduct.role}{selectedProduct.ctoProfile ? ` — ${selectedProduct.ctoProfile}` : ''}</div>
@@ -599,13 +762,13 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
           <div><b>{__('Caution', 'endoplanner')}:</b> {selectedProduct.caution}</div>
         </div>
       )}
-      {platform && length && role && technique && !productOptions.length && (
+      {catalogOptions.length === 0 && preferredOptions.length === 0 && (
         <p className="wire-catalog-empty">
-          {__('No catalogued wire matches all selected filters. Change platform, length, role or CTO behavior.', 'endoplanner')}
+          {__('No catalogued wire matches these filters. Clear one or more filters or enter a custom product.', 'endoplanner')}
         </p>
       )}
       <p className="wire-catalog-note">
-        {__('Preferred local wires are marked with a star and listed first.', 'endoplanner')}
+        {__('Preferred local wires are listed first. Product variants remain subject to the selected product IFU.', 'endoplanner')}
       </p>
       <div className="popup-close-row">
         <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>
@@ -622,95 +785,152 @@ WireModal.propTypes = {
   onRequestClose: PropTypes.func.isRequired,
   values: PropTypes.object,
   onSave: PropTypes.func.isRequired,
-  preferredProducts: PropTypes.arrayOf(PropTypes.string),
+  preferredProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
-function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [platform, setPlatform] = useState(values.platform || '');
-  const [diameter, setDiameter] = useState(values.diameter || '');
-  const [len, setLen] = useState(values.length || '');
-  const [shaft, setShaft] = useState(values.shaft || '');
-  const [deliveryMode, setDeliveryMode] = useState(values.deliveryMode || '');
-  const [minimumSheathFr, setMinimumSheathFr] = useState(values.minimumSheathFr || '');
-  useEffect(() => {
-    setPlatform(values.platform || '');
-    setDiameter(values.diameter || '');
-    setLen(values.length || '');
-    setShaft(values.shaft || '');
-    setDeliveryMode(values.deliveryMode || '');
-    setMinimumSheathFr(values.minimumSheathFr || '');
-  }, [values]);
+function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
   const diameters = { '0.014':['1.5','2','2.5','3.5','4'], '0.018':['2','2.5','3','4','5','5.5','6','7'], '0.035':['3','4','5','6','7','8','9','10','12','14'] };
   const lengths = ['10','12','15','18','20','30','40','50','60','70','80','90','100','110','120'];
+  const shaftLengths = ['40 cm','75 cm','80 cm','90 cm','120 cm','130 cm','135 cm','150 cm'];
+  const [form, setForm] = useState(() => ({
+    ...values,
+    product: values.product || '',
+    platform: values.platform || '',
+    functionalRole: values.functionalRole || '',
+    diameter: values.diameter || '',
+    length: values.length || '',
+    shaft: values.shaft || '',
+    deliveryMode: values.deliveryMode || '',
+    minimumSheathFr: values.minimumSheathFr || '',
+  }));
+  useEffect(() => {
+    setForm({
+      ...values,
+      product: values.product || '',
+      platform: values.platform || '',
+      functionalRole: values.functionalRole || '',
+      diameter: values.diameter || '',
+      length: values.length || '',
+      shaft: values.shaft || '',
+      deliveryMode: values.deliveryMode || '',
+      minimumSheathFr: values.minimumSheathFr || '',
+    });
+  }, [values]);
+  const allPreferenceOptions = preferredProfileOptions(preferredProfiles, 'balloon', formatBalloonLabel);
+  const matchingPreferenceOptions = filterPreferredProfiles(allPreferenceOptions, {
+    platform: form.platform,
+    functionalRole: form.functionalRole,
+    deliveryMode: form.deliveryMode,
+  });
+  const selectedPreference = selectedPreferredProfile(form, allPreferenceOptions, 'balloon');
+  const productOptions = [
+    ...matchingPreferenceOptions,
+  ];
+  const commit = (next) => {
+    setForm(next);
+    onSave(next);
+  };
   const handleChange = (field, val) => {
     const newVals = {
-      platform,
-      diameter,
-      length: len,
-      shaft,
-      deliveryMode,
-      minimumSheathFr,
+      ...form,
       [field]: val,
     };
     if (field === 'platform') {
-      setPlatform(val);
-      newVals.diameter = '';
-      setDiameter('');
+      const availableDiameters = diameters[val] || [];
+      if (!availableDiameters.includes(newVals.diameter)) newVals.diameter = '';
     }
-    if (field === 'diameter') setDiameter(val);
-    if (field === 'length') setLen(val);
-    if (field === 'shaft') setShaft(val);
-    if (field === 'deliveryMode') setDeliveryMode(val);
-    if (field === 'minimumSheathFr') setMinimumSheathFr(val);
     console.log('[Popup] Updated: ', newVals);
-    onSave(newVals);
+    commit(newVals);
   };
+  const handleProduct = (value) => {
+    const preference = allPreferenceOptions.find((option) => option.value === value);
+    if (preference) {
+      commit({ ...form, ...preference.profile });
+      return;
+    }
+    handleChange('product', value);
+  };
+  const resetFilters = () => commit({
+    ...form,
+    platform: '',
+    functionalRole: '',
+    diameter: '',
+    length: '',
+    shaft: '',
+    deliveryMode: '',
+    minimumSheathFr: '',
+  });
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-        <SegmentedControl
-          options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
-          value={platform}
-          onChange={(val) => handleChange('platform', val)}
-          ariaLabel={__('Platform', 'endoplanner')}
+      <ProductFirstLayout
+        product={selectedPreference?.value || form.product}
+        productOptions={productOptions}
+        onProductChange={handleProduct}
+        onCustomProductChange={(value) => handleChange('product', value)}
+        variantGroups={[
+          {
+            key: 'balloon-length',
+            label: __('Length (mm)', 'endoplanner'),
+            value: form.length,
+            options: lengths,
+            onChange: (value) => handleChange('length', value),
+            testId: 'variant-length',
+          },
+          {
+            key: 'balloon-shaft',
+            label: __('Shaft', 'endoplanner'),
+            value: form.shaft,
+            options: shaftLengths,
+            onChange: (value) => handleChange('shaft', value),
+            testId: 'variant-shaft',
+          },
+        ]}
+        matchCount={new Set(matchingPreferenceOptions.map((option) => option.value)).size}
+        onResetFilters={resetFilters}
+      >
+        <FilterChips
+          label={__('Platform', 'endoplanner')}
+          value={form.platform}
+          options={['0.014','0.018','0.035']}
+          onChange={(value) => handleChange('platform', value)}
+          testId="filter-platform"
         />
-      <SelectControl label={__('Diameter', 'endoplanner')} value={diameter}
-        options={(diameters[platform] || []).map(v => ({ label:v, value:v }))} onChange={(val)=>handleChange('diameter', val)}
-      />
-      <SelectControl
-        label={__('Length (mm)', 'endoplanner')}
-        value={len}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
-      <SelectControl
-        label={__('Shaft length', 'endoplanner')}
-        value={shaft}
-        className="selector--sm"
-        options={[
-          { label: __('Choose shaft length', 'endoplanner'), value: '', disabled: true },
-          { label: '80 cm', value: '80 cm' },
-          { label: '135 cm', value: '135 cm' },
-        ]}
-        onChange={(val) => handleChange('shaft', val)}
-      />
-      <SegmentedControl
-        options={[
-          { label: __('Rapid-exchange', 'endoplanner'), value: 'Rapid-exchange' },
-          { label: __('Over-the-wire', 'endoplanner'), value: 'Over-the-wire' },
-        ]}
-        value={deliveryMode}
-        onChange={(val) => handleChange('deliveryMode', val)}
-        ariaLabel={__('Delivery mode', 'endoplanner')}
-      />
-      <SelectControl
-        label={__('Minimum sheath from product IFU', 'endoplanner')}
-        value={minimumSheathFr}
-        options={[
-          { label: __('Choose sheath profile', 'endoplanner'), value: '' },
-          ...['4 Fr', '5 Fr', '6 Fr', '7 Fr', '8 Fr', '9 Fr'].map((value) => ({ label: value, value })),
-        ]}
-        onChange={(val) => handleChange('minimumSheathFr', val)}
-      />
+        <FilterChips
+          label={__('Functional role', 'endoplanner')}
+          value={form.functionalRole}
+          options={[
+            __('Vessel preparation', 'endoplanner'),
+            __('Definitive angioplasty', 'endoplanner'),
+            __('Post-dilatation', 'endoplanner'),
+          ]}
+          onChange={(value) => handleChange('functionalRole', value)}
+          testId="filter-functional-role"
+        />
+        <FilterChips
+          label={__('Diameter (mm)', 'endoplanner')}
+          value={form.diameter}
+          options={diameters[form.platform] || [...new Set(Object.values(diameters).flat())]}
+          onChange={(value) => handleChange('diameter', value)}
+          testId="filter-diameter"
+        />
+        <FilterChips
+          label={__('Delivery technique', 'endoplanner')}
+          value={form.deliveryMode}
+          options={['Rapid-exchange', 'Over-the-wire']}
+          onChange={(value) => handleChange('deliveryMode', value)}
+          testId="filter-delivery-mode"
+        />
+        <FilterChips
+          label={__('Minimum sheath', 'endoplanner')}
+          value={form.minimumSheathFr}
+          options={['4 Fr', '5 Fr', '6 Fr', '7 Fr', '8 Fr', '9 Fr']}
+          onChange={(value) => handleChange('minimumSheathFr', value)}
+          testId="filter-minimum-sheath"
+        />
+      </ProductFirstLayout>
+      <p className="wire-catalog-note">
+        {__('Saved local products appear first. Confirm product-specific diameter, length, shaft and sheath compatibility against the current IFU.', 'endoplanner')}
+      </p>
       <div className="popup-close-row">
         <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>{__('Done', 'endoplanner')}</button>
       </div>
@@ -724,123 +944,181 @@ BalloonModal.propTypes = {
   onRequestClose: PropTypes.func.isRequired,
   values: PropTypes.object,
   onSave: PropTypes.func.isRequired,
+  preferredProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const stentDia = { '0.014':['2','3','4','5'], '0.018':['4','5','6','7'], '0.035':['5','6','7','8','9','10'] };
 const stentLen = { '0.014':['20','40','60','80'], '0.018':['40','60','80','100'], '0.035':['40','60','80','100','120'] };
 
-function StentModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [platform, setPlatform] = useState(values.platform || '');
-  const [type, setType] = useState(values.type || '');
-  const [mat, setMat] = useState(values.material || '');
-  const [dia, setDia] = useState(values.diameter || '');
-  const [len, setLen] = useState(values.length || '');
-  const [shaft, setShaft] = useState(values.shaft || '');
-  const [deliveryMode, setDeliveryMode] = useState(values.deliveryMode || '');
-  const [minimumSheathFr, setMinimumSheathFr] = useState(values.minimumSheathFr || '');
+function StentModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
+  const shaftLengths = ['40 cm','75 cm','80 cm','90 cm','120 cm','130 cm','135 cm','150 cm'];
+  const [form, setForm] = useState(() => ({
+    ...values,
+    product: values.product || '',
+    platform: values.platform || '',
+    functionalRole: values.functionalRole || '',
+    type: values.type || '',
+    material: values.material || '',
+    diameter: values.diameter || '',
+    length: values.length || '',
+    shaft: values.shaft || '',
+    deliveryMode: values.deliveryMode || '',
+    minimumSheathFr: values.minimumSheathFr || '',
+  }));
   useEffect(() => {
-    setPlatform(values.platform || '');
-    setType(values.type || '');
-    setMat(values.material || '');
-    setDia(values.diameter || '');
-    setLen(values.length || '');
-    setShaft(values.shaft || '');
-    setDeliveryMode(values.deliveryMode || '');
-    setMinimumSheathFr(values.minimumSheathFr || '');
+    setForm({
+      ...values,
+      product: values.product || '',
+      platform: values.platform || '',
+      functionalRole: values.functionalRole || '',
+      type: values.type || '',
+      material: values.material || '',
+      diameter: values.diameter || '',
+      length: values.length || '',
+      shaft: values.shaft || '',
+      deliveryMode: values.deliveryMode || '',
+      minimumSheathFr: values.minimumSheathFr || '',
+    });
   }, [values]);
+  const allPreferenceOptions = preferredProfileOptions(preferredProfiles, 'stent', formatStentLabel);
+  const matchingPreferenceOptions = filterPreferredProfiles(allPreferenceOptions, {
+    platform: form.platform,
+    functionalRole: form.functionalRole,
+    type: form.type,
+    material: form.material,
+    deliveryMode: form.deliveryMode,
+  });
+  const selectedPreference = selectedPreferredProfile(form, allPreferenceOptions, 'stent');
+  const productOptions = [
+    ...matchingPreferenceOptions,
+  ];
+  const availableLengths = form.platform
+    ? stentLen[form.platform] || []
+    : [...new Set(Object.values(stentLen).flat())];
+  const availableDiameters = form.platform
+    ? stentDia[form.platform] || []
+    : [...new Set(Object.values(stentDia).flat())];
+  const commit = (next) => {
+    setForm(next);
+    onSave(next);
+  };
   const handleChange = (field, val) => {
     const newVals = {
-      platform,
-      type,
-      material: mat,
-      diameter: dia,
-      length: len,
-      shaft,
-      deliveryMode,
-      minimumSheathFr,
+      ...form,
       [field]: val,
     };
-    switch(field){
-      case 'platform':
-        setPlatform(val);
-        newVals.diameter = '';
-        newVals.length = '';
-        setDia('');
-        setLen('');
-        break;
-      case 'type': setType(val); break;
-      case 'material': setMat(val); break;
-      case 'diameter': setDia(val); break;
-      case 'length': setLen(val); break;
-      case 'shaft': setShaft(val); break;
-      case 'deliveryMode': setDeliveryMode(val); break;
-      case 'minimumSheathFr': setMinimumSheathFr(val); break;
-      default: break;
+    if (field === 'platform') {
+      if (!(stentDia[val] || []).includes(newVals.diameter)) newVals.diameter = '';
+      if (!(stentLen[val] || []).includes(newVals.length)) newVals.length = '';
     }
     console.log('[Popup] Updated: ', newVals);
-    onSave(newVals);
+    commit(newVals);
   };
+  const handleProduct = (value) => {
+    const preference = allPreferenceOptions.find((option) => option.value === value);
+    if (preference) {
+      commit({ ...form, ...preference.profile });
+      return;
+    }
+    handleChange('product', value);
+  };
+  const resetFilters = () => commit({
+    ...form,
+    platform: '',
+    functionalRole: '',
+    type: '',
+    material: '',
+    diameter: '',
+    length: '',
+    shaft: '',
+    deliveryMode: '',
+    minimumSheathFr: '',
+  });
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SegmentedControl
-        options={['0.014','0.018','0.035'].map(v => ({ label: v, value: v }))}
-        value={platform}
-        onChange={(val)=>handleChange('platform', val)}
-        ariaLabel={__('Platform', 'endoplanner')}
-      />
-      <SegmentedControl
-        options={[{label:'self expandable',value:'self expandable'},{label:'balloon expandable',value:'balloon expandable'}]}
-        value={type}
-        onChange={(val)=>handleChange('type', val)}
-        ariaLabel={__('Stent type', 'endoplanner')}
-      />
-      <SegmentedControl
-        options={[{label:'bare metal',value:'bare metal'},{label:'covered',value:'covered'}]}
-        value={mat}
-        onChange={(val)=>handleChange('material', val)}
-        ariaLabel={__('Stent material', 'endoplanner')}
-      />
-      <SelectControl
-        label={__('Diameter', 'endoplanner')}
-        value={dia}
-        options={[{ label: __('Choose diameter', 'endoplanner'), value: '', disabled: true }, ...(stentDia[platform] || []).map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('diameter', val)}
-      />
-      <SelectControl
-        label={__('Length', 'endoplanner')}
-        value={len}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...(stentLen[platform] || []).map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
-      <SelectControl
-        label={__('Shaft length', 'endoplanner')}
-        value={shaft}
-        className="selector--sm"
-        options={[
-          { label: __('Choose shaft length', 'endoplanner'), value: '', disabled: true },
-          { label: '80 cm', value: '80 cm' },
-          { label: '135 cm', value: '135 cm' },
+      <ProductFirstLayout
+        product={selectedPreference?.value || form.product}
+        productOptions={productOptions}
+        onProductChange={handleProduct}
+        onCustomProductChange={(value) => handleChange('product', value)}
+        variantGroups={[
+          {
+            key: 'stent-length',
+            label: __('Length (mm)', 'endoplanner'),
+            value: form.length,
+            options: availableLengths,
+            onChange: (value) => handleChange('length', value),
+            testId: 'variant-length',
+          },
+          {
+            key: 'stent-shaft',
+            label: __('Shaft', 'endoplanner'),
+            value: form.shaft,
+            options: shaftLengths,
+            onChange: (value) => handleChange('shaft', value),
+            testId: 'variant-shaft',
+          },
         ]}
-        onChange={(val) => handleChange('shaft', val)}
-      />
-      <SegmentedControl
-        options={[
-          { label: __('Rapid-exchange', 'endoplanner'), value: 'Rapid-exchange' },
-          { label: __('Over-the-wire', 'endoplanner'), value: 'Over-the-wire' },
-        ]}
-        value={deliveryMode}
-        onChange={(val) => handleChange('deliveryMode', val)}
-        ariaLabel={__('Delivery mode', 'endoplanner')}
-      />
-      <SelectControl
-        label={__('Minimum sheath from product IFU', 'endoplanner')}
-        value={minimumSheathFr}
-        options={[
-          { label: __('Choose sheath profile', 'endoplanner'), value: '' },
-          ...['4 Fr', '5 Fr', '6 Fr', '7 Fr', '8 Fr', '9 Fr'].map((value) => ({ label: value, value })),
-        ]}
-        onChange={(val) => handleChange('minimumSheathFr', val)}
-      />
+        matchCount={new Set(matchingPreferenceOptions.map((option) => option.value)).size}
+        onResetFilters={resetFilters}
+      >
+        <FilterChips
+          label={__('Platform', 'endoplanner')}
+          value={form.platform}
+          options={['0.014','0.018','0.035']}
+          onChange={(value) => handleChange('platform', value)}
+          testId="filter-platform"
+        />
+        <FilterChips
+          label={__('Functional role', 'endoplanner')}
+          value={form.functionalRole}
+          options={[
+            __('Primary scaffolding', 'endoplanner'),
+            __('Bailout / dissection', 'endoplanner'),
+            __('Relining', 'endoplanner'),
+          ]}
+          onChange={(value) => handleChange('functionalRole', value)}
+          testId="filter-functional-role"
+        />
+        <FilterChips
+          label={__('Expansion', 'endoplanner')}
+          value={form.type}
+          options={['self expandable', 'balloon expandable']}
+          onChange={(value) => handleChange('type', value)}
+          testId="filter-stent-type"
+        />
+        <FilterChips
+          label={__('Technology', 'endoplanner')}
+          value={form.material}
+          options={['bare metal', 'covered', 'drug-eluting']}
+          onChange={(value) => handleChange('material', value)}
+          testId="filter-stent-technology"
+        />
+        <FilterChips
+          label={__('Diameter (mm)', 'endoplanner')}
+          value={form.diameter}
+          options={availableDiameters}
+          onChange={(value) => handleChange('diameter', value)}
+          testId="filter-diameter"
+        />
+        <FilterChips
+          label={__('Delivery technique', 'endoplanner')}
+          value={form.deliveryMode}
+          options={['Rapid-exchange', 'Over-the-wire']}
+          onChange={(value) => handleChange('deliveryMode', value)}
+          testId="filter-delivery-mode"
+        />
+        <FilterChips
+          label={__('Minimum sheath', 'endoplanner')}
+          value={form.minimumSheathFr}
+          options={['4 Fr', '5 Fr', '6 Fr', '7 Fr', '8 Fr', '9 Fr']}
+          onChange={(value) => handleChange('minimumSheathFr', value)}
+          testId="filter-minimum-sheath"
+        />
+      </ProductFirstLayout>
+      <p className="wire-catalog-note">
+        {__('Saved local products appear first. Confirm all selected variants against the current product IFU.', 'endoplanner')}
+      </p>
       <div className="popup-close-row">
         <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>{__('Done', 'endoplanner')}</button>
       </div>
@@ -854,6 +1132,7 @@ StentModal.propTypes = {
   onRequestClose: PropTypes.func.isRequired,
   values: PropTypes.object,
   onSave: PropTypes.func.isRequired,
+  preferredProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
 
@@ -889,7 +1168,7 @@ const RowControls = ({ onAdd, onRemove, showRemove, label, showAdd = true }) => 
 );
 RowControls.propTypes = { onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, label: PropTypes.string, showAdd: PropTypes.bool };
 
-function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
+function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredCatheterProfiles = [] }) {
   const [vesselOpen, setVesselOpen] = useState(false);
   const [needleOpen, setNeedleOpen] = useState(false);
   const [sheathOpen, setSheathOpen] = useState(false);
@@ -1102,6 +1381,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
           }}
           values={catheters[catIdx] || {}}
           onSave={(val) => updateCatheter(catIdx, val)}
+          preferredProfiles={preferredCatheterProfiles}
         />
       </div>
     </div>
@@ -1115,6 +1395,7 @@ AccessRow.propTypes = {
   onAdd: PropTypes.func.isRequired,
   onRemove: PropTypes.func.isRequired,
   showRemove: PropTypes.bool,
+  preferredCatheterProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
 function ScopeChip({ value, options, onChange }) {
@@ -1169,7 +1450,7 @@ ScopeChip.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredWireProducts, scopeOptions }) {
+function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredWireProfiles, preferredCatheterProfiles, scopeOptions }) {
   const [wireOpen, setWireOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [wireAnchor, setWireAnchor] = useState(null);
@@ -1224,7 +1505,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
         }}
         values={data.wire || {}}
         onSave={(val) => onChange({ ...data, wire: val })}
-        preferredProducts={preferredWireProducts}
+        preferredProfiles={preferredWireProfiles}
       />
       <CatheterModal
         isOpen={catOpen}
@@ -1236,15 +1517,16 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
         }}
         values={data.catheter || {}}
         onSave={(val) => onChange({ ...data, catheter: val })}
+        preferredProfiles={preferredCatheterProfiles}
       />
       </div>
     </div>
   );
 }
 
-NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredWireProducts: PropTypes.arrayOf(PropTypes.string), scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
+NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredWireProfiles: PropTypes.arrayOf(PropTypes.object), preferredCatheterProfiles: PropTypes.arrayOf(PropTypes.object), scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
 
-function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, scopeOptions }) {
+function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredBalloonProfiles, preferredStentProfiles, scopeOptions }) {
   const [ballOpen, setBallOpen] = useState(false);
   const [stentOpen, setStentOpen] = useState(false);
   const [ballAnchor, setBallAnchor] = useState(null);
@@ -1299,6 +1581,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, scop
           }}
           values={data.balloon || {}}
           onSave={(val) => onChange({ ...data, balloon: val })}
+          preferredProfiles={preferredBalloonProfiles}
         />
         <StentModal
           isOpen={stentOpen}
@@ -1310,13 +1593,14 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, scop
           }}
           values={data.stent || {}}
           onSave={(val) => onChange({ ...data, stent: val })}
+          preferredProfiles={preferredStentProfiles}
         />
       </div>
     </div>
   );
 }
 
-TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
+TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredBalloonProfiles: PropTypes.arrayOf(PropTypes.object), preferredStentProfiles: PropTypes.arrayOf(PropTypes.object), scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
 
 function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   const data = values || {};
@@ -1580,9 +1864,10 @@ export default function Step4({ data, setData }) {
   const activePreferenceSlot = prefsPicker
     ? (prefsData[prefsPicker.typeKey] || []).find((slot) => slot.id === prefsPicker.slotId)
     : null;
-  const preferredWireProducts = preferenceValues(savedPreferences, 'wire')
-    .map((value) => value.product)
-    .filter(Boolean);
+  const preferredWireProfiles = preferenceValues(savedPreferences, 'wire');
+  const preferredCatheterProfiles = preferenceValues(savedPreferences, 'catheter');
+  const preferredBalloonProfiles = preferenceValues(savedPreferences, 'balloon');
+  const preferredStentProfiles = preferenceValues(savedPreferences, 'stent');
   const navigationScopeOptions = buildScopeOptions(lesionOptions, targetPath, {
     includeTargetPath: true,
     includeTreatmentZones: true,
@@ -1620,7 +1905,8 @@ export default function Step4({ data, setData }) {
       onAdd={() => {}}
       onRemove={() => setNavRows((previous) => previous.filter((item) => item.id !== row.id))}
       showRemove
-      preferredWireProducts={preferredWireProducts}
+      preferredWireProfiles={preferredWireProfiles}
+      preferredCatheterProfiles={preferredCatheterProfiles}
       scopeOptions={navigationScopeOptions}
     />
   ));
@@ -1633,6 +1919,8 @@ export default function Step4({ data, setData }) {
       onAdd={() => {}}
       onRemove={() => setTherapyRows((previous) => previous.filter((item) => item.id !== row.id))}
       showRemove
+      preferredBalloonProfiles={preferredBalloonProfiles}
+      preferredStentProfiles={preferredStentProfiles}
       scopeOptions={therapyScopeOptions}
     />
   ));
@@ -1758,6 +2046,7 @@ export default function Step4({ data, setData }) {
         onRequestClose={closePreferencePicker}
         values={activePreferenceSlot?.value || {}}
         onSave={(val) => updatePreferenceSlot('catheter', prefsPicker?.slotId, val)}
+        preferredProfiles={preferredCatheterProfiles}
       />
       <WireModal
         isOpen={prefsPicker?.typeKey === 'wire'}
@@ -1765,7 +2054,7 @@ export default function Step4({ data, setData }) {
         onRequestClose={closePreferencePicker}
         values={activePreferenceSlot?.value || {}}
         onSave={(val) => updatePreferenceSlot('wire', prefsPicker?.slotId, val)}
-        preferredProducts={preferredWireProducts}
+        preferredProfiles={preferredWireProfiles}
       />
       <BalloonModal
         isOpen={prefsPicker?.typeKey === 'balloon'}
@@ -1773,6 +2062,7 @@ export default function Step4({ data, setData }) {
         onRequestClose={closePreferencePicker}
         values={activePreferenceSlot?.value || {}}
         onSave={(val) => updatePreferenceSlot('balloon', prefsPicker?.slotId, val)}
+        preferredProfiles={preferredBalloonProfiles}
       />
       <StentModal
         isOpen={prefsPicker?.typeKey === 'stent'}
@@ -1780,6 +2070,7 @@ export default function Step4({ data, setData }) {
         onRequestClose={closePreferencePicker}
         values={activePreferenceSlot?.value || {}}
         onSave={(val) => updatePreferenceSlot('stent', prefsPicker?.slotId, val)}
+        preferredProfiles={preferredStentProfiles}
       />
       <SimpleModal
         title={__('Special device', 'endoplanner')}
@@ -1829,6 +2120,7 @@ export default function Step4({ data, setData }) {
             onAdd={() => {}}
             onRemove={() => setAccessRows((prev) => prev.filter((r) => r.id !== row.id))}
             showRemove={accessRows.length > 1}
+            preferredCatheterProfiles={preferredCatheterProfiles}
           />
         ))}
         <RowControls

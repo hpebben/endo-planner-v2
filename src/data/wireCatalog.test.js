@@ -2,8 +2,11 @@ import {
   CTO_PROFILES,
   WIRE_CATALOG,
   WIRE_ROLES,
+  getWireLengthsForProduct,
+  getWirePlatformsForProduct,
   getWireLengthOptions,
   getWireProductOptions,
+  getWireProductVariants,
   normalizeWireRole,
 } from './wireCatalog';
 
@@ -37,7 +40,22 @@ describe('wire catalogue filtering', () => {
       technique: 'Intraluminal tracking',
     }, [preferred]);
     expect(options[0]).toMatchObject({ value: preferred, preferred: true });
-    expect(options[0].label).toMatch(/^★/);
+    expect(options[0].label).toBe(preferred);
+  });
+
+  test('supports product-first browsing before filters are selected', () => {
+    const preferred = 'Asahi Intecc — Halberd';
+    const options = getWireProductOptions({}, [preferred]);
+    expect(options[0]).toMatchObject({ value: preferred, preferred: true });
+    expect(options.length).toBeGreaterThan(30);
+    expect(new Set(options.map((option) => option.value)).size).toBe(options.length);
+  });
+
+  test('derives only valid platform and length chips for a selected product', () => {
+    const product = 'Asahi Intecc — Halberd';
+    expect(getWirePlatformsForProduct(product)).toEqual(['0.014', '0.018']);
+    expect(getWireLengthsForProduct(product, { platform: '0.018' })).toEqual(['200 cm', '235 cm', '300 cm']);
+    expect(getWireProductVariants(product, { platform: '0.035' })).toHaveLength(0);
   });
 
   test('migrates legacy category names to refined functional roles', () => {

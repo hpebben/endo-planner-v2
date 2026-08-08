@@ -21,8 +21,11 @@ export const compactDeviceLabel = (type, value) => {
   }
   if (type === 'balloon' || type === 'stent') {
     const dimensions = [value.diameter, value.length].filter(Boolean).join(' × ');
+    const product = value.product && value.product !== 'Product not specified' ? value.product : '';
+    if (product && dimensions) return `${product} · ${dimensions} mm`;
+    if (product) return product;
     if (dimensions) return `${dimensions} mm`;
-    return firstValue(value, ['product', 'type', 'material', 'platform']);
+    return firstValue(value, ['type', 'material', 'platform']);
   }
 
   return firstValue(value, ['product', 'name', 'label', 'type']);

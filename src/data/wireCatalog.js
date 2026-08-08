@@ -168,6 +168,36 @@ export const WIRE_CATALOG = [
 
 const numericLength = (value) => Number.parseInt(String(value || '').replace(/[^0-9]/g, ''), 10);
 
+const matchesFilters = (item, {
+  platform = '',
+  length = '',
+  role = '',
+  category = '',
+  technique = '',
+  ctoProfile = '',
+} = {}) => {
+  const selectedLength = numericLength(length);
+  const selectedRole = normalizeWireRole(role || category);
+  return (
+    (!platform || item.platform === platform) &&
+    (!selectedRole || item.role === selectedRole) &&
+    (!selectedLength || item.lengths.includes(selectedLength)) &&
+    (!technique || item.techniques.includes(technique)) &&
+    (!ctoProfile || item.ctoProfile === ctoProfile)
+  );
+};
+
+const preferredProductOrder = (preferredProducts = []) => new Map(
+  preferredProducts.filter(Boolean).map((product, index) => [product, index]),
+);
+
+const sortByPreference = (preferredOrder) => (a, b) => {
+  const aPreferred = preferredOrder.has(a.label) ? preferredOrder.get(a.label) : Infinity;
+  const bPreferred = preferredOrder.has(b.label) ? preferredOrder.get(b.label) : Infinity;
+  if (aPreferred !== bPreferred) return aPreferred - bPreferred;
+  return a.label.localeCompare(b.label);
+};
+
 export const getWireLengthOptions = (platform, role = '', ctoProfile = '') => {
   const normalizedRole = normalizeWireRole(role);
   if (!platform) return [];
@@ -183,35 +213,42 @@ export const getWireLengthOptions = (platform, role = '', ctoProfile = '') => {
 };
 
 export const getWireProductOptions = (
-  { platform, length, role, category, technique, ctoProfile },
+  filters = {},
   preferredProducts = [],
 ) => {
-  const selectedLength = numericLength(length);
-  const selectedRole = normalizeWireRole(role || category);
-  const preferredOrder = new Map(
-    preferredProducts.filter(Boolean).map((product, index) => [product, index]),
-  );
+  const preferredOrder = preferredProductOrder(preferredProducts);
+  const matchingProducts = new Map();
 
-  return WIRE_CATALOG
-    .filter((item) => (
-      item.platform === platform &&
-      item.role === selectedRole &&
-      item.lengths.includes(selectedLength) &&
-      (!technique || item.techniques.includes(technique)) &&
-      (!ctoProfile || item.ctoProfile === ctoProfile)
-    ))
-    .sort((a, b) => {
-      const aPreferred = preferredOrder.has(a.label) ? preferredOrder.get(a.label) : Infinity;
-      const bPreferred = preferredOrder.has(b.label) ? preferredOrder.get(b.label) : Infinity;
-      if (aPreferred !== bPreferred) return aPreferred - bPreferred;
-      return a.label.localeCompare(b.label);
-    })
+  WIRE_CATALOG
+    .filter((item) => matchesFilters(item, filters))
+    .forEach((item) => {
+      if (!matchingProducts.has(item.label)) matchingProducts.set(item.label, item);
+    });
+
+  return [...matchingProducts.values()]
+    .sort(sortByPreference(preferredOrder))
     .map((item) => ({
-      label: preferredOrder.has(item.label) ? `★ ${item.label}` : item.label,
+      label: item.label,
       value: item.label,
       preferred: preferredOrder.has(item.label),
     }));
 };
+
+export const getWireProductVariants = (label, filters = {}) => WIRE_CATALOG.filter((item) => (
+  item.label === label && matchesFilters(item, filters)
+));
+
+export const getWirePlatformsForProduct = (label, filters = {}) => [...new Set(
+  getWireProductVariants(label, { ...filters, platform: '' }).map((item) => item.platform),
+)].sort();
+
+export const getWireLengthsForProduct = (label, filters = {}) => [...new Set(
+  getWireProductVariants(label, { ...filters, length: '' }).flatMap((item) => item.lengths),
+)].sort((a, b) => a - b).map((length) => `${length} cm`);
+
+export const getWireRolesForProduct = (label, filters = {}) => [...new Set(
+  getWireProductVariants(label, { ...filters, role: '', category: '' }).map((item) => item.role),
+)];
 
 export const getWireByLabel = (label, platform = '') => WIRE_CATALOG.find((item) => (
   item.label === label && (!platform || item.platform === platform)
