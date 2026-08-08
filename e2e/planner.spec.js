@@ -317,7 +317,12 @@ test('starts device selection with preferred products and inline variants', asyn
     )
     .toMatchObject({ profileId: 'e2e-local-setup', revision: 2 });
 
-  await page.getByRole('button', { name: 'Asahi Intecc — Halberd' }).first().click();
+  const lesionComposer = page
+    .getByTestId('visual-intervention-planner')
+    .getByTestId('plan-scope-group-L1');
+  await lesionComposer
+    .getByRole('button', { name: 'Asahi Intecc — Halberd', exact: true })
+    .click();
   let dialog = page.getByRole('dialog');
   const wireProduct = dialog.getByRole('combobox', { name: 'Product' });
   await expect(wireProduct.locator('option:checked')).toHaveText('★ Asahi Intecc — Halberd');
@@ -326,7 +331,9 @@ test('starts device selection with preferred products and inline variants', asyn
   await dialog.getByTestId('variant-length').getByRole('button', { name: '235 cm' }).click();
   await dialog.getByRole('button', { name: 'Done' }).click();
 
-  await page.getByRole('button', { name: 'Local preferred PTA balloon' }).click();
+  await lesionComposer
+    .getByRole('button', { name: 'Local preferred PTA balloon', exact: true })
+    .click();
   dialog = page.getByRole('dialog');
   const balloonProduct = dialog.getByRole('combobox', { name: 'Product' });
   await expect(balloonProduct.locator('option:checked')).toHaveText('★ Local preferred PTA balloon');
