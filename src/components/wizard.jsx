@@ -11,7 +11,7 @@ import { migratePlanRowScopes } from '../utils/planScopes';
 import { validateCaseStep } from '../utils/caseValidation';
 
 const STORAGE_KEY = 'endoplannerState';
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 const steps = [
   { title: __('Clinical indication', 'endoplanner'), component: Step1 },
@@ -33,12 +33,16 @@ export default function Wizard() {
 
     try {
       const parsed = JSON.parse(saved);
-      if (![2, 3, SCHEMA_VERSION].includes(parsed.schemaVersion)) {
+      if (![2, 3, 4, SCHEMA_VERSION].includes(parsed.schemaVersion)) {
         localStorage.removeItem(STORAGE_KEY);
         return;
       }
       if (parsed.data) {
-        const migratedData = { ...DEFAULTS, ...parsed.data };
+        const migratedData = {
+          ...DEFAULTS,
+          ...parsed.data,
+          clinical: { ...DEFAULTS.clinical, ...(parsed.data.clinical || {}) },
+        };
         if (parsed.schemaVersion === 2) {
           const lesionIds = Object.keys(migratedData.patencySegments || {});
           if (lesionIds.length === 1) {

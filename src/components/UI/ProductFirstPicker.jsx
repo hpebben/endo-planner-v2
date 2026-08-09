@@ -13,6 +13,9 @@ const deduplicateOptions = ( options = [] ) => {
 	} );
 };
 
+const optionText = ( option ) =>
+	option.specs ? `${ option.label } | ${ option.specs }` : option.label;
+
 export function ProductSelect( {
 	value,
 	options,
@@ -21,6 +24,7 @@ export function ProductSelect( {
 	label = __( 'Product', 'endoplanner' ),
 	placeholder = __( 'Choose product', 'endoplanner' ),
 	allowCustom = true,
+	legend = __( 'Product | platform | size/diameter | length | shaft | minimum sheath', 'endoplanner' ),
 } ) {
 	const normalizedOptions = useMemo(
 		() => deduplicateOptions( options ),
@@ -28,6 +32,7 @@ export function ProductSelect( {
 	);
 	const productId = useId();
 	const customProductId = useId();
+	const legendId = useId();
 	const knownValue = normalizedOptions.some(
 		( option ) => option.value === value
 	);
@@ -70,12 +75,19 @@ export function ProductSelect( {
 		<div className="product-first-select">
 			<label htmlFor={ productId }>
 				<span>{ label }</span>
+				<small id={ legendId } className="product-specification-legend">
+					{ legend }
+				</small>
 				<select
 					id={ productId }
 					value={ selectValue }
 					onChange={ handleSelect }
+					aria-describedby={ legendId }
 				>
 					<option value="">{ placeholder }</option>
+					<option value="__specification_legend__" disabled>
+						{ legend }
+					</option>
 					{ preferred.length > 0 && (
 						<optgroup
 							label={ __( 'Preferred devices', 'endoplanner' ) }
@@ -86,7 +98,7 @@ export function ProductSelect( {
 									value={ option.value }
 									disabled={ option.disabled }
 								>
-									{ `★ ${ option.label }` }
+									{ `★ ${ optionText( option ) }` }
 								</option>
 							) ) }
 						</optgroup>
@@ -108,7 +120,7 @@ export function ProductSelect( {
 									value={ option.value }
 									disabled={ option.disabled }
 								>
-									{ option.label }
+									{ optionText( option ) }
 								</option>
 							) ) }
 						</optgroup>
@@ -150,6 +162,7 @@ ProductSelect.propTypes = {
 		PropTypes.shape( {
 			value: PropTypes.string.isRequired,
 			label: PropTypes.string.isRequired,
+			specs: PropTypes.string,
 			preferred: PropTypes.bool,
 			disabled: PropTypes.bool,
 		} )
@@ -159,6 +172,7 @@ ProductSelect.propTypes = {
 	label: PropTypes.string,
 	placeholder: PropTypes.string,
 	allowCustom: PropTypes.bool,
+	legend: PropTypes.string,
 };
 
 export function ChoiceChips( { label, value, options, onChange, testId } ) {
@@ -237,7 +251,7 @@ export function ProductFirstLayout( {
 	productOptions,
 	onProductChange,
 	onCustomProductChange,
-	variantGroups = [],
+	productLegend,
 	children,
 	matchCount,
 	onResetFilters,
@@ -262,17 +276,8 @@ export function ProductFirstLayout( {
 					options={ productOptions }
 					onChange={ onProductChange }
 					onCustomChange={ onCustomProductChange }
+					legend={ productLegend }
 				/>
-				{ variantGroups.length > 0 && (
-					<div className="product-variant-groups">
-						{ variantGroups.map( ( group ) => (
-							<ChoiceChips
-								key={ group.key || group.label }
-								{ ...group }
-							/>
-						) ) }
-					</div>
-				) }
 			</div>
 			<div className="device-filter-heading">
 				<div>
@@ -295,7 +300,7 @@ ProductFirstLayout.propTypes = {
 	productOptions: PropTypes.arrayOf( PropTypes.object ).isRequired,
 	onProductChange: PropTypes.func.isRequired,
 	onCustomProductChange: PropTypes.func,
-	variantGroups: PropTypes.arrayOf( PropTypes.object ),
+	productLegend: PropTypes.string,
 	children: PropTypes.node.isRequired,
 	matchCount: PropTypes.number,
 	onResetFilters: PropTypes.func,

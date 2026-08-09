@@ -9,21 +9,27 @@ import {
   FilterChips,
   ProductFirstLayout,
 } from '../UI/ProductFirstPicker';
+import CatalogProductPicker from '../UI/CatalogProductPicker';
 import VisualPlanWorkspace from '../VisualPlanWorkspace';
 import { __ } from '@wordpress/i18n';
 import DEFAULTS from '../Defaults';
 import {
-  CTO_PROFILES,
   getWireByLabel,
-  getWireLengthsForProduct,
-  getWirePlatformsForProduct,
   getWireProductOptions,
   getWireProductVariants,
-  getWireRolesForProduct,
+  getWireFilterOptions,
   normalizeWireRole,
+  reconcileWireProduct,
   WIRE_ROLES,
   WIRE_ROLE_INFO,
 } from '../../data/wireCatalog';
+import {
+  BALLOON_CATALOG,
+  CATHETER_CATALOG,
+  EUROPEAN_DEVICE_GUIDE_URL,
+  SPECIAL_DEVICE_CATALOG,
+  STENT_CATALOG,
+} from '../../data/deviceCatalog';
 import { getLesionOptions } from '../../utils/lesions';
 import {
   buildScopeOptions,
@@ -43,6 +49,13 @@ import {
   snapshotPreferenceProfile,
 } from '../../utils/preferenceProfile';
 import { analyzePlan } from '../../utils/planAnalysis';
+import {
+  CLOSURE_GUIDE_URL,
+  CLOSURE_CATALOG,
+  getClosureAdvice,
+  getCompatibleClosureOptions,
+  normalizeClosureLabel,
+} from '../../utils/closureAdvice';
 // miniature arterial tree icon used for vessel selector
 import vesselTreeIcon from '../../assets/vessel-map.svg';
 // device images for selector buttons
@@ -63,32 +76,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.170';
-
-const closureDeviceOptions = [
-  '6F AngioSeal',
-  '8F AngioSeal',
-  'Perclose ProStyle',
-  'Exoseal',
-  'Starclose',
-  '14F Manta',
-  '18F Manta',
-  'Mynx',
-  'Custom',
-];
-
-const specialDeviceOptions = [
-  'Re-entry device',
-  'IVUS catheter',
-  'Vascular plug',
-  'Embolization coils',
-  'Closure device',
-  'Shockwave',
-  'Scoring balloon',
-  'Atherectomy device',
-  'Thrombectomy device',
-  'Custom',
-];
+const APPLICATION_VERSION = '1.6.171';
 
 const preferenceTypes = [
   { key: 'needle', legacyId: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg, modal: 'needle' },
@@ -199,6 +187,8 @@ const shortLabel = (type, obj) => {
           obj.diameter && obj.length ? `${obj.diameter} × ${obj.length} mm` : '',
           obj.platform,
         ]);
+    case 'special':
+      return obj.product || obj.category || '';
     default:
       return summarize(obj);
   }
@@ -216,38 +206,6 @@ const joinPreferenceParts = (parts) =>
     .join(' • ');
 
 const PRODUCT_NOT_SPECIFIED = 'Product not specified';
-
-const productProfileFields = {
-  catheter: ['specific', 'size', 'length'],
-  balloon: ['product', 'platform', 'functionalRole', 'diameter', 'length', 'shaft', 'deliveryMode', 'minimumSheathFr'],
-  stent: ['product', 'platform', 'functionalRole', 'type', 'material', 'diameter', 'length', 'shaft', 'deliveryMode', 'minimumSheathFr'],
-};
-
-const profileMatches = (candidate = {}, profile = {}, fields = []) => fields.every((field) => (
-  String(candidate?.[field] || '') === String(profile?.[field] || '')
-));
-
-const preferredProfileOptions = (profiles = [], type, formatter) => profiles
-  .filter((profile) => profile && typeof profile === 'object')
-  .map((profile, index) => {
-    const product = type === 'catheter'
-      ? profile.specific || profile.product
-      : profile.product;
-    return {
-      value: product || `__preferred_${type}_${index}`,
-      label: product || formatter(profile) || `${__('Preferred', 'endoplanner')} ${index + 1}`,
-      preferred: true,
-      profile,
-    };
-  });
-
-const selectedPreferredProfile = (values, options, type) => options.find((option) => (
-  profileMatches(values, option.profile, productProfileFields[type])
-));
-
-const filterPreferredProfiles = (options, filters = {}) => options.filter((option) => Object.entries(filters).every(
-  ([field, value]) => !value || String(option.profile?.[field] || '') === String(value),
-));
 
 const formatWireLabel = (value) => {
   const size = value.platform || '';
@@ -299,6 +257,8 @@ const getPreferenceLabel = (type, value) => {
       return formatBalloonLabel(value);
     case 'stent':
       return formatStentLabel(value);
+    case 'specialDevice':
+      return value.product || value.category || summarize(value);
     default:
       return summarize(value);
   }
@@ -460,78 +420,45 @@ SheathModal.propTypes = {
 };
 
 function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
-  const sizes = ['2.3 Fr','2.6 Fr','4 Fr','5 Fr','6 Fr','7 Fr'];
-  const lengths = ['40 cm','65 cm','80 cm','90 cm','105 cm','110 cm','125 cm','135 cm','150 cm'];
-  const [size, setSize] = useState('');
-  const [length, setLength] = useState('');
-  const [specific, setSpecific] = useState('');
+  const normalize = (input = {}) => ({
+    ...input,
+    product: input.product || input.specific || '',
+    specific: input.specific || input.product || '',
+    category: input.category || '',
+    platform: input.platform || '',
+    size: input.size || '',
+    length: input.length || '',
+    minimumSheathFr: input.minimumSheathFr || '',
+  });
+  const [form, setForm] = useState(() => normalize(values));
   useEffect(() => {
-    setSize(values.size || '');
-    setLength(values.length || '');
-    setSpecific(values.specific || '');
+    setForm(normalize(values));
   }, [values]);
-  const specifics = ['BER2','BHW','Cobra 1','Cobra 2','Cobra 3','Cobra Glidecath','CXI 0.018','CXI 0.014','Navicross 0.018','Navicross 0.035','MultiPurpose','PIER','Pigtail Flush','Straight Flush','Universal Flush','Rim','Simmons 1','Simmons 2','Simmons 3','Vertebral'];
-  const preferenceOptions = preferredProfileOptions(
-    preferredProfiles,
-    'catheter',
-    (profile) => joinPreferenceParts([profile.specific || profile.product, profile.size, profile.length]),
-  );
-  const selectedPreference = selectedPreferredProfile(values, preferenceOptions, 'catheter');
-  const productOptions = [
-    ...filterPreferredProfiles(preferenceOptions, { size }),
-    ...specifics.map((value) => ({ value, label: value })),
-  ];
-  const handleChange = (field, val) => {
-    const newVals = { size, length, specific, [field]: val };
-    if (field === 'size') setSize(val);
-    if (field === 'length') setLength(val);
-    if (field === 'specific') setSpecific(val);
-    console.log('[Popup] Updated: ', newVals);
-    onSave(newVals);
-  };
-  const handleProduct = (value) => {
-    const preference = preferenceOptions.find((option) => option.value === value);
-    if (preference) {
-      const next = { ...preference.profile, specific: preference.profile.specific || preference.profile.product || '' };
-      setSpecific(next.specific || '');
-      setSize(next.size || '');
-      setLength(next.length || '');
-      onSave(next);
-      return;
-    }
-    handleChange('specific', value);
-  };
-  const resetFilters = () => {
-    setSize('');
-    setLength('');
-    onSave({ ...values, specific, size: '', length: '' });
+  const commit = (next) => {
+    const normalized = normalize(next);
+    setForm(normalized);
+    onSave(normalized);
   };
   return (
     <SimpleModal title={__('Catheter', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <ProductFirstLayout
-        product={selectedPreference?.value || specific}
-        productOptions={productOptions}
-        onProductChange={handleProduct}
-        onCustomProductChange={(value) => handleChange('specific', value)}
-        variantGroups={[{
-          key: 'catheter-length',
-          label: __('Length', 'endoplanner'),
-          value: length,
-          options: lengths,
-          onChange: (value) => handleChange('length', value),
-          testId: 'variant-length',
-        }]}
-        matchCount={new Set(productOptions.map((option) => option.value)).size}
-        onResetFilters={resetFilters}
-      >
-        <FilterChips
-          label={__('French size', 'endoplanner')}
-          value={size}
-          options={sizes}
-          onChange={(value) => handleChange('size', value)}
-          testId="filter-catheter-size"
-        />
-      </ProductFirstLayout>
+      <CatalogProductPicker
+        catalog={CATHETER_CATALOG}
+        form={form}
+        onChange={commit}
+        preferredProfiles={preferredProfiles}
+        mirrorSpecific
+        productLegend={__('Product | platform | catheter Fr | working length | minimum sheath', 'endoplanner')}
+        filters={[
+          { field: 'category', label: __('Category', 'endoplanner'), testId: 'filter-category' },
+          { field: 'platform', label: __('Platform', 'endoplanner'), testId: 'filter-platform' },
+          { field: 'size', label: __('Catheter size', 'endoplanner'), testId: 'filter-catheter-size' },
+          { field: 'length', label: __('Working length', 'endoplanner'), testId: 'filter-length' },
+          { field: 'minimumSheathFr', label: __('Minimum sheath', 'endoplanner'), testId: 'filter-minimum-sheath' },
+        ]}
+      />
+      <p className="wire-catalog-note">
+        {__('European catalogue options are planning aids. Confirm shape, usable length and compatibility against the current product IFU.', 'endoplanner')}
+      </p>
       <div className="popup-close-row">
         <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>{__('Done', 'endoplanner')}</button>
       </div>
@@ -582,38 +509,32 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
   const preferredProducts = preferredProfiles.map((value) => value.product).filter(Boolean);
   const preferredOptions = preferredProfiles
     .filter((profile) => profile.product && wireProfileMatchesFilters(profile, filters))
-    .map((profile) => ({ value: profile.product, label: profile.product, preferred: true }));
+    .filter((profile) => !getWireByLabel(profile.product))
+    .map((profile) => ({
+      value: profile.product,
+      label: `${profile.product} | ${[profile.platform, profile.length, normalizeWireRole(profile.role || profile.type)].filter(Boolean).join(' | ')}`,
+      preferred: true,
+    }));
   const catalogOptions = getWireProductOptions(filters, preferredProducts);
   const preferredValues = new Set(preferredOptions.map((option) => option.value));
   const productOptions = [
     ...preferredOptions,
     ...catalogOptions.filter((option) => !preferredValues.has(option.value)),
   ];
-  const lengthOptions = form.product && form.product !== PRODUCT_NOT_SPECIFIED
-    ? getWireLengthsForProduct(form.product, {
-      platform: form.platform,
-      role: form.role,
-      technique: form.technique,
-      ctoProfile: form.ctoProfile,
-    })
-    : [];
   const selectedProduct = getWireProductVariants(form.product, filters)[0]
     || getWireByLabel(form.product, form.platform);
   const cataloguedProduct = Boolean(getWireByLabel(form.product));
-  const platformOptions = cataloguedProduct
-    ? getWirePlatformsForProduct(form.product, {
-      role: form.role,
-      technique: form.technique,
-      ctoProfile: form.ctoProfile,
-    })
-    : ['0.014','0.018','0.035'];
-  const roleOptions = cataloguedProduct
-    ? getWireRolesForProduct(form.product, {
-      platform: form.platform,
-      technique: form.technique,
-      ctoProfile: form.ctoProfile,
-    })
-    : Object.values(WIRE_ROLES);
+  const profileValues = (field) => [...new Set(preferredProfiles.map((profile) => (
+    field === 'role' ? normalizeWireRole(profile.role || profile.type) : profile[field]
+  )).filter(Boolean))];
+  const filterOptions = (field) => cataloguedProduct || !form.product
+    ? getWireFilterOptions(form, field)
+    : profileValues(field);
+  const platformOptions = filterOptions('platform');
+  const lengthOptions = filterOptions('length');
+  const roleOptions = filterOptions('role');
+  const techniqueOptions = filterOptions('technique');
+  const ctoProfileOptions = filterOptions('ctoProfile');
   const wireRoleLabels = {
     [WIRE_ROLES.WORKHORSE]: __('Workhorse', 'endoplanner'),
     [WIRE_ROLES.JACKETED]: __('Jacketed / hydrophilic', 'endoplanner'),
@@ -641,49 +562,12 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
       return;
     }
 
-    const variants = getWireProductVariants(value, {
-      platform: form.platform,
-      role: form.role,
-      technique: form.technique,
-      ctoProfile: form.ctoProfile,
-    });
-    const variant = variants[0] || getWireProductVariants(value)[0];
-    if (!variant) {
-      commit({ ...form, product: value });
-      return;
-    }
-    const availableLengths = getWireLengthsForProduct(value, {
-      platform: variant.platform,
-      role: variant.role,
-      technique: form.technique || variant.techniques[0],
-      ctoProfile: variant.ctoProfile,
-    });
-    commit({
-      ...form,
-      product: value,
-      platform: variant.platform,
-      role: variant.role,
-      ctoProfile: variant.ctoProfile,
-      technique: form.technique && variant.techniques.includes(form.technique)
-        ? form.technique
-        : variant.techniques[0],
-      length: availableLengths.includes(form.length) ? form.length : availableLengths[0] || '',
-    });
+    commit(reconcileWireProduct(form, value));
   };
 
   const changeFilter = (field, value) => {
     const next = { ...form, [field]: value };
     if (field === 'role' && value !== WIRE_ROLES.CTO) next.ctoProfile = '';
-    if (next.product && next.product !== PRODUCT_NOT_SPECIFIED && getWireByLabel(next.product)) {
-      const productStillMatches = getWireProductVariants(next.product, {
-        platform: next.platform,
-        length: next.length,
-        role: next.role,
-        technique: next.technique,
-        ctoProfile: next.ctoProfile,
-      }).length > 0;
-      if (!productStillMatches) next.product = '';
-    }
     commit(next);
   };
 
@@ -703,14 +587,7 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
         productOptions={productOptions}
         onProductChange={selectProduct}
         onCustomProductChange={(value) => commit({ ...form, product: value })}
-        variantGroups={[{
-          key: 'wire-length',
-          label: __('Length', 'endoplanner'),
-          value: form.length,
-          options: lengthOptions,
-          onChange: (value) => changeFilter('length', value),
-          testId: 'variant-length',
-        }]}
+        productLegend={__('Product | platform | available length | functional role', 'endoplanner')}
         matchCount={new Set([...preferredOptions, ...catalogOptions].map((option) => option.value)).size}
         onResetFilters={resetFilters}
       >
@@ -722,6 +599,13 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
           testId="filter-platform"
         />
         <FilterChips
+          label={__('Length', 'endoplanner')}
+          value={form.length}
+          options={lengthOptions}
+          onChange={(value) => changeFilter('length', value)}
+          testId="filter-length"
+        />
+        <FilterChips
           label={__('Functional role', 'endoplanner')}
           value={form.role}
           options={roleOptions.map((value) => ({ label: wireRoleLabels[value] || value, value }))}
@@ -731,10 +615,12 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
         <FilterChips
           label={__('Technique', 'endoplanner')}
           value={form.technique}
-          options={[
-            { label: __('Intraluminal', 'endoplanner'), value: 'Intraluminal tracking' },
-            { label: __('Subintimal + re-entry', 'endoplanner'), value: 'Limited sub-intimal dissection and re-entry' },
-          ]}
+          options={techniqueOptions.map((value) => ({
+            label: value.includes('Sub') || value.includes('sub')
+              ? __('Subintimal + re-entry', 'endoplanner')
+              : __('Intraluminal', 'endoplanner'),
+            value,
+          }))}
           onChange={(value) => changeFilter('technique', value)}
           testId="filter-technique"
         />
@@ -742,7 +628,7 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
           <FilterChips
             label={__('CTO behavior', 'endoplanner')}
             value={form.ctoProfile}
-            options={Object.values(CTO_PROFILES)}
+            options={ctoProfileOptions}
             onChange={(value) => changeFilter('ctoProfile', value)}
             testId="filter-cto-profile"
           />
@@ -789,147 +675,49 @@ WireModal.propTypes = {
 };
 
 function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
-  const diameters = { '0.014':['1.5','2','2.5','3.5','4'], '0.018':['2','2.5','3','4','5','5.5','6','7'], '0.035':['3','4','5','6','7','8','9','10','12','14'] };
-  const lengths = ['10','12','15','18','20','30','40','50','60','70','80','90','100','110','120'];
-  const shaftLengths = ['40 cm','75 cm','80 cm','90 cm','120 cm','130 cm','135 cm','150 cm'];
-  const [form, setForm] = useState(() => ({
-    ...values,
-    product: values.product || '',
-    platform: values.platform || '',
-    functionalRole: values.functionalRole || '',
-    diameter: values.diameter || '',
-    length: values.length || '',
-    shaft: values.shaft || '',
-    deliveryMode: values.deliveryMode || '',
-    minimumSheathFr: values.minimumSheathFr || '',
-  }));
+  const normalize = (input = {}) => ({
+    ...input,
+    category: input.category || '',
+    product: input.product || '',
+    platform: input.platform || '',
+    functionalRole: input.functionalRole || '',
+    diameter: input.diameter || '',
+    length: input.length || '',
+    shaft: input.shaft || '',
+    deliveryMode: input.deliveryMode || '',
+    minimumSheathFr: input.minimumSheathFr || '',
+  });
+  const [form, setForm] = useState(() => normalize(values));
   useEffect(() => {
-    setForm({
-      ...values,
-      product: values.product || '',
-      platform: values.platform || '',
-      functionalRole: values.functionalRole || '',
-      diameter: values.diameter || '',
-      length: values.length || '',
-      shaft: values.shaft || '',
-      deliveryMode: values.deliveryMode || '',
-      minimumSheathFr: values.minimumSheathFr || '',
-    });
+    setForm(normalize(values));
   }, [values]);
-  const allPreferenceOptions = preferredProfileOptions(preferredProfiles, 'balloon', formatBalloonLabel);
-  const matchingPreferenceOptions = filterPreferredProfiles(allPreferenceOptions, {
-    platform: form.platform,
-    functionalRole: form.functionalRole,
-    deliveryMode: form.deliveryMode,
-  });
-  const selectedPreference = selectedPreferredProfile(form, allPreferenceOptions, 'balloon');
-  const productOptions = [
-    ...matchingPreferenceOptions,
-  ];
   const commit = (next) => {
-    setForm(next);
-    onSave(next);
+    const normalized = normalize(next);
+    setForm(normalized);
+    onSave(normalized);
   };
-  const handleChange = (field, val) => {
-    const newVals = {
-      ...form,
-      [field]: val,
-    };
-    if (field === 'platform') {
-      const availableDiameters = diameters[val] || [];
-      if (!availableDiameters.includes(newVals.diameter)) newVals.diameter = '';
-    }
-    console.log('[Popup] Updated: ', newVals);
-    commit(newVals);
-  };
-  const handleProduct = (value) => {
-    const preference = allPreferenceOptions.find((option) => option.value === value);
-    if (preference) {
-      commit({ ...form, ...preference.profile });
-      return;
-    }
-    handleChange('product', value);
-  };
-  const resetFilters = () => commit({
-    ...form,
-    platform: '',
-    functionalRole: '',
-    diameter: '',
-    length: '',
-    shaft: '',
-    deliveryMode: '',
-    minimumSheathFr: '',
-  });
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <ProductFirstLayout
-        product={selectedPreference?.value || form.product}
-        productOptions={productOptions}
-        onProductChange={handleProduct}
-        onCustomProductChange={(value) => handleChange('product', value)}
-        variantGroups={[
-          {
-            key: 'balloon-length',
-            label: __('Length (mm)', 'endoplanner'),
-            value: form.length,
-            options: lengths,
-            onChange: (value) => handleChange('length', value),
-            testId: 'variant-length',
-          },
-          {
-            key: 'balloon-shaft',
-            label: __('Shaft', 'endoplanner'),
-            value: form.shaft,
-            options: shaftLengths,
-            onChange: (value) => handleChange('shaft', value),
-            testId: 'variant-shaft',
-          },
+      <CatalogProductPicker
+        catalog={BALLOON_CATALOG}
+        form={form}
+        onChange={commit}
+        preferredProfiles={preferredProfiles}
+        productLegend={__('Product | platform | diameter | balloon length | shaft | minimum sheath', 'endoplanner')}
+        filters={[
+          { field: 'category', label: __('Category', 'endoplanner'), testId: 'filter-category' },
+          { field: 'platform', label: __('Platform', 'endoplanner'), testId: 'filter-platform' },
+          { field: 'functionalRole', label: __('Functional role', 'endoplanner'), testId: 'filter-functional-role' },
+          { field: 'diameter', label: __('Diameter (mm)', 'endoplanner'), testId: 'filter-diameter' },
+          { field: 'length', label: __('Balloon length (mm)', 'endoplanner'), testId: 'filter-length' },
+          { field: 'shaft', label: __('Shaft length', 'endoplanner'), testId: 'filter-shaft' },
+          { field: 'deliveryMode', label: __('Delivery technique', 'endoplanner'), testId: 'filter-delivery-mode' },
+          { field: 'minimumSheathFr', label: __('Minimum sheath', 'endoplanner'), testId: 'filter-minimum-sheath' },
         ]}
-        matchCount={new Set(matchingPreferenceOptions.map((option) => option.value)).size}
-        onResetFilters={resetFilters}
-      >
-        <FilterChips
-          label={__('Platform', 'endoplanner')}
-          value={form.platform}
-          options={['0.014','0.018','0.035']}
-          onChange={(value) => handleChange('platform', value)}
-          testId="filter-platform"
-        />
-        <FilterChips
-          label={__('Functional role', 'endoplanner')}
-          value={form.functionalRole}
-          options={[
-            __('Vessel preparation', 'endoplanner'),
-            __('Definitive angioplasty', 'endoplanner'),
-            __('Post-dilatation', 'endoplanner'),
-          ]}
-          onChange={(value) => handleChange('functionalRole', value)}
-          testId="filter-functional-role"
-        />
-        <FilterChips
-          label={__('Diameter (mm)', 'endoplanner')}
-          value={form.diameter}
-          options={diameters[form.platform] || [...new Set(Object.values(diameters).flat())]}
-          onChange={(value) => handleChange('diameter', value)}
-          testId="filter-diameter"
-        />
-        <FilterChips
-          label={__('Delivery technique', 'endoplanner')}
-          value={form.deliveryMode}
-          options={['Rapid-exchange', 'Over-the-wire']}
-          onChange={(value) => handleChange('deliveryMode', value)}
-          testId="filter-delivery-mode"
-        />
-        <FilterChips
-          label={__('Minimum sheath', 'endoplanner')}
-          value={form.minimumSheathFr}
-          options={['4 Fr', '5 Fr', '6 Fr', '7 Fr', '8 Fr', '9 Fr']}
-          onChange={(value) => handleChange('minimumSheathFr', value)}
-          testId="filter-minimum-sheath"
-        />
-      </ProductFirstLayout>
+      />
       <p className="wire-catalog-note">
-        {__('Saved local products appear first. Confirm product-specific diameter, length, shaft and sheath compatibility against the current IFU.', 'endoplanner')}
+        {__('European Device Guide options are planning aids. Confirm every dependent diameter/length combination against the current product IFU.', 'endoplanner')}
+        {' '}<a href={EUROPEAN_DEVICE_GUIDE_URL} target="_blank" rel="noreferrer">{__('Catalogue source', 'endoplanner')}</a>
       </p>
       <div className="popup-close-row">
         <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>{__('Done', 'endoplanner')}</button>
@@ -947,177 +735,53 @@ BalloonModal.propTypes = {
   preferredProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
-const stentDia = { '0.014':['2','3','4','5'], '0.018':['4','5','6','7'], '0.035':['5','6','7','8','9','10'] };
-const stentLen = { '0.014':['20','40','60','80'], '0.018':['40','60','80','100'], '0.035':['40','60','80','100','120'] };
-
 function StentModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
-  const shaftLengths = ['40 cm','75 cm','80 cm','90 cm','120 cm','130 cm','135 cm','150 cm'];
-  const [form, setForm] = useState(() => ({
-    ...values,
-    product: values.product || '',
-    platform: values.platform || '',
-    functionalRole: values.functionalRole || '',
-    type: values.type || '',
-    material: values.material || '',
-    diameter: values.diameter || '',
-    length: values.length || '',
-    shaft: values.shaft || '',
-    deliveryMode: values.deliveryMode || '',
-    minimumSheathFr: values.minimumSheathFr || '',
-  }));
+  const normalize = (input = {}) => ({
+    ...input,
+    category: input.category || '',
+    product: input.product || '',
+    platform: input.platform || '',
+    functionalRole: input.functionalRole || '',
+    type: input.type || '',
+    material: input.material || '',
+    diameter: input.diameter || '',
+    length: input.length || '',
+    shaft: input.shaft || '',
+    deliveryMode: input.deliveryMode || '',
+    minimumSheathFr: input.minimumSheathFr || '',
+  });
+  const [form, setForm] = useState(() => normalize(values));
   useEffect(() => {
-    setForm({
-      ...values,
-      product: values.product || '',
-      platform: values.platform || '',
-      functionalRole: values.functionalRole || '',
-      type: values.type || '',
-      material: values.material || '',
-      diameter: values.diameter || '',
-      length: values.length || '',
-      shaft: values.shaft || '',
-      deliveryMode: values.deliveryMode || '',
-      minimumSheathFr: values.minimumSheathFr || '',
-    });
+    setForm(normalize(values));
   }, [values]);
-  const allPreferenceOptions = preferredProfileOptions(preferredProfiles, 'stent', formatStentLabel);
-  const matchingPreferenceOptions = filterPreferredProfiles(allPreferenceOptions, {
-    platform: form.platform,
-    functionalRole: form.functionalRole,
-    type: form.type,
-    material: form.material,
-    deliveryMode: form.deliveryMode,
-  });
-  const selectedPreference = selectedPreferredProfile(form, allPreferenceOptions, 'stent');
-  const productOptions = [
-    ...matchingPreferenceOptions,
-  ];
-  const availableLengths = form.platform
-    ? stentLen[form.platform] || []
-    : [...new Set(Object.values(stentLen).flat())];
-  const availableDiameters = form.platform
-    ? stentDia[form.platform] || []
-    : [...new Set(Object.values(stentDia).flat())];
   const commit = (next) => {
-    setForm(next);
-    onSave(next);
+    const normalized = normalize(next);
+    setForm(normalized);
+    onSave(normalized);
   };
-  const handleChange = (field, val) => {
-    const newVals = {
-      ...form,
-      [field]: val,
-    };
-    if (field === 'platform') {
-      if (!(stentDia[val] || []).includes(newVals.diameter)) newVals.diameter = '';
-      if (!(stentLen[val] || []).includes(newVals.length)) newVals.length = '';
-    }
-    console.log('[Popup] Updated: ', newVals);
-    commit(newVals);
-  };
-  const handleProduct = (value) => {
-    const preference = allPreferenceOptions.find((option) => option.value === value);
-    if (preference) {
-      commit({ ...form, ...preference.profile });
-      return;
-    }
-    handleChange('product', value);
-  };
-  const resetFilters = () => commit({
-    ...form,
-    platform: '',
-    functionalRole: '',
-    type: '',
-    material: '',
-    diameter: '',
-    length: '',
-    shaft: '',
-    deliveryMode: '',
-    minimumSheathFr: '',
-  });
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <ProductFirstLayout
-        product={selectedPreference?.value || form.product}
-        productOptions={productOptions}
-        onProductChange={handleProduct}
-        onCustomProductChange={(value) => handleChange('product', value)}
-        variantGroups={[
-          {
-            key: 'stent-length',
-            label: __('Length (mm)', 'endoplanner'),
-            value: form.length,
-            options: availableLengths,
-            onChange: (value) => handleChange('length', value),
-            testId: 'variant-length',
-          },
-          {
-            key: 'stent-shaft',
-            label: __('Shaft', 'endoplanner'),
-            value: form.shaft,
-            options: shaftLengths,
-            onChange: (value) => handleChange('shaft', value),
-            testId: 'variant-shaft',
-          },
+      <CatalogProductPicker
+        catalog={STENT_CATALOG}
+        form={form}
+        onChange={commit}
+        preferredProfiles={preferredProfiles}
+        productLegend={__('Product | platform | diameter | stent length | shaft | minimum sheath', 'endoplanner')}
+        filters={[
+          { field: 'category', label: __('Category', 'endoplanner'), testId: 'filter-category' },
+          { field: 'platform', label: __('Platform', 'endoplanner'), testId: 'filter-platform' },
+          { field: 'functionalRole', label: __('Functional role', 'endoplanner'), testId: 'filter-functional-role' },
+          { field: 'type', label: __('Expansion', 'endoplanner'), testId: 'filter-stent-type' },
+          { field: 'material', label: __('Technology', 'endoplanner'), testId: 'filter-stent-technology' },
+          { field: 'diameter', label: __('Diameter (mm)', 'endoplanner'), testId: 'filter-diameter' },
+          { field: 'length', label: __('Stent length (mm)', 'endoplanner'), testId: 'filter-length' },
+          { field: 'shaft', label: __('Shaft length', 'endoplanner'), testId: 'filter-shaft' },
+          { field: 'deliveryMode', label: __('Delivery technique', 'endoplanner'), testId: 'filter-delivery-mode' },
+          { field: 'minimumSheathFr', label: __('Minimum sheath', 'endoplanner'), testId: 'filter-minimum-sheath' },
         ]}
-        matchCount={new Set(matchingPreferenceOptions.map((option) => option.value)).size}
-        onResetFilters={resetFilters}
-      >
-        <FilterChips
-          label={__('Platform', 'endoplanner')}
-          value={form.platform}
-          options={['0.014','0.018','0.035']}
-          onChange={(value) => handleChange('platform', value)}
-          testId="filter-platform"
-        />
-        <FilterChips
-          label={__('Functional role', 'endoplanner')}
-          value={form.functionalRole}
-          options={[
-            __('Primary scaffolding', 'endoplanner'),
-            __('Bailout / dissection', 'endoplanner'),
-            __('Relining', 'endoplanner'),
-          ]}
-          onChange={(value) => handleChange('functionalRole', value)}
-          testId="filter-functional-role"
-        />
-        <FilterChips
-          label={__('Expansion', 'endoplanner')}
-          value={form.type}
-          options={['self expandable', 'balloon expandable']}
-          onChange={(value) => handleChange('type', value)}
-          testId="filter-stent-type"
-        />
-        <FilterChips
-          label={__('Technology', 'endoplanner')}
-          value={form.material}
-          options={['bare metal', 'covered', 'drug-eluting']}
-          onChange={(value) => handleChange('material', value)}
-          testId="filter-stent-technology"
-        />
-        <FilterChips
-          label={__('Diameter (mm)', 'endoplanner')}
-          value={form.diameter}
-          options={availableDiameters}
-          onChange={(value) => handleChange('diameter', value)}
-          testId="filter-diameter"
-        />
-        <FilterChips
-          label={__('Delivery technique', 'endoplanner')}
-          value={form.deliveryMode}
-          options={['Rapid-exchange', 'Over-the-wire']}
-          onChange={(value) => handleChange('deliveryMode', value)}
-          testId="filter-delivery-mode"
-        />
-        <FilterChips
-          label={__('Minimum sheath', 'endoplanner')}
-          value={form.minimumSheathFr}
-          options={['4 Fr', '5 Fr', '6 Fr', '7 Fr', '8 Fr', '9 Fr']}
-          onChange={(value) => handleChange('minimumSheathFr', value)}
-          testId="filter-minimum-sheath"
-        />
-      </ProductFirstLayout>
+      />
       <p className="wire-catalog-note">
-        {__('Saved local products appear first. Confirm all selected variants against the current product IFU.', 'endoplanner')}
+        {__('European Device Guide options are planning aids. Confirm every dependent diameter/length combination against the current product IFU.', 'endoplanner')}
       </p>
       <div className="popup-close-row">
         <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>{__('Done', 'endoplanner')}</button>
@@ -1133,6 +797,72 @@ StentModal.propTypes = {
   values: PropTypes.object,
   onSave: PropTypes.func.isRequired,
   preferredProfiles: PropTypes.arrayOf(PropTypes.object),
+};
+
+const normalizeSpecialDevice = (input = {}) => {
+  const value = typeof input === 'string' ? { product: input } : input || {};
+  return {
+    ...value,
+    product: value.product || '',
+    category: value.category || '',
+    platform: value.platform || '',
+    size: value.size || '',
+    diameter: value.diameter || '',
+    length: value.length || '',
+    shaft: value.shaft || '',
+    minimumSheathFr: value.minimumSheathFr || '',
+  };
+};
+
+function SpecialDeviceModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
+  const [form, setForm] = useState(() => normalizeSpecialDevice(values));
+  useEffect(() => {
+    setForm(normalizeSpecialDevice(values));
+  }, [values]);
+  const commit = (next) => {
+    const normalized = normalizeSpecialDevice(next);
+    setForm(normalized);
+    onSave(normalized);
+  };
+  const normalizedPreferences = preferredProfiles.map((profile) => (
+    typeof profile === 'string' ? { product: profile } : profile
+  ));
+
+  return (
+    <SimpleModal title={__('Special device', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+      <CatalogProductPicker
+        catalog={SPECIAL_DEVICE_CATALOG}
+        form={form}
+        onChange={commit}
+        preferredProfiles={normalizedPreferences}
+        productLegend={__('Product | category | platform | size/diameter | treatment length | shaft | minimum sheath', 'endoplanner')}
+        filters={[
+          { field: 'category', label: __('Category', 'endoplanner'), testId: 'filter-special-category' },
+          { field: 'platform', label: __('Platform', 'endoplanner'), testId: 'filter-platform' },
+          { field: 'size', label: __('Device size', 'endoplanner'), testId: 'filter-device-size' },
+          { field: 'diameter', label: __('Diameter (mm)', 'endoplanner'), testId: 'filter-diameter' },
+          { field: 'length', label: __('Treatment length (mm)', 'endoplanner'), testId: 'filter-length' },
+          { field: 'shaft', label: __('Working/shaft length', 'endoplanner'), testId: 'filter-shaft' },
+          { field: 'minimumSheathFr', label: __('Minimum sheath', 'endoplanner'), testId: 'filter-minimum-sheath' },
+        ]}
+      />
+      <p className="wire-catalog-note">
+        {__('Commercial availability and indications vary by market. Confirm the selected device and size matrix against the current IFU.', 'endoplanner')}
+      </p>
+      <div className="popup-close-row">
+        <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>{__('Done', 'endoplanner')}</button>
+      </div>
+    </SimpleModal>
+  );
+}
+
+SpecialDeviceModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  anchor: PropTypes.object,
+  onRequestClose: PropTypes.func.isRequired,
+  values: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+  onSave: PropTypes.func.isRequired,
+  preferredProfiles: PropTypes.array,
 };
 
 
@@ -1450,15 +1180,19 @@ ScopeChip.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredWireProfiles, preferredCatheterProfiles, scopeOptions }) {
+function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredWireProfiles, preferredCatheterProfiles, preferredSpecialProfiles, scopeOptions }) {
   const [wireOpen, setWireOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
+  const [specialOpen, setSpecialOpen] = useState(false);
   const [wireAnchor, setWireAnchor] = useState(null);
   const [catAnchor, setCatAnchor] = useState(null);
+  const [specialAnchor, setSpecialAnchor] = useState(null);
   const data = values || {};
   const wireLabel = shortLabel('wire', data.wire) || __('Wire', 'endoplanner');
   const catheterLabel = shortLabel('catheter', data.catheter) || __('Catheter', 'endoplanner');
-  const devLabel = data.device || __('Choose', 'endoplanner');
+  const devLabel = typeof data.device === 'string'
+    ? data.device
+    : shortLabel('special', data.device);
   return (
     <div className="intervention-row">
       <div className="row-inner">
@@ -1486,12 +1220,13 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
             setCatOpen(true);
           }}
         />
-        <InlineDeviceSelect
-          image={deviceImg}
-          options={specialDeviceOptions}
-          value={data.device}
-          onChange={(val) => onChange({ ...data, device: val })}
-          buttonLabel={__('Special', 'endoplanner')}
+        <DeviceButton
+          label={devLabel || __('Special', 'endoplanner')}
+          glyphType="special"
+          onClick={(event) => {
+            setSpecialAnchor(event.currentTarget.getBoundingClientRect());
+            setSpecialOpen(true);
+          }}
         />
       </div>
       <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} showAdd={false} />
@@ -1519,22 +1254,37 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
         onSave={(val) => onChange({ ...data, catheter: val })}
         preferredProfiles={preferredCatheterProfiles}
       />
+      <SpecialDeviceModal
+        isOpen={specialOpen}
+        anchor={specialAnchor}
+        onRequestClose={() => {
+          setSpecialOpen(false);
+          setSpecialAnchor(null);
+        }}
+        values={data.device || {}}
+        onSave={(val) => onChange({ ...data, device: val })}
+        preferredProfiles={preferredSpecialProfiles}
+      />
       </div>
     </div>
   );
 }
 
-NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredWireProfiles: PropTypes.arrayOf(PropTypes.object), preferredCatheterProfiles: PropTypes.arrayOf(PropTypes.object), scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
+NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredWireProfiles: PropTypes.arrayOf(PropTypes.object), preferredCatheterProfiles: PropTypes.arrayOf(PropTypes.object), preferredSpecialProfiles: PropTypes.array, scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
 
-function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredBalloonProfiles, preferredStentProfiles, scopeOptions }) {
+function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredBalloonProfiles, preferredStentProfiles, preferredSpecialProfiles, scopeOptions }) {
   const [ballOpen, setBallOpen] = useState(false);
   const [stentOpen, setStentOpen] = useState(false);
+  const [specialOpen, setSpecialOpen] = useState(false);
   const [ballAnchor, setBallAnchor] = useState(null);
   const [stentAnchor, setStentAnchor] = useState(null);
+  const [specialAnchor, setSpecialAnchor] = useState(null);
   const data = values || {};
   const balloonLabel = shortLabel('balloon', data.balloon) || __('Balloon', 'endoplanner');
   const stentLabel = shortLabel('stent', data.stent) || __('Stent', 'endoplanner');
-  const devLabel = data.device || __('Choose', 'endoplanner');
+  const devLabel = typeof data.device === 'string'
+    ? data.device
+    : shortLabel('special', data.device);
   return (
     <div className="intervention-row">
       <div className="row-inner">
@@ -1562,12 +1312,13 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, pref
             setStentOpen(true);
           }}
         />
-        <InlineDeviceSelect
-          image={deviceImg}
-          options={specialDeviceOptions}
-          value={data.device}
-          onChange={(val) => onChange({ ...data, device: val })}
-          buttonLabel={__('Special', 'endoplanner')}
+        <DeviceButton
+          label={devLabel || __('Special', 'endoplanner')}
+          glyphType="special"
+          onClick={(event) => {
+            setSpecialAnchor(event.currentTarget.getBoundingClientRect());
+            setSpecialOpen(true);
+          }}
         />
       </div>
       <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} showAdd={false} />
@@ -1595,17 +1346,29 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, pref
           onSave={(val) => onChange({ ...data, stent: val })}
           preferredProfiles={preferredStentProfiles}
         />
+        <SpecialDeviceModal
+          isOpen={specialOpen}
+          anchor={specialAnchor}
+          onRequestClose={() => {
+            setSpecialOpen(false);
+            setSpecialAnchor(null);
+          }}
+          values={data.device || {}}
+          onSave={(val) => onChange({ ...data, device: val })}
+          preferredProfiles={preferredSpecialProfiles}
+        />
       </div>
     </div>
   );
 }
 
-TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredBalloonProfiles: PropTypes.arrayOf(PropTypes.object), preferredStentProfiles: PropTypes.arrayOf(PropTypes.object), scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
+TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredBalloonProfiles: PropTypes.arrayOf(PropTypes.object), preferredStentProfiles: PropTypes.arrayOf(PropTypes.object), preferredSpecialProfiles: PropTypes.array, scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
 
-function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
+function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove, accessRows }) {
   const data = values || {};
   const method = data.method || '';
-  const devLabel3 = data.device || __('Choose', 'endoplanner');
+  const selectedDevice = normalizeClosureLabel(data.device);
+  const closureOptions = getCompatibleClosureOptions(accessRows, selectedDevice);
   return (
     <div className="intervention-row">
       <div className="row-inner">
@@ -1619,8 +1382,8 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
         {method === 'Closure device' && (
           <InlineDeviceSelect
             image={closureImg}
-            options={closureDeviceOptions}
-            value={data.device}
+            options={closureOptions}
+            value={selectedDevice}
             onChange={(val) => onChange({ ...data, device: val })}
             buttonLabel={__('Choose', 'endoplanner')}
             showButton={false}
@@ -1634,7 +1397,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove }) {
   );
 }
 
-ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool };
+ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, accessRows: PropTypes.arrayOf(PropTypes.object).isRequired };
 
 // --- Main Step Component --------------------------------------------------
 export default function Step4({ data, setData }) {
@@ -1724,7 +1487,12 @@ export default function Step4({ data, setData }) {
           : (defaultLesionId ? { scope: createLesionScope(defaultLesionId) } : {})),
       }];
       if (catheters[0]) rows[0].catheter = catheters[0];
-      const reentryDevice = specialDevices.find((value) => String(value).toLowerCase().includes('re-entry'));
+      const reentryDevice = specialDevices.find((value) => {
+        const text = typeof value === 'string'
+          ? value
+          : [value?.product, value?.category].filter(Boolean).join(' ');
+        return text.toLowerCase().includes('re-entry');
+      });
       if (reentryDevice) rows[0].device = reentryDevice;
       return rows;
     });
@@ -1868,6 +1636,7 @@ export default function Step4({ data, setData }) {
   const preferredCatheterProfiles = preferenceValues(savedPreferences, 'catheter');
   const preferredBalloonProfiles = preferenceValues(savedPreferences, 'balloon');
   const preferredStentProfiles = preferenceValues(savedPreferences, 'stent');
+  const preferredSpecialProfiles = preferenceValues(savedPreferences, 'specialDevice');
   const navigationScopeOptions = buildScopeOptions(lesionOptions, targetPath, {
     includeTargetPath: true,
     includeTreatmentZones: true,
@@ -1907,6 +1676,7 @@ export default function Step4({ data, setData }) {
       showRemove
       preferredWireProfiles={preferredWireProfiles}
       preferredCatheterProfiles={preferredCatheterProfiles}
+      preferredSpecialProfiles={preferredSpecialProfiles}
       scopeOptions={navigationScopeOptions}
     />
   ));
@@ -1921,11 +1691,13 @@ export default function Step4({ data, setData }) {
       showRemove
       preferredBalloonProfiles={preferredBalloonProfiles}
       preferredStentProfiles={preferredStentProfiles}
+      preferredSpecialProfiles={preferredSpecialProfiles}
       scopeOptions={therapyScopeOptions}
     />
   ));
   const currentPlanData = { ...data, accessRows, navRows, therapyRows, closureRows };
   const planFindings = analyzePlan(currentPlanData);
+  const closureRecommendations = getClosureAdvice(accessRows);
 
   useEffect(() => {
     setData((previous) => ({ ...previous, accessRows, navRows, therapyRows, closureRows }));
@@ -2072,31 +1844,21 @@ export default function Step4({ data, setData }) {
         onSave={(val) => updatePreferenceSlot('stent', prefsPicker?.slotId, val)}
         preferredProfiles={preferredStentProfiles}
       />
-      <SimpleModal
-        title={__('Special device', 'endoplanner')}
+      <SpecialDeviceModal
         isOpen={prefsPicker?.typeKey === 'specialDevice'}
+        anchor={prefsPicker?.anchor}
         onRequestClose={closePreferencePicker}
-      >
-        <InlineDeviceSelect
-          options={specialDeviceOptions}
-          value={activePreferenceSlot?.value || ''}
-          onChange={(val) => updatePreferenceSlot('specialDevice', prefsPicker?.slotId, val)}
-          showButton={false}
-          alwaysOpen
-        />
-        <div className="popup-close-row">
-          <button type="button" className="circle-btn close-modal-btn" onClick={closePreferencePicker}>
-            &times;
-          </button>
-        </div>
-      </SimpleModal>
+        values={activePreferenceSlot?.value || {}}
+        onSave={(val) => updatePreferenceSlot('specialDevice', prefsPicker?.slotId, val)}
+        preferredProfiles={preferredSpecialProfiles}
+      />
       <SimpleModal
         title={__('Closure device', 'endoplanner')}
         isOpen={prefsPicker?.typeKey === 'closureDevice'}
         onRequestClose={closePreferencePicker}
       >
         <InlineDeviceSelect
-          options={closureDeviceOptions}
+          options={[...CLOSURE_CATALOG.map((device) => device.label), 'Custom']}
           value={activePreferenceSlot?.value || ''}
           onChange={(val) => updatePreferenceSlot('closureDevice', prefsPicker?.slotId, val)}
           showButton={false}
@@ -2166,6 +1928,25 @@ export default function Step4({ data, setData }) {
 
       <section className="intervention-section">
         <div className="section-heading">{__('Closure', 'endoplanner')}</div>
+        {closureRecommendations.length > 0 && (
+          <div className="closure-advice" data-testid="closure-advice">
+            <strong>{__('Size-matched closure options', 'endoplanner')}</strong>
+            {closureRecommendations.map(({ sheath, recommended, compatible }) => (
+              <div key={`${sheath.approachIndex}-${sheath.sheathIndex}`}>
+                <span>{sheath.label || `${sheath.fr} Fr`}:</span>{' '}
+                {recommended.length
+                  ? `${__('consider', 'endoplanner')} ${recommended.map((device) => device.label).join(' or ')}`
+                  : __('no catalogue closure device matches this sheath; plan surgical or manual haemostasis as appropriate', 'endoplanner')}
+                {compatible.length > recommended.length && (
+                  <small>{`${__('Other compatible options', 'endoplanner')}: ${compatible.slice(recommended.length).map((device) => device.label).join(', ')}`}</small>
+                )}
+              </div>
+            ))}
+            <a href={CLOSURE_GUIDE_URL} target="_blank" rel="noreferrer">
+              {__('European closure-device specifications', 'endoplanner')}
+            </a>
+          </div>
+        )}
         {closureRows.map((row, i) => (
           <ClosureRow
             key={row.id}
@@ -2180,6 +1961,7 @@ export default function Step4({ data, setData }) {
             }
             onRemove={() => setClosureRows((prev) => prev.filter((r) => r.id !== row.id))}
             showRemove={closureRows.length > 1}
+            accessRows={accessRows}
           />
         ))}
       </section>

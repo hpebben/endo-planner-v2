@@ -5,6 +5,7 @@ import { WIFI_STAGE_INFO, getWifiAction } from './guidelineRecommendations';
 import { analyzePlan } from './planAnalysis';
 import { formatTargetArterialPath, getLesionOptions, sideFromVesselId } from './lesions';
 import { formatScopeLabel, getScopeLesionIds } from './planScopes';
+import { getWoundosomeAdvice } from '../data/woundosome';
 
 const vesselSegments = Array.isArray(rawVesselData?.segments) ? rawVesselData.segments : [];
 const vesselName = (id) => vesselSegments.find((segment) => segment.id === id)?.name || id.replace(/_/g, ' ');
@@ -146,6 +147,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const wifi = computePrognosis(data);
   const glass = computeGlass(data.patencySegments || {}, data.targetArterialPath);
+  const woundAdvice = getWoundosomeAdvice(data.clinical?.woundLocations || []);
 
   doc.setFillColor(17, 49, 149);
   doc.rect(0, 0, pageWidth, 54, 'F');
@@ -166,6 +168,11 @@ export default async function exportCaseSummaryToPDF(data = {}) {
   if (wifi.isComplete) {
     clinicalLines.push(`Estimated 1-year major amputation risk: approximately ${WIFI_STAGE_INFO[wifi.wifiStage].riskPercent}% (pooled observational estimate)`);
     clinicalLines.push(getWifiAction(wifi.wifiStage, wifi.ischemia));
+  }
+  if (woundAdvice.zones.length) {
+    clinicalLines.push(`Wound location: ${woundAdvice.zones.map((zone) => zone.label).join(', ')}`);
+    clinicalLines.push(`Wound-informed TAP to consider: ${woundAdvice.primaryLabels.join(' or ')}`);
+    clinicalLines.push('Confirm direct wound-bed filling, pedal arch and collateral quality with AP and lateral foot angiography.');
   }
 
   const anatomyLines = Object.entries(data.patencySegments || {}).map(([id, values]) => (
@@ -201,7 +208,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     28,
     806,
   );
-  doc.text('EndoPlanner v1.6.170', pageWidth - 28, 806, { align: 'right' });
+  doc.text('EndoPlanner v1.6.171', pageWidth - 28, 806, { align: 'right' });
 
   doc.save(reportFilename(data));
 }

@@ -598,6 +598,166 @@ svg .vessel-path:hover {
   margin-bottom: 0.65rem;
 }
 
+.woundosome-selector {
+  margin: 2rem auto 0;
+  padding: 1rem;
+  max-width: 760px;
+  border: 1px solid #c9d5f5;
+  border-radius: 14px;
+  background: #f8faff;
+  text-align: left;
+}
+
+.woundosome-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.woundosome-heading .section-title {
+  margin: 0 0 0.35rem;
+  color: #113195;
+  font-size: 1rem;
+}
+
+.woundosome-heading .section-subtitle {
+  margin: 0;
+  color: #5d6472;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.woundosome-clear {
+  border: 0;
+  border-radius: 999px;
+  background: #e5e9f5;
+  color: #25314f;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.woundosome-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(220px, 0.85fr);
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.woundosome-map {
+  width: 100%;
+  max-height: 310px;
+}
+
+.woundosome-map .foot-outline {
+  fill: #f1ede7;
+  stroke: #74809a;
+  stroke-width: 2;
+}
+
+.woundosome-map text {
+  fill: #4f5a71;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.wound-zone {
+  cursor: pointer;
+  outline: none;
+}
+
+.wound-zone path {
+  fill: #dbe5fa;
+  stroke: #7691c8;
+  stroke-width: 1.5;
+  transition: fill 0.15s, stroke 0.15s, transform 0.15s;
+  transform-origin: center;
+}
+
+.wound-zone:hover path,
+.wound-zone:focus-visible path {
+  fill: #b8cdf5;
+  stroke: #1747a6;
+  stroke-width: 2.5;
+}
+
+.wound-zone.is-selected path {
+  fill: #d84b4b;
+  stroke: #8e1e1e;
+}
+
+.woundosome-zone-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.woundosome-zone-list button {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 34px;
+  border: 1px solid #c6d0e5;
+  border-radius: 8px;
+  background: #fff;
+  color: #35415a;
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.68rem;
+}
+
+.woundosome-zone-list button.is-selected {
+  border-color: #a52525;
+  background: #fff0f0;
+  color: #7d1b1b;
+  font-weight: 700;
+}
+
+.wound-zone-dot {
+  flex: 0 0 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #6f8fd0;
+}
+
+.wound-zone-dot--plantar {
+  background: #9c6fd0;
+}
+
+.woundosome-advice {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border-left: 4px solid #1747a6;
+  border-radius: 8px;
+  background: #fff;
+  color: #29354c;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.woundosome-advice p,
+.woundosome-advice ul {
+  margin: 0.35rem 0;
+}
+
+.woundosome-advice a {
+  color: #1747a6;
+}
+
+.woundosome-caution {
+  color: #626b7c;
+}
+
+@media (max-width: 680px) {
+  .woundosome-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 /* Parameter popup styling */
 .param-box {
@@ -1411,6 +1571,20 @@ svg .vessel-path:hover {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
+.target-path-option.is-wound-suggested {
+  border-color: #b56b14;
+  box-shadow: inset 0 0 0 1px rgba(181, 107, 20, 0.18);
+}
+
+.target-path-option em {
+  display: block;
+  margin-top: 0.35rem;
+  color: #8a4b08;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
 .target-path-option:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -1483,13 +1657,21 @@ svg .vessel-path:hover {
 
 .product-first-row {
   display: grid;
-  grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.1fr);
+  grid-template-columns: 1fr;
   align-items: start;
   gap: 0.8rem;
   padding: 0.75rem;
   border: 1px solid #cad6ee;
   border-radius: 12px;
   background: linear-gradient(135deg, #f8faff 0%, #eef4ff 100%);
+}
+
+.product-specification-legend {
+  display: block;
+  color: #69748a;
+  font-size: 0.62rem;
+  font-weight: 500;
+  line-height: 1.35;
 }
 
 .product-first-select,
@@ -2747,6 +2929,38 @@ svg .vessel-path:hover {
 .inline-device-select--open .device-dropdown {
   position: static;
   margin-top: 0.75rem;
+}
+
+.closure-advice {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.75rem 0 1rem;
+  padding: 0.75rem;
+  border: 1px solid #b9c8ea;
+  border-radius: 10px;
+  background: #f4f7ff;
+  color: #2b3853;
+  text-align: left;
+  font-size: 0.72rem;
+}
+
+.closure-advice > div {
+  padding-top: 0.35rem;
+  border-top: 1px solid #dce3f3;
+}
+
+.closure-advice span {
+  font-weight: 800;
+}
+
+.closure-advice small {
+  display: block;
+  margin-top: 0.2rem;
+  color: #657087;
+}
+
+.closure-advice a {
+  color: #1747a6;
 }
 
 /* Case summary layout */

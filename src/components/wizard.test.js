@@ -11,6 +11,18 @@ const validTargetPath = [
 ];
 
 describe( 'wizard validation with explicit route and device scopes', () => {
+	test( 'requires a wound location for Fontaine IV', () => {
+		const errors = validateStep( 0, {
+			stage: 'iv',
+			clinical: { wound: 2, ischemia: 2, infection: 1, woundLocations: [] },
+		} );
+		expect( errors ).toContain( 'Select at least one wound or gangrene location.' );
+		expect( validateStep( 0, {
+			stage: 'iv',
+			clinical: { wound: 2, ischemia: 2, infection: 1, woundLocations: [ 'dorsum' ] },
+		} ) ).toEqual( [] );
+	} );
+
 	test( 'accepts a continuous same-limb target arterial path', () => {
 		expect(
 			validateStep( 1, {

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import SegmentedControl from '../UI/SegmentedControl';
+import WoundosomeSelector from '../WoundosomeSelector';
 
 const stageOptions = [
   { label: __('I Asymptomatic', 'endoplanner'), value: 'i' },
@@ -95,6 +96,16 @@ export default function Step1({ data, setData }) {
         onChange={(stage) => setData((previous) => ({ ...previous, stage }))}
         ariaLabel={__('Fontaine stage', 'endoplanner')}
       />
+
+      {data.stage === 'iv' && (
+        <WoundosomeSelector
+          value={clinical.woundLocations || []}
+          onChange={(woundLocations) => setData((previous) => ({
+            ...previous,
+            clinical: { ...(previous.clinical || {}), woundLocations },
+          }))}
+        />
+      )}
 
       <div className="section-spacer" />
       <h2 className="section-title">{__('WIfI component grades', 'endoplanner')}</h2>
