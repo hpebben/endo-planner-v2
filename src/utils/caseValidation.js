@@ -37,6 +37,17 @@ export const validateCaseStep = (
 				translate( 'Assess all three WIfI components.', 'endoplanner' )
 			);
 		}
+		if (
+			String( data.stage || '' ).toLowerCase() === 'iv' &&
+			! ( clinical.woundLocations || [] ).length
+		) {
+			errors.push(
+				translate(
+					'Select at least one wound or gangrene location.',
+					'endoplanner'
+				)
+			);
+		}
 	}
 
 	if ( step === 1 ) {

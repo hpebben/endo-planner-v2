@@ -1,5 +1,7 @@
 import computePrognosis from './prognosis';
 import { normalizeWireRole, WIRE_ROLES } from '../data/wireCatalog';
+import { getWoundosomeAdvice, WOUNDOSOME_REFERENCE } from '../data/woundosome';
+import { CLOSURE_GUIDE_URL, findClosureCompatibilityIssue } from './closureAdvice';
 import {
   getLesionOptions,
   sideFromVesselId,
@@ -117,6 +119,19 @@ export const analyzePlan = (data = {}) => {
   const lesionIds = new Set(lesions.map((lesion) => lesion.value));
   const navRows = data.navRows || [];
   const therapyRows = data.therapyRows || [];
+  (data.closureRows || []).forEach((row, index) => {
+    if (row.method !== 'Closure device' || !row.device) return;
+    const issue = findClosureCompatibilityIssue(row.device, data.accessRows || []);
+    if (!issue) return;
+    findings.push(finding(
+      `closure-${row.id || index}-compatibility`,
+      'error',
+      'compatibility',
+      issue.title,
+      issue.summary,
+      { references: [{ label: 'European closure-device specifications', url: CLOSURE_GUIDE_URL }] },
+    ));
+  });
   navRows.forEach((row, index) => {
     if (!hasPlanItemContent(row) || getPlanScope(row)) return;
     findings.push(finding(
@@ -387,7 +402,11 @@ export const analyzePlan = (data = {}) => {
     }
 
     if (isHeavyCalcium(values) && linkedTherapy.length) {
-      const specialText = linkedTherapy.map((row) => row.device || '').join(' ').toLowerCase();
+      const specialText = linkedTherapy.map((row) => (
+        typeof row.device === 'string'
+          ? row.device
+          : [row.device?.product, row.device?.category].filter(Boolean).join(' ')
+      )).join(' ').toLowerCase();
       const hasCalciumStrategy = /shockwave|scoring|atherectomy/.test(specialText);
       if (!hasCalciumStrategy) {
         findings.push(finding(
@@ -403,6 +422,21 @@ export const analyzePlan = (data = {}) => {
   });
 
   const wifi = computePrognosis(data);
+  const woundAdvice = getWoundosomeAdvice(data.clinical?.woundLocations || []);
+  if (
+    woundAdvice.primaryTapKeys.length &&
+    data.targetArterialPathKey &&
+    !woundAdvice.isSuggested(data.targetArterialPathKey)
+  ) {
+    findings.push(finding(
+      'woundosome-tap-review',
+      'recommendation',
+      'anatomy',
+      'Reassess whether the selected TAP supplies the woundosome',
+      `The recorded wound location suggests considering ${woundAdvice.primaryLabels.join(' or ')}, while the selected TAP is ${data.targetArterialPathKey}. Confirm direct wound-bed filling, pedal-arch continuity and collateral quality on AP and lateral foot angiography.`,
+      { references: [WOUNDOSOME_REFERENCE] },
+    ));
+  }
   if (wifi.isComplete && wifi.wifiStage >= 3 && !(data.targetArterialPath || []).length) {
     findings.push(finding(
       'target-path-missing',

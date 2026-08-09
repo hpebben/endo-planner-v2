@@ -15,6 +15,7 @@ import {
   TARGET_ROUTE_ENDPOINT_IDS,
   validateTargetArterialPath,
 } from '../../utils/lesions';
+import { getWoundosomeAdvice } from '../../data/woundosome';
 
 // Parse vessel-map JSON
 const parseVesselData = (data) => {
@@ -58,6 +59,7 @@ export default function Step2_Patency({ data, setData }) {
   const lesionOptions = getLesionOptions(data.patencySegments || {}, savedTargetPath);
   const lesionById = new Map(lesionOptions.map((lesion) => [lesion.value, lesion]));
   const endpointCandidates = TARGET_ROUTE_ENDPOINT_IDS.filter((id) => sideFromVesselId(id) === targetSide);
+  const woundAdvice = getWoundosomeAdvice(data.clinical?.woundLocations || []);
 
   useEffect(() => {
     if (!targetSide && selectedSides.length === 1) setTargetSide(selectedSides[0]);
@@ -292,6 +294,7 @@ export default function Step2_Patency({ data, setData }) {
             </div>
           )}
 
+          {selectedSegments.length > 0 && (
           <div className="target-path-panel" data-testid="target-path-selector">
             <div className="target-path-heading">
               <div>
@@ -359,18 +362,22 @@ export default function Step2_Patency({ data, setData }) {
             <div className="target-path-options" role="radiogroup" aria-label={__('Distal target artery', 'endoplanner')}>
               {TARGET_PATH_OPTIONS.map((option) => {
                 const selected = activeTargetKey === option.key && Boolean(activeTargetPath.length);
+                const woundSuggested = woundAdvice.isSuggested(option.key);
+                const woundAlternative = woundAdvice.isAlternative(option.key);
                 return (
                   <button
                     key={option.key}
                     type="button"
                     role="radio"
                     aria-checked={selected}
-                    className={`target-path-option${selected ? ' is-selected' : ''}`}
+                    className={`target-path-option${selected ? ' is-selected' : ''}${woundSuggested ? ' is-wound-suggested' : ''}`}
                     onClick={() => chooseTargetPath(option.key)}
                     disabled={!targetSide || routeEditMode}
                   >
                     <strong>{option.shortLabel}</strong>
                     <span>{option.description}</span>
+                    {woundSuggested && <em>{__('Woundosome route to consider', 'endoplanner')}</em>}
+                    {!woundSuggested && woundAlternative && <em>{__('Collateral route to assess', 'endoplanner')}</em>}
                   </button>
                 );
               })}
@@ -409,6 +416,7 @@ export default function Step2_Patency({ data, setData }) {
               <p className="target-path-note"><b>{__('Route note', 'endoplanner')}:</b> {data.targetArterialPathNote}</p>
             )}
           </div>
+          )}
 
           {activeSegment && (
             <ParameterPopup
@@ -424,7 +432,7 @@ export default function Step2_Patency({ data, setData }) {
             />
           )}
 
-          {showInstruction && !routeEditMode && (
+          {(showInstruction || selectedSegments.length === 0) && !routeEditMode && selectedSegments.length === 0 && (
             <div className="instruction-box">
               {__(
                 'Select affected segments and specify patency, length and level of calcification.',

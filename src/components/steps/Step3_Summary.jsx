@@ -5,6 +5,7 @@ import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
 import InlineModal from '../UI/InlineModal';
 import { analyzePlan } from '../../utils/planAnalysis';
+import { getWoundosomeAdvice, WOUNDOSOME_REFERENCE } from '../../data/woundosome';
 import { formatTargetArterialPath, getLesionOptions, vesselName } from '../../utils/lesions';
 import {
   buildScopeOptions,
@@ -30,13 +31,29 @@ const summarize = (value) => {
   if (!value) return '';
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return value.map(summarize).filter(Boolean).join('; ');
-  return Object.values(value).filter(Boolean).join(' ');
+  if (value.product || value.specific) {
+    return [
+      value.product || value.specific,
+      value.category,
+      value.platform && `${value.platform}-inch`,
+      value.size,
+      value.diameter && value.length ? `${value.diameter} × ${value.length} mm` : value.length,
+      value.shaft,
+      value.minimumSheathFr && `min ${value.minimumSheathFr} sheath`,
+    ].filter(Boolean).join(' • ');
+  }
+  return Object.entries(value)
+    .filter(([key, nested]) => key !== 'id' && nested)
+    .map(([, nested]) => summarize(nested))
+    .filter(Boolean)
+    .join(' • ');
 };
 
 const formatTherapy = (value) => {
   if (!value || typeof value !== 'object') return '';
   if (value.diameter && value.length) {
     return [
+      value.product,
       `${value.diameter} × ${value.length} mm`,
       value.platform && `${value.platform}-inch`,
       value.shaft,
@@ -167,6 +184,7 @@ export default function StepSummary({ data, setStep }) {
   const wifiInfo = wifi.isComplete ? WIFI_STAGE_INFO[wifi.wifiStage] : null;
   const glassInfo = glass.stage ? GLASS_STAGE_INFO[glass.stage] : null;
   const planFindings = analyzePlan(data);
+  const woundAdvice = getWoundosomeAdvice(data.clinical?.woundLocations || []);
 
   const accessItems = accessRows.flatMap((row) => [
     { label: 'APPROACH', value: [row.approach, row.side, row.vessel].filter(Boolean).join(' ') },
@@ -203,7 +221,7 @@ export default function StepSummary({ data, setStep }) {
 
   const closureItems = closureRows.map((row) => ({
     label: 'CLOSURE',
-    value: [row.method, row.device].filter(Boolean).join(' '),
+    value: [row.method, summarize(row.device)].filter(Boolean).join(' • '),
   }));
 
   return (
@@ -219,6 +237,13 @@ export default function StepSummary({ data, setStep }) {
           <div>
             {__('WIfI components', 'endoplanner')}: <b>{wifiCode}</b>
           </div>
+          {woundAdvice.zones.length > 0 && (
+            <div className="woundosome-summary" data-testid="woundosome-summary">
+              <div><b>{__('Wound location', 'endoplanner')}:</b> {woundAdvice.zones.map((zone) => zone.label).join(', ')}</div>
+              <div><b>{__('Wound-informed TAP to consider', 'endoplanner')}:</b> {woundAdvice.primaryLabels.join(' or ')}</div>
+              <a href={WOUNDOSOME_REFERENCE.url} target="_blank" rel="noreferrer">{WOUNDOSOME_REFERENCE.label}</a>
+            </div>
+          )}
           {wifi.isComplete ? (
             <div className="clinical-guidance wifi-prediction">
               <p>

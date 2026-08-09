@@ -13,7 +13,7 @@ const targetPath = [
 
 const baseCase = () => ({
   stage: 'iv',
-  clinical: { wound: 2, ischemia: 2, infection: 1 },
+  clinical: { wound: 2, ischemia: 2, infection: 1, woundLocations: ['dorsum'] },
   patencySegments: {
     [lesionId]: { type: 'occlusion', length: '>20', calcium: 'heavy' },
   },
@@ -140,7 +140,7 @@ test('applies a versioned local setup to access, crossing, therapy and closure',
   await expect(page.getByRole('button', { name: '6 Fr' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'ASAHI Gladius MG 18 PV ES' }).first()).toBeVisible();
   await expect(page.getByRole('radio', { name: 'Closure device' })).toHaveAttribute('aria-checked', 'true');
-  await expect(page.getByText('6F AngioSeal')).toBeVisible();
+  await expect(page.getByRole('radio', { name: '6F AngioSeal' })).toBeVisible();
 
   await page.getByRole('button', { name: /Set local preferences/ }).click();
   await expect(page.getByText('Profile v1 · revision 2')).toBeVisible();
@@ -209,7 +209,7 @@ test('edits and validates the target arterial path directly on the vessel map', 
       }, STATE_KEY)
     )
     .toEqual({
-      schemaVersion: 4,
+      schemaVersion: 5,
       key: 'posterior',
       endpoint: 'Left_plantar_arch',
     });
@@ -265,10 +265,10 @@ test('shows chosen devices as schematics beside the arterial tree', async ({ pag
   await expect(lesionSummary.locator('.device-glyph--balloon')).toHaveCount(1);
 });
 
-test('starts device selection with preferred products and inline variants', async ({ page }) => {
+test('starts device selection with preferred products and faceted specification filters', async ({ page }) => {
   const productFirstProfile = {
     ...profile,
-    applicationVersion: '1.6.170',
+    applicationVersion: '1.6.171',
     preferences: {
       ...profile.preferences,
       wire: [
@@ -288,14 +288,15 @@ test('starts device selection with preferred products and inline variants', asyn
         {
           id: 'pref-balloon-product-first',
           value: {
-            product: 'Local preferred PTA balloon',
-            platform: '0.018',
+            product: 'Medtronic — IN.PACT Admiral DCB',
+            category: 'Drug-coated',
+            platform: '0.035',
             functionalRole: 'Definitive angioplasty',
-            diameter: '5',
+            diameter: '6',
             length: '120',
-            shaft: '135 cm',
+            shaft: '130 cm',
             deliveryMode: 'Over-the-wire',
-            minimumSheathFr: '5 Fr',
+            minimumSheathFr: '6 Fr',
           },
         },
       ],
@@ -325,20 +326,22 @@ test('starts device selection with preferred products and inline variants', asyn
     .click();
   let dialog = page.getByRole('dialog');
   const wireProduct = dialog.getByRole('combobox', { name: 'Product' });
-  await expect(wireProduct.locator('option:checked')).toHaveText('★ Asahi Intecc — Halberd');
-  await expect(dialog.getByTestId('variant-length').getByRole('button', { name: '235 cm' })).toBeVisible();
+  await expect(wireProduct.locator('option:checked')).toContainText('★ Asahi Intecc — Halberd');
+  await expect(dialog.locator('.product-specification-legend')).toContainText('Product | platform | available length');
+  await expect(dialog.getByTestId('filter-length').getByRole('button', { name: '235 cm' })).toBeVisible();
   await expect(dialog.getByTestId('filter-platform').getByRole('button', { name: '0.035' })).toHaveCount(0);
-  await dialog.getByTestId('variant-length').getByRole('button', { name: '235 cm' }).click();
+  await dialog.getByTestId('filter-length').getByRole('button', { name: '235 cm' }).click();
   await dialog.getByRole('button', { name: 'Done' }).click();
 
   await lesionComposer
-    .getByRole('button', { name: 'Local preferred PTA balloon', exact: true })
+    .getByRole('button', { name: 'Medtronic — IN.PACT Admiral DCB', exact: true })
     .click();
   dialog = page.getByRole('dialog');
   const balloonProduct = dialog.getByRole('combobox', { name: 'Product' });
-  await expect(balloonProduct.locator('option:checked')).toHaveText('★ Local preferred PTA balloon');
-  await expect(dialog.getByTestId('variant-shaft').getByRole('button', { name: '130 cm' })).toBeVisible();
-  await dialog.getByTestId('variant-shaft').getByRole('button', { name: '130 cm' }).click();
+  await expect(balloonProduct.locator('option:checked')).toContainText('★ Medtronic — IN.PACT Admiral DCB');
+  await expect(dialog.getByTestId('filter-platform').getByRole('button', { name: '0.018' })).toHaveCount(0);
+  await expect(dialog.getByTestId('filter-shaft').getByRole('button', { name: '80 cm' })).toBeVisible();
+  await dialog.getByTestId('filter-shaft').getByRole('button', { name: '80 cm' }).click();
   await dialog.getByRole('button', { name: 'Done' }).click();
 
   await expect
@@ -351,5 +354,41 @@ test('starts device selection with preferred products and inline variants', asyn
         };
       }, STATE_KEY)
     )
-    .toEqual({ wireLength: '235 cm', balloonShaft: '130 cm' });
+    .toEqual({ wireLength: '235 cm', balloonShaft: '80 cm' });
+});
+
+test('maps Fontaine IV wound locations to a wound-informed TAP consideration', async ({ page }) => {
+  await seed(page, { ...baseCase(), clinical: { wound: 2, ischemia: 2, infection: 1, woundLocations: [] } }, 0);
+  await page.goto('./');
+
+  const selector = page.getByTestId('woundosome-selector');
+  await expect(selector).toBeVisible();
+  await selector.getByRole('checkbox', { name: 'Hallux / first ray' }).click();
+  await expect(selector.getByText('Anterior tibial → dorsalis pedis TAP')).toBeVisible();
+  await expect(selector.getByText('Posterior tibial → plantar arch TAP')).toBeVisible();
+
+  await expect.poll(() => page.evaluate((key) => (
+    JSON.parse(localStorage.getItem(key))?.data?.clinical?.woundLocations
+  ), STATE_KEY)).toEqual(['hallux-first-ray']);
+});
+
+test('keeps TAP selection below the affected-segment summary', async ({ page }) => {
+  await seed(page, baseCase(), 1);
+  await page.goto('./');
+
+  const ordering = await page.evaluate(() => {
+    const segments = document.querySelector('.selected-segments');
+    const tap = document.querySelector('[data-testid="target-path-selector"]');
+    return Boolean(segments && tap && (segments.compareDocumentPosition(tap) & Node.DOCUMENT_POSITION_FOLLOWING));
+  });
+  expect(ordering).toBe(true);
+});
+
+test('recommends a 6F rather than 8F AngioSeal for a 6F sheath', async ({ page }) => {
+  await seed(page, completeCase(), 2);
+  await page.goto('./');
+
+  const advice = page.getByTestId('closure-advice');
+  await expect(advice).toContainText('6F AngioSeal');
+  await expect(advice).not.toContainText('8F AngioSeal');
 });

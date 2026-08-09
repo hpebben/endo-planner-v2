@@ -6,6 +6,7 @@ export default {
     wound: null,
     ischemia: null,
     infection: null,
+    woundLocations: [],
   },
   patencySegments: {},
   targetArterialPath: [],

@@ -222,15 +222,18 @@ export const getWireProductOptions = (
   WIRE_CATALOG
     .filter((item) => matchesFilters(item, filters))
     .forEach((item) => {
-      if (!matchingProducts.has(item.label)) matchingProducts.set(item.label, item);
+      if (!matchingProducts.has(item.label)) matchingProducts.set(item.label, []);
+      matchingProducts.get(item.label).push(item);
     });
 
-  return [...matchingProducts.values()]
-    .sort(sortByPreference(preferredOrder))
-    .map((item) => ({
-      label: item.label,
-      value: item.label,
-      preferred: preferredOrder.has(item.label),
+  return [...matchingProducts.entries()]
+    .map(([label, variants]) => ({ label, variants }))
+    .sort((a, b) => sortByPreference(preferredOrder)(a.variants[0], b.variants[0]))
+    .map(({ label, variants }) => ({
+      label,
+      specs: `${[...new Set(variants.map((item) => item.platform))].join('/')} | L ${[...new Set(variants.flatMap((item) => item.lengths))].sort((a, b) => a - b).join('/')} cm | ${[...new Set(variants.map((item) => item.role))].join('/')}`,
+      value: label,
+      preferred: preferredOrder.has(label),
     }));
 };
 
@@ -253,3 +256,44 @@ export const getWireRolesForProduct = (label, filters = {}) => [...new Set(
 export const getWireByLabel = (label, platform = '') => WIRE_CATALOG.find((item) => (
   item.label === label && (!platform || item.platform === platform)
 )) || null;
+
+const wireFilterValues = {
+  platform: (item) => [item.platform],
+  length: (item) => item.lengths.map((length) => `${length} cm`),
+  role: (item) => [item.role],
+  technique: (item) => item.techniques,
+  ctoProfile: (item) => [item.ctoProfile].filter(Boolean),
+};
+
+export const getWireFilterOptions = (form = {}, field) => {
+  const getter = wireFilterValues[field];
+  if (!getter) return [];
+  const selectedProduct = getWireByLabel(form.product);
+  const candidates = WIRE_CATALOG.filter((item) => (
+    (!selectedProduct || item.label === form.product) &&
+    matchesFilters(item, {
+      ...form,
+      [field]: '',
+      category: field === 'role' ? '' : form.category,
+    })
+  ));
+  const values = [...new Set(candidates.flatMap(getter).filter(Boolean))];
+  return values.sort((left, right) => {
+    const leftNumber = Number.parseFloat(left);
+    const rightNumber = Number.parseFloat(right);
+    if (Number.isFinite(leftNumber) && Number.isFinite(rightNumber)) return leftNumber - rightNumber;
+    return left.localeCompare(right);
+  });
+};
+
+export const reconcileWireProduct = (form = {}, productLabel) => {
+  const next = { ...form, product: productLabel };
+  const variants = getWireProductVariants(productLabel);
+  if (!variants.length) return next;
+  ['platform', 'length', 'role', 'technique', 'ctoProfile'].forEach((field) => {
+    const available = getWireFilterOptions({ ...next, product: productLabel }, field);
+    if (next[field] && !available.includes(next[field])) next[field] = '';
+    if (!next[field] && available.length === 1) next[field] = available[0];
+  });
+  return next;
+};
