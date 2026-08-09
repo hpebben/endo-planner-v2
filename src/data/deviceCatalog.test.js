@@ -3,12 +3,83 @@ import {
   CATHETER_CATALOG,
   getCatalogFilterOptions,
   getCatalogProductOptions,
+  PTA_BALLOON_CATALOG,
   reconcileCatalogProduct,
   SPECIAL_DEVICE_CATALOG,
   STENT_CATALOG,
 } from './deviceCatalog';
 
 describe('European device catalogues', () => {
+  test('keeps the familiar catheter options and product-specific specifications', () => {
+    expect(CATHETER_CATALOG.map((item) => item.label)).toEqual([
+      'BER2',
+      'BHW',
+      'Cobra 1',
+      'Cobra 2',
+      'Cobra 3',
+      'Cobra Glidecath',
+      'CXI 0.018',
+      'CXI 0.014',
+      'Navicross 0.018',
+      'Navicross 0.035',
+      'MultiPurpose',
+      'PIER',
+      'Pigtail Flush',
+      'Straight Flush',
+      'Universal Flush',
+      'Rim',
+      'Simmons 1',
+      'Simmons 2',
+      'Simmons 3',
+      'Vertebral',
+    ]);
+
+    CATHETER_CATALOG.forEach((item) => {
+      expect(item.sizes.length).toBeGreaterThan(0);
+      expect(item.lengths.length).toBeGreaterThan(0);
+    });
+    expect(CATHETER_CATALOG.find((item) => item.label === 'PIER')).toMatchObject({
+      sizes: ['5 Fr'],
+      lengths: ['65 cm'],
+    });
+    expect(CATHETER_CATALOG.find((item) => item.label === 'Cobra 3')).toMatchObject({
+      sizes: ['5 Fr'],
+      lengths: ['65 cm'],
+    });
+
+    const form = reconcileCatalogProduct(CATHETER_CATALOG, {
+      size: '5 Fr',
+      length: '40 cm',
+    }, 'Navicross 0.018', { mirrorSpecific: true });
+
+    expect(form).toMatchObject({
+      product: 'Navicross 0.018',
+      specific: 'Navicross 0.018',
+      platform: '0.018',
+      size: '2.6 Fr',
+      length: '',
+      minimumSheathFr: '2.6 Fr',
+    });
+    expect(getCatalogFilterOptions(CATHETER_CATALOG, form, 'size')).toEqual(['2.6 Fr']);
+    expect(getCatalogFilterOptions(CATHETER_CATALOG, form, 'length')).toEqual([
+      '65 cm',
+      '90 cm',
+      '135 cm',
+      '150 cm',
+    ]);
+    expect(getCatalogProductOptions(CATHETER_CATALOG)
+      .find((item) => item.value === 'Navicross 0.018').specs).toContain('L 65–150 cm');
+  });
+
+  test('contains every PTA balloon row from the linked European guide', () => {
+    expect(PTA_BALLOON_CATALOG).toHaveLength(119);
+    expect(new Set(PTA_BALLOON_CATALOG.map((item) => item.label))).toHaveProperty('size', 119);
+    expect(PTA_BALLOON_CATALOG.map((item) => item.label)).toEqual(expect.arrayContaining([
+      'Q3 Medical Group — 014 PTA Balloon Catheter (PVQ)',
+      'Boston Scientific Corporation — XXL Balloon Dilatation Catheter',
+    ]));
+  });
+
   test('filters products before a product is selected', () => {
     const options = getCatalogProductOptions(BALLOON_CATALOG, {
       category: 'Drug-coated',

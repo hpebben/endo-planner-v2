@@ -26,7 +26,7 @@ import {
 import {
   BALLOON_CATALOG,
   CATHETER_CATALOG,
-  EUROPEAN_DEVICE_GUIDE_URL,
+  PTA_BALLOON_GUIDE_URL,
   SPECIAL_DEVICE_CATALOG,
   STENT_CATALOG,
 } from '../../data/deviceCatalog';
@@ -76,7 +76,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.171';
+const APPLICATION_VERSION = '1.6.172';
 
 const preferenceTypes = [
   { key: 'needle', legacyId: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg, modal: 'needle' },
@@ -717,7 +717,7 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave, preferre
       />
       <p className="wire-catalog-note">
         {__('European Device Guide options are planning aids. Confirm every dependent diameter/length combination against the current product IFU.', 'endoplanner')}
-        {' '}<a href={EUROPEAN_DEVICE_GUIDE_URL} target="_blank" rel="noreferrer">{__('Catalogue source', 'endoplanner')}</a>
+        {' '}<a href={PTA_BALLOON_GUIDE_URL} target="_blank" rel="noreferrer">{__('PTA balloon catalogue source', 'endoplanner')}</a>
       </p>
       <div className="popup-close-row">
         <button type="button" className="planner-nav-btn wire-done-btn" onClick={onRequestClose}>{__('Done', 'endoplanner')}</button>

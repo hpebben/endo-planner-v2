@@ -294,6 +294,19 @@ export default function Step2_Patency({ data, setData }) {
             </div>
           )}
 
+          {activeSegment && (
+            <ParameterPopup
+              segmentName={
+                vesselSegments.find((s) => s.id === activeSegment)?.name ||
+                activeSegment
+              }
+              initialValues={data.patencySegments?.[activeSegment] || {}}
+              onSave={saveSegment}
+              onCancel={() => {
+                setActiveSegment(null);
+              }}
+            />
+          )}
           {selectedSegments.length > 0 && (
           <div className="target-path-panel" data-testid="target-path-selector">
             <div className="target-path-heading">
@@ -416,20 +429,6 @@ export default function Step2_Patency({ data, setData }) {
               <p className="target-path-note"><b>{__('Route note', 'endoplanner')}:</b> {data.targetArterialPathNote}</p>
             )}
           </div>
-          )}
-
-          {activeSegment && (
-            <ParameterPopup
-              segmentName={
-                vesselSegments.find((s) => s.id === activeSegment)?.name ||
-                activeSegment
-              }
-              initialValues={data.patencySegments?.[activeSegment] || {}}
-              onSave={saveSegment}
-              onCancel={() => {
-                setActiveSegment(null);
-              }}
-            />
           )}
 
           {(showInstruction || selectedSegments.length === 0) && !routeEditMode && selectedSegments.length === 0 && (

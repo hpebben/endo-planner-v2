@@ -208,7 +208,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     28,
     806,
   );
-  doc.text('EndoPlanner v1.6.171', pageWidth - 28, 806, { align: 'right' });
+  doc.text('EndoPlanner v1.6.172', pageWidth - 28, 806, { align: 'right' });
 
   doc.save(reportFilename(data));
 }

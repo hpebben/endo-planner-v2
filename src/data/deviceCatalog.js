@@ -1,4 +1,16 @@
+import {
+  PTA_BALLOON_GUIDE_PRODUCTS,
+  PTA_BALLOON_GUIDE_URL,
+} from './ptaBalloonCatalog';
+
+export { PTA_BALLOON_GUIDE_URL };
+
 export const EUROPEAN_DEVICE_GUIDE_URL = 'https://evtoday.com/device-guide/european';
+const MERIT_ANGIOGRAPHY_CATALOG_URL = 'https://www.merit.com/wp-content/uploads/2014/09/PI-Angiography.pdf';
+const COOK_CXI_URL = 'https://www.cookmedical.com/products/di_cxi_webds/';
+const TERUMO_NAVICROSS_URL = 'https://www.terumois.com/products/product-type/catheters/navicross.html';
+const TERUMO_GLIDECATH_URL = 'https://www.terumois.com/products/product-type/catheters/glidecath.html';
+const CORDIS_CATHETER_CATALOG_URL = 'https://cordis.com/na/skus/p26';
 
 const list = (...values) => values.flat().filter(Boolean).map(String);
 const fr = (...values) => list(values).map((value) => `${value} Fr`);
@@ -23,31 +35,30 @@ const product = (manufacturer, name, specifications = {}) => ({
   ...specifications,
 });
 
-// Static, planning-oriented transcription of currently listed European products.
-// Ranges are expanded only where a nominal option is stated by the guide. The
-// current manufacturer IFU remains authoritative for dependent size matrices.
+// Keep the familiar, deliberately compact catheter list that predates the broad
+// catalogue import. Each entry now exposes only the French sizes and working
+// lengths actually available for that named catheter/shape.
 export const CATHETER_CATALOG = [
-  product('Cook Medical', 'CXI Support Catheter', { categories: ['Support / crossing'], platforms: list('0.014', '0.018', '0.035'), sizes: fr('2.3', '2.6', '4'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('3', '4') }),
-  product('Terumo', 'NaviCross Support Catheter', { categories: ['Support / crossing'], platforms: list('0.018', '0.035'), sizes: fr('2.6', '4'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('3', '4') }),
-  product('Philips', 'Quick-Cross Support Catheter', { categories: ['Support / crossing'], platforms: list('0.014', '0.018', '0.035'), sizes: fr('4', '5'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('4', '5') }),
-  product('Philips', 'Quick-Cross Select Support Catheter', { categories: ['Support / crossing'], platforms: list('0.014', '0.018', '0.035'), sizes: fr('4', '5'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('4', '5') }),
-  product('Philips', 'Quick-Cross Extreme Support Catheter', { categories: ['Support / crossing', 'CTO / re-entry'], platforms: list('0.014', '0.018', '0.035'), sizes: fr('4', '5'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('4', '5') }),
-  product('Boston Scientific', 'Rubicon Support Catheter', { categories: ['Support / crossing'], platforms: list('0.018', '0.022', '0.035'), sizes: fr('4', '5'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('4', '5') }),
-  product('Medtronic', 'TrailBlazer Support Catheter', { categories: ['Support / crossing'], platforms: list('0.014', '0.018', '0.035'), sizes: fr('2.6', '4', '5'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('3', '4', '5') }),
-  product('Medtronic', 'SureCross Support Catheter', { categories: ['Support / crossing'], platforms: list('0.014', '0.018', '0.035'), sizes: fr('2.6', '4'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('3', '4') }),
-  product('AngioDynamics', 'Sergeant Support Catheter', { categories: ['Support / crossing'], platforms: list('0.014', '0.018', '0.035'), sizes: fr('4'), lengths: cm('65', '90', '130', '150'), minimumSheaths: fr('4') }),
-  product('Tokai Medical', 'Carnelian Support 14', { categories: ['Microcatheter', 'Support / crossing'], platforms: list('0.014'), sizes: fr('1.8', '2.6'), lengths: cm('90', '135', '150'), minimumSheaths: fr('3') }),
-  product('Tokai Medical', 'Carnelian Support 18', { categories: ['Microcatheter', 'Support / crossing'], platforms: list('0.018'), sizes: fr('2.6'), lengths: cm('70', '90', '135', '150'), minimumSheaths: fr('3') }),
-  product('Tokai Medical', 'Carnelian Support BTA', { categories: ['Microcatheter', 'Support / crossing'], platforms: list('0.014'), sizes: fr('2.6'), lengths: cm('150'), minimumSheaths: fr('3') }),
-  product('Reflow Medical', 'Spex LP 14/18/35', { categories: ['Support / crossing'], platforms: list('0.014', '0.018', '0.035'), sizes: fr('2.3', '2.6', '4'), lengths: cm('90', '135', '150'), minimumSheaths: fr('3', '4') }),
-  product('BD Interventional', 'Wingman CTO Crossing Catheter', { categories: ['CTO / re-entry'], platforms: list('0.014', '0.018', '0.035'), sizes: fr('4', '5'), lengths: cm('90', '135', '150'), minimumSheaths: fr('4', '5') }),
-  product('Cordis', 'Outback Elite Re-Entry Catheter', { categories: ['CTO / re-entry'], platforms: list('0.014'), sizes: fr('6'), lengths: cm('80', '120'), minimumSheaths: fr('6') }),
-  product('Medtronic', 'Enteer Re-Entry Catheter', { categories: ['CTO / re-entry'], platforms: list('0.018'), sizes: fr('5'), lengths: cm('135', '150'), minimumSheaths: fr('6') }),
-  product('Bentley InnoMed', 'BeBack Crossing Catheter', { categories: ['CTO / re-entry'], platforms: list('0.014', '0.018'), sizes: fr('2.9', '4'), lengths: cm('80', '120'), minimumSheaths: fr('4', '6') }),
-  product('Cook Medical', 'TriForce Peripheral Crossing Set', { categories: ['CTO / re-entry'], platforms: list('0.035'), sizes: fr('4', '5'), lengths: cm('65', '100'), minimumSheaths: fr('5') }),
-  product('Terumo', 'Radifocus Glidecath', { categories: ['Selective hydrophilic'], platforms: list('0.038'), sizes: fr('4', '5'), lengths: cm('40', '65', '70', '80', '90', '100', '110', '120', '150'), minimumSheaths: fr('4', '5') }),
-  product('Cordis', 'Tempo Aqua', { categories: ['Selective hydrophilic'], platforms: list('0.038'), sizes: fr('4', '5'), lengths: cm('65', '80', '90', '100', '125'), minimumSheaths: fr('4', '5') }),
-  product('Merit Medical', 'Impress Hydrophilic Diagnostic Catheter', { categories: ['Selective hydrophilic'], platforms: list('0.038'), sizes: fr('4', '5'), lengths: cm('40', '65', '80', '100', '125'), minimumSheaths: fr('4', '5') }),
+  product('Merit Medical / Terumo', 'BER2', { label: 'BER2', source: TERUMO_GLIDECATH_URL, categories: ['Selective diagnostic'], platforms: list('0.038'), sizes: fr('4', '5'), lengths: cm('65', '100'), minimumSheaths: fr('4', '5') }),
+  product('Cordis', 'BHW', { label: 'BHW', source: CORDIS_CATHETER_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035'), sizes: fr('5'), lengths: cm('100'), minimumSheaths: fr('5') }),
+  product('Merit Medical', 'Cobra 1', { label: 'Cobra 1', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035', '0.038'), sizes: fr('4', '5'), lengths: cm('65', '100'), minimumSheaths: fr('4', '5') }),
+  product('Merit Medical', 'Cobra 2', { label: 'Cobra 2', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035', '0.038'), sizes: fr('4', '5'), lengths: cm('65', '100'), minimumSheaths: fr('4', '5') }),
+  product('Cordis', 'Cobra 3', { label: 'Cobra 3', source: CORDIS_CATHETER_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035'), sizes: fr('5'), lengths: cm('65'), minimumSheaths: fr('5') }),
+  product('Terumo', 'Cobra Glidecath', { label: 'Cobra Glidecath', source: TERUMO_GLIDECATH_URL, categories: ['Selective hydrophilic'], platforms: list('0.038'), sizes: fr('4', '5'), lengths: cm('65', '100'), minimumSheaths: fr('4', '5') }),
+  product('Cook Medical', 'CXI 0.018', { label: 'CXI 0.018', source: COOK_CXI_URL, categories: ['Support / crossing'], platforms: list('0.018'), sizes: fr('2.6'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('3') }),
+  product('Cook Medical', 'CXI 0.014', { label: 'CXI 0.014', source: COOK_CXI_URL, categories: ['Support / crossing'], platforms: list('0.014'), sizes: fr('2.3'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('3') }),
+  product('Terumo', 'Navicross 0.018', { label: 'Navicross 0.018', source: TERUMO_NAVICROSS_URL, categories: ['Support / crossing'], platforms: list('0.018'), sizes: fr('2.6'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('2.6') }),
+  product('Terumo', 'Navicross 0.035', { label: 'Navicross 0.035', source: TERUMO_NAVICROSS_URL, categories: ['Support / crossing'], platforms: list('0.035'), sizes: fr('4'), lengths: cm('65', '90', '135', '150'), minimumSheaths: fr('4') }),
+  product('Merit Medical', 'MultiPurpose', { label: 'MultiPurpose', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.038'), sizes: fr('4', '5'), lengths: cm('65', '100', '125'), minimumSheaths: fr('4', '5') }),
+  product('Cordis', 'PIER', { label: 'PIER', source: CORDIS_CATHETER_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035'), sizes: fr('5'), lengths: cm('65'), minimumSheaths: fr('5') }),
+  product('Merit Medical / Cordis', 'Pigtail Flush', { label: 'Pigtail Flush', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Flush'], platforms: list('0.035', '0.038'), sizes: fr('4', '5'), lengths: cm('30', '65', '80', '90', '100', '110'), minimumSheaths: fr('4', '5') }),
+  product('Merit Medical / Cordis', 'Straight Flush', { label: 'Straight Flush', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Flush'], platforms: list('0.035', '0.038'), sizes: fr('4', '5'), lengths: cm('65', '90', '100'), minimumSheaths: fr('4', '5') }),
+  product('Cordis', 'Universal Flush', { label: 'Universal Flush', source: CORDIS_CATHETER_CATALOG_URL, categories: ['Flush'], platforms: list('0.035'), sizes: fr('5'), lengths: cm('65'), minimumSheaths: fr('5') }),
+  product('Merit Medical / Cordis', 'Rim', { label: 'Rim', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035'), sizes: fr('4', '5'), lengths: cm('30', '65'), minimumSheaths: fr('4', '5') }),
+  product('Merit Medical / Terumo', 'Simmons 1', { label: 'Simmons 1', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035', '0.038'), sizes: fr('4', '5'), lengths: cm('65', '100'), minimumSheaths: fr('4', '5') }),
+  product('Merit Medical / Terumo', 'Simmons 2', { label: 'Simmons 2', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035', '0.038'), sizes: fr('4', '5'), lengths: cm('65', '100'), minimumSheaths: fr('4', '5') }),
+  product('Merit Medical / Terumo', 'Simmons 3', { label: 'Simmons 3', source: TERUMO_GLIDECATH_URL, categories: ['Selective diagnostic'], platforms: list('0.038'), sizes: fr('4', '5'), lengths: cm('100'), minimumSheaths: fr('4', '5') }),
+  product('Merit Medical / Cordis', 'Vertebral', { label: 'Vertebral', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035', '0.038'), sizes: fr('4', '5'), lengths: cm('65', '80', '100', '125'), minimumSheaths: fr('4', '5') }),
 ];
 
 const vesselPrep = ['Vessel preparation', 'Definitive angioplasty', 'Post-dilatation'];
@@ -62,19 +73,23 @@ export const BALLOON_CATALOG = [
   product('Boston Scientific', 'Ranger DCB', { categories: ['Drug-coated'], platforms: list('0.018'), functionalRoles: vesselPrep, diameters: list('2', '2.5', '3', '4', '5', '6', '7', '8'), lengths: list('40', '60', '80', '100', '120', '150', '200'), shafts: cm('90', '135', '150'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('4', '5', '6') }),
   product('Biotronik', 'Passeo-18 Lux DCB', { categories: ['Drug-coated'], platforms: list('0.018'), functionalRoles: vesselPrep, diameters: list('2', '2.5', '3', '4', '5', '6', '7'), lengths: list('40', '60', '80', '100', '120', '150'), shafts: cm('90', '130'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('4', '5') }),
   product('MedAlliance', 'Selution SLR DCB', { categories: ['Drug-coated'], platforms: list('0.014', '0.018'), functionalRoles: vesselPrep, diameters: list('2', '2.5', '3', '3.5', '4', '5', '6', '7'), lengths: list('40', '60', '80', '100', '120', '150'), shafts: cm('90', '130', '150'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('4', '5', '6') }),
-  product('Medtronic', 'Admiral Xtreme PTA', { categories: ['Standard PTA'], platforms: list('0.035'), functionalRoles: vesselPrep, diameters: list('3', '4', '5', '6', '7', '8', '9', '10', '12'), lengths: list('20', '40', '60', '80', '120', '150', '200', '250', '300'), shafts: cm('80', '130'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('5', '6', '7') }),
-  product('Cook Medical', 'Advance 14LP PTA', { categories: ['Standard PTA'], platforms: list('0.014'), functionalRoles: vesselPrep, diameters: list('2', '2.5', '3', '3.5', '4'), lengths: list('20', '40', '60', '80', '100', '120', '150', '200'), shafts: cm('170'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('4') }),
-  product('Cook Medical', 'Advance 18LP PTA', { categories: ['Standard PTA'], platforms: list('0.018'), functionalRoles: vesselPrep, diameters: list('2', '3', '4', '5', '6', '7', '8', '9', '10'), lengths: list('20', '40', '60', '80', '100', '120', '150', '200'), shafts: cm('80', '135', '150'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('4', '5', '6', '7') }),
-  product('Cook Medical', 'Advance 35LP PTA', { categories: ['Standard PTA'], platforms: list('0.035'), functionalRoles: vesselPrep, diameters: list('3', '4', '5', '6', '7', '8', '9', '10', '12'), lengths: list('20', '40', '60', '80', '100', '120', '150', '200'), shafts: cm('80', '135'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('5', '6', '7') }),
-  product('Boston Scientific', 'Coyote PTA', { categories: ['Standard PTA'], platforms: list('0.014'), functionalRoles: vesselPrep, diameters: list('1.5', '2', '2.5', '3', '3.5', '4'), lengths: list('20', '30', '40', '60', '80', '100', '120', '150', '220'), shafts: cm('90', '142', '150'), deliveryModes: ['Rapid-exchange', 'Over-the-wire'], minimumSheaths: fr('4') }),
-  product('Boston Scientific', 'Mustang PTA', { categories: ['Standard PTA'], platforms: list('0.035'), functionalRoles: vesselPrep, diameters: list('3', '4', '5', '6', '7', '8', '9', '10', '12'), lengths: list('20', '40', '60', '80', '100', '120', '150', '200'), shafts: cm('40', '75', '135'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('5', '6', '7') }),
-  product('Medtronic', 'NanoCross Elite PTA', { categories: ['Standard PTA'], platforms: list('0.014'), functionalRoles: vesselPrep, diameters: list('1.5', '2', '2.5', '3', '3.5', '4'), lengths: list('20', '40', '60', '80', '100', '120', '150', '210'), shafts: cm('90', '150'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('4') }),
-  product('Medtronic', 'Pacific Plus PTA', { categories: ['Standard PTA'], platforms: list('0.018'), functionalRoles: vesselPrep, diameters: list('2', '3', '4', '5', '6', '7'), lengths: list('20', '40', '60', '80', '100', '120', '150'), shafts: cm('90', '130', '180'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('4', '5') }),
-  product('Spectranetics', 'AngioSculpt Scoring Balloon', { categories: ['Scoring / specialty'], platforms: list('0.014', '0.018'), functionalRoles: ['Vessel preparation'], diameters: list('2', '2.5', '3', '3.5', '4', '5', '6', '7', '8'), lengths: list('20', '40', '100', '200'), shafts: cm('50', '90', '137', '155'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('5', '6') }),
-  product('Medtronic', 'Chocolate PTA Balloon', { categories: ['Scoring / specialty'], platforms: list('0.014', '0.018'), functionalRoles: ['Vessel preparation'], diameters: list('2.5', '3', '3.5', '4', '5', '6'), lengths: list('40', '80', '120'), shafts: cm('120', '135', '150'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('5', '6') }),
-  product('Cagent Vascular', 'Serranator Alto PTA', { categories: ['Scoring / specialty'], platforms: list('0.014', '0.018'), functionalRoles: ['Vessel preparation'], diameters: list('2.5', '3', '3.5', '4', '5', '6', '7', '8'), lengths: list('40', '80', '120'), shafts: cm('110', '150'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('6', '7') }),
-  product('Boston Scientific', 'UltraScore Scoring Balloon', { categories: ['Scoring / specialty'], platforms: list('0.014', '0.035'), functionalRoles: ['Vessel preparation'], diameters: list('2', '2.5', '3', '3.5', '4', '5', '6', '7', '8', '9', '10', '12'), lengths: list('20', '40', '80', '100', '120', '150', '200', '300'), shafts: cm('130', '150'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('4', '5', '6') }),
+  ...PTA_BALLOON_GUIDE_PRODUCTS.map((item) => product(item.manufacturer, item.name, {
+    ...(item.catalogLabel ? { label: item.catalogLabel } : {}),
+    source: PTA_BALLOON_GUIDE_URL,
+    categories: [item.category],
+    platforms: item.platforms,
+    functionalRoles: vesselPrep,
+    diameters: item.diameters,
+    lengths: item.lengths,
+    shafts: item.shafts,
+    deliveryModes: item.deliveryModes,
+    minimumSheaths: item.minimumSheaths,
+    nominalPressure: item.nominalPressure,
+    ratedBurstPressure: item.ratedBurstPressure,
+  })),
 ];
+
+export const PTA_BALLOON_CATALOG = BALLOON_CATALOG.slice(9);
 
 const primaryStentRoles = ['Primary scaffolding', 'Bailout / dissection', 'Relining'];
 
@@ -160,7 +175,11 @@ export const formatCatalogSpecs = (item) => [
   item.platforms.length ? item.platforms.join('/') : '',
   item.sizes.length ? compactRange(item.sizes.map((value) => value.replace(' Fr', '')), 'F') : '',
   item.diameters.length ? `Ø ${compactRange(item.diameters, ' mm')}` : '',
-  item.lengths.length ? `L ${compactRange(item.lengths, ' mm')}` : '',
+  item.lengths.length
+    ? `L ${item.lengths.some((value) => value.endsWith(' cm'))
+      ? compactRange(item.lengths.map((value) => value.replace(' cm', '')), ' cm')
+      : compactRange(item.lengths, ' mm')}`
+    : '',
   item.shafts.length ? `shaft ${compactRange(item.shafts.map((value) => value.replace(' cm', '')), ' cm')}` : '',
   item.minimumSheaths.length ? `sheath ${item.minimumSheaths.join('/')}` : '',
 ].filter(Boolean).join(' | ');

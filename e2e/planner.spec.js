@@ -268,7 +268,7 @@ test('shows chosen devices as schematics beside the arterial tree', async ({ pag
 test('starts device selection with preferred products and faceted specification filters', async ({ page }) => {
   const productFirstProfile = {
     ...profile,
-    applicationVersion: '1.6.171',
+    applicationVersion: '1.6.172',
     preferences: {
       ...profile.preferences,
       wire: [
@@ -357,12 +357,34 @@ test('starts device selection with preferred products and faceted specification 
     .toEqual({ wireLength: '235 cm', balloonShaft: '80 cm' });
 });
 
+test('limits French size and working length to the selected catheter', async ({ page }) => {
+  await seed(page, completeCase(), 2);
+  await page.goto('./');
+
+  await page.getByRole('button', { name: 'Navicross 0.018', exact: true }).first().click();
+  const dialog = page.getByRole('dialog');
+  const product = dialog.getByRole('combobox', { name: 'Product' });
+  await expect(product.locator('option:checked')).toContainText('Navicross 0.018');
+  await expect(dialog.getByTestId('filter-catheter-size').getByRole('button', { name: '2.6 Fr' })).toBeVisible();
+  await expect(dialog.getByTestId('filter-length').getByRole('button', { name: '135 cm' })).toBeVisible();
+
+  await dialog.getByRole('button', { name: 'Clear filters' }).click();
+  await product.selectOption('PIER');
+  await expect(dialog.getByTestId('filter-catheter-size').getByRole('button', { name: '5 Fr' })).toBeVisible();
+  await expect(dialog.getByTestId('filter-catheter-size').getByRole('button', { name: '4 Fr' })).toHaveCount(0);
+  await expect(dialog.getByTestId('filter-length').getByRole('button', { name: '65 cm' })).toBeVisible();
+  await expect(dialog.getByTestId('filter-length').getByRole('button', { name: '100 cm' })).toHaveCount(0);
+});
+
 test('maps Fontaine IV wound locations to a wound-informed TAP consideration', async ({ page }) => {
   await seed(page, { ...baseCase(), clinical: { wound: 2, ischemia: 2, infection: 1, woundLocations: [] } }, 0);
   await page.goto('./');
 
   const selector = page.getByTestId('woundosome-selector');
   await expect(selector).toBeVisible();
+  await expect(selector.locator('.foot-outline')).toHaveCount(2);
+  await expect(selector.locator('.toe-crease')).toHaveCount(2);
+  await expect(selector.locator('.plantar-landmark')).toHaveCount(1);
   await selector.getByRole('checkbox', { name: 'Hallux / first ray' }).click();
   await expect(selector.getByText('Anterior tibial → dorsalis pedis TAP')).toBeVisible();
   await expect(selector.getByText('Posterior tibial → plantar arch TAP')).toBeVisible();
@@ -372,14 +394,17 @@ test('maps Fontaine IV wound locations to a wound-informed TAP consideration', a
   ), STATE_KEY)).toEqual(['hallux-first-ray']);
 });
 
-test('keeps TAP selection below the affected-segment summary', async ({ page }) => {
+test('keeps TAP selection below the active disease-anatomy selectors', async ({ page }) => {
   await seed(page, baseCase(), 1);
   await page.goto('./');
 
+  await page.locator('.segment-edit-trigger').first().click();
+  await expect(page.locator('.param-box')).toBeVisible();
+
   const ordering = await page.evaluate(() => {
-    const segments = document.querySelector('.selected-segments');
+    const selectors = document.querySelector('.param-box');
     const tap = document.querySelector('[data-testid="target-path-selector"]');
-    return Boolean(segments && tap && (segments.compareDocumentPosition(tap) & Node.DOCUMENT_POSITION_FOLLOWING));
+    return Boolean(selectors && tap && (selectors.compareDocumentPosition(tap) & Node.DOCUMENT_POSITION_FOLLOWING));
   });
   expect(ordering).toBe(true);
 });

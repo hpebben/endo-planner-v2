@@ -424,6 +424,13 @@
   justify-content: center;
   align-items: center;
   gap: 1rem;
+
+  // Lesion review/editing precedes route selection. Opening a segment editor
+  // must never push that editor below the target arterial path.
+  .selected-segments { order: 1; }
+  .param-box,
+  .instruction-box { order: 2; }
+  .target-path-panel { order: 3; }
 }
 
 .patency-container .instruction-box,
@@ -648,13 +655,46 @@ svg .vessel-path:hover {
 
 .woundosome-map {
   width: 100%;
-  max-height: 310px;
+  max-height: 360px;
+  overflow: visible;
 }
 
 .woundosome-map .foot-outline {
-  fill: #f1ede7;
-  stroke: #74809a;
-  stroke-width: 2;
+  fill: url(#woundosome-foot-skin);
+  stroke: #55627a;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.woundosome-map .toe-crease,
+.woundosome-map .dorsal-landmark,
+.woundosome-map .plantar-landmark,
+.woundosome-map .ankle-crease {
+  fill: none;
+  stroke: #a99887;
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  opacity: 0.68;
+}
+
+.woundosome-map .dorsal-landmark {
+  stroke: #9a8877;
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+.woundosome-map .plantar-landmark {
+  stroke: #a17f69;
+  stroke-width: 1.4;
+  opacity: 0.58;
+}
+
+.woundosome-map .heel-pad {
+  fill: #e3d3c2;
+  stroke: #aa8e78;
+  stroke-width: 1.1;
+  opacity: 0.62;
 }
 
 .woundosome-map text {
@@ -669,23 +709,28 @@ svg .vessel-path:hover {
 }
 
 .wound-zone path {
-  fill: #dbe5fa;
-  stroke: #7691c8;
-  stroke-width: 1.5;
+  fill: #a9bfe9;
+  fill-opacity: 0.48;
+  stroke: #617fb9;
+  stroke-width: 1.35;
+  stroke-linejoin: round;
   transition: fill 0.15s, stroke 0.15s, transform 0.15s;
   transform-origin: center;
 }
 
 .wound-zone:hover path,
 .wound-zone:focus-visible path {
-  fill: #b8cdf5;
+  fill: #8eafe9;
+  fill-opacity: 0.7;
   stroke: #1747a6;
   stroke-width: 2.5;
 }
 
 .wound-zone.is-selected path {
   fill: #d84b4b;
+  fill-opacity: 0.78;
   stroke: #8e1e1e;
+  stroke-width: 2.2;
 }
 
 .woundosome-zone-list {
