@@ -6,6 +6,7 @@ export const WOUNDOSOME_REFERENCE = {
 export const WOUND_ZONES = [
   {
     id: 'dorsal-toes',
+    color: '#dc334c',
     label: 'Dorsal toes / forefoot',
     shortLabel: 'Dorsal toes',
     view: 'dorsal',
@@ -15,6 +16,7 @@ export const WOUND_ZONES = [
   },
   {
     id: 'hallux-first-ray',
+    color: '#b87b00',
     label: 'Hallux / first ray',
     shortLabel: 'Hallux',
     view: 'dorsal',
@@ -24,6 +26,7 @@ export const WOUND_ZONES = [
   },
   {
     id: 'dorsum',
+    color: '#087dcb',
     label: 'Dorsum of foot',
     shortLabel: 'Dorsum',
     view: 'dorsal',
@@ -33,6 +36,7 @@ export const WOUND_ZONES = [
   },
   {
     id: 'lateral-ankle',
+    color: '#8555cf',
     label: 'Lateral ankle',
     shortLabel: 'Lateral ankle',
     view: 'dorsal',
@@ -42,6 +46,7 @@ export const WOUND_ZONES = [
   },
   {
     id: 'plantar-toes',
+    color: '#bf3c8b',
     label: 'Plantar toes / forefoot',
     shortLabel: 'Plantar toes',
     view: 'plantar',
@@ -51,6 +56,7 @@ export const WOUND_ZONES = [
   },
   {
     id: 'medial-plantar',
+    color: '#008b86',
     label: 'Medial plantar foot / instep',
     shortLabel: 'Medial plantar',
     view: 'plantar',
@@ -60,6 +66,7 @@ export const WOUND_ZONES = [
   },
   {
     id: 'lateral-plantar',
+    color: '#dc6b1b',
     label: 'Lateral plantar foot',
     shortLabel: 'Lateral plantar',
     view: 'plantar',
@@ -69,6 +76,7 @@ export const WOUND_ZONES = [
   },
   {
     id: 'medial-heel',
+    color: '#318541',
     label: 'Medial heel',
     shortLabel: 'Medial heel',
     view: 'plantar',
@@ -78,6 +86,7 @@ export const WOUND_ZONES = [
   },
   {
     id: 'lateral-heel',
+    color: '#4c56ad',
     label: 'Lateral heel',
     shortLabel: 'Lateral heel',
     view: 'plantar',

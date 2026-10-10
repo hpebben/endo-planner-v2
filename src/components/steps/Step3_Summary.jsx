@@ -6,6 +6,7 @@ import computeGlass from '../../utils/glass';
 import InlineModal from '../UI/InlineModal';
 import { analyzePlan } from '../../utils/planAnalysis';
 import { getWoundosomeAdvice, WOUNDOSOME_REFERENCE } from '../../data/woundosome';
+import { getPatSummaryLines } from '../../data/pedalAccelerationTime';
 import { formatTargetArterialPath, getLesionOptions, vesselName } from '../../utils/lesions';
 import {
   buildScopeOptions,
@@ -185,6 +186,7 @@ export default function StepSummary({ data, setStep }) {
   const glassInfo = glass.stage ? GLASS_STAGE_INFO[glass.stage] : null;
   const planFindings = analyzePlan(data);
   const woundAdvice = getWoundosomeAdvice(data.clinical?.woundLocations || []);
+  const patLines = getPatSummaryLines(data.clinical);
 
   const accessItems = accessRows.flatMap((row) => [
     { label: 'APPROACH', value: [row.approach, row.side, row.vessel].filter(Boolean).join(' ') },
@@ -237,6 +239,11 @@ export default function StepSummary({ data, setStep }) {
           <div>
             {__('WIfI components', 'endoplanner')}: <b>{wifiCode}</b>
           </div>
+          {patLines.length > 0 && (
+            <div className="pat-summary" data-testid="pat-summary">
+              {patLines.map((line, index) => <div key={index}>{line}</div>)}
+            </div>
+          )}
           {woundAdvice.zones.length > 0 && (
             <div className="woundosome-summary" data-testid="woundosome-summary">
               <div><b>{__('Wound location', 'endoplanner')}:</b> {woundAdvice.zones.map((zone) => zone.label).join(', ')}</div>
