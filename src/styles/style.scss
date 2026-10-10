@@ -605,6 +605,167 @@ svg .vessel-path:hover {
   margin-bottom: 0.65rem;
 }
 
+.pat-assessment {
+  max-width: 760px;
+  margin: 1rem auto 2.5rem;
+  border: 1px solid #c9d5f5;
+  border-radius: 12px;
+  background: #f8faff;
+  text-align: left;
+}
+
+.pat-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+  border: 0;
+  border-radius: 12px;
+  color: #113195;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.pat-optional {
+  display: inline-block;
+  margin-left: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #e5eaf7;
+  color: #56617a;
+  font-size: 0.65rem;
+  font-weight: 400;
+}
+
+.pat-content {
+  padding: 0 1rem 1rem;
+}
+
+.pat-description,
+.pat-reference {
+  color: #5d6472;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.pat-description {
+  margin: 0 0 1rem;
+}
+
+.pat-measurement {
+  display: grid;
+  grid-template-columns: minmax(165px, 1.1fr) minmax(90px, 0.5fr) minmax(180px, 1fr) 28px;
+  align-items: start;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+}
+
+.pat-measurement label,
+.pat-field-label {
+  display: block;
+  min-width: 0;
+  color: #35415a;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.pat-field { min-width: 0; }
+
+.pat-measurement select,
+.pat-measurement input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  margin-top: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #aebbd5;
+  border-radius: 7px;
+  background: #fff;
+  color: #25314f;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.pat-category {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 7px;
+  background: #e8edf6;
+  color: #56617a;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.pat-category--normal { background: #def3e8; color: #1c6342; }
+.pat-category--mild { background: #fff2c9; color: #6d520b; }
+.pat-category--moderate,
+.pat-category--boundary { background: #ffe5ce; color: #864307; }
+.pat-category--severe { background: #ffe0e5; color: #97253b; }
+
+.pat-result small {
+  display: block;
+  margin-top: 0.3rem;
+  color: #626b7c;
+  font-size: 0.65rem;
+  font-weight: 400;
+}
+
+.pat-result .pat-error {
+  color: #a02937;
+}
+
+.pat-remove {
+  width: 28px;
+  min-height: 40px;
+  margin-top: 1.2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: #e5eaf7;
+  color: #56617a;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.pat-add {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #c6d0e5;
+  border-radius: 7px;
+  color: #113195;
+  background: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.pat-reference {
+  margin-top: 1rem;
+}
+
+.pat-reference summary { cursor: pointer; }
+.pat-reference a { display: block; color: #1747a6; }
+.pat-range-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+.pat-summary { margin: 0.5rem 0; font-size: 0.8rem; }
+
+@media (max-width: 680px) {
+  .pat-measurement {
+    grid-template-columns: minmax(0, 1fr) minmax(80px, 0.6fr) 28px;
+  }
+  .pat-result { grid-column: 1 / 3; grid-row: 2; }
+  .pat-remove { grid-column: 3; grid-row: 1; }
+}
+
+@media (max-width: 420px) {
+  .pat-toggle { font-size: 0.78rem; }
+  .pat-optional { margin-left: 0.35rem; }
+}
+
 .woundosome-selector {
   margin: 2rem auto 0;
   padding: 1rem;
@@ -645,62 +806,33 @@ svg .vessel-path:hover {
   font-size: 0.7rem;
 }
 
-.woundosome-layout {
+.woundosome-projections {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(220px, 0.85fr);
-  gap: 1rem;
-  align-items: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
   margin-top: 1rem;
 }
 
-.woundosome-map {
-  width: 100%;
-  max-height: 360px;
-  overflow: visible;
+.woundosome-projection {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #c9d5e5;
+  border-radius: 10px;
+  background: #e6e9ee;
 }
 
-.woundosome-map .foot-outline {
-  fill: url(#woundosome-foot-skin);
-  stroke: #55627a;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.woundosome-map .toe-crease,
-.woundosome-map .dorsal-landmark,
-.woundosome-map .plantar-landmark,
-.woundosome-map .ankle-crease {
-  fill: none;
-  stroke: #a99887;
-  stroke-width: 1.15;
-  stroke-linecap: round;
-  opacity: 0.68;
-}
-
-.woundosome-map .dorsal-landmark {
-  stroke: #9a8877;
-  stroke-width: 1;
-  opacity: 0.45;
-}
-
-.woundosome-map .plantar-landmark {
-  stroke: #a17f69;
-  stroke-width: 1.4;
-  opacity: 0.58;
-}
-
-.woundosome-map .heel-pad {
-  fill: #e3d3c2;
-  stroke: #aa8e78;
-  stroke-width: 1.1;
-  opacity: 0.62;
-}
-
-.woundosome-map text {
-  fill: #4f5a71;
-  font-size: 11px;
+.woundosome-projection figcaption {
+  padding: 0.55rem 0.75rem;
+  background: #25314f;
+  color: #fff;
+  font-size: 0.78rem;
   font-weight: 700;
+}
+
+.woundosome-map {
+  display: block;
+  width: 100%;
+  height: 340px;
 }
 
 .wound-zone {
@@ -708,69 +840,125 @@ svg .vessel-path:hover {
   outline: none;
 }
 
-.wound-zone path {
-  fill: #a9bfe9;
-  fill-opacity: 0.48;
-  stroke: #617fb9;
-  stroke-width: 1.35;
-  stroke-linejoin: round;
-  transition: fill 0.15s, stroke 0.15s, transform 0.15s;
-  transform-origin: center;
+.wound-zone-area {
+  fill: var(--zone-color);
+  fill-opacity: 0;
+  stroke: var(--zone-color);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  stroke-opacity: 0;
+  pointer-events: none;
+  transition: fill-opacity 0.15s, stroke-opacity 0.15s;
 }
 
-.wound-zone:hover path,
-.wound-zone:focus-visible path {
-  fill: #8eafe9;
-  fill-opacity: 0.7;
-  stroke: #1747a6;
-  stroke-width: 2.5;
+.wound-zone.is-selected .wound-zone-area,
+.wound-zone.is-inspected .wound-zone-area {
+  fill-opacity: 0.2;
+  stroke-opacity: 0.85;
 }
 
-.wound-zone.is-selected path {
-  fill: #d84b4b;
-  fill-opacity: 0.78;
-  stroke: #8e1e1e;
-  stroke-width: 2.2;
+.wound-zone.is-inspected .wound-zone-area {
+  fill-opacity: 0.3;
+}
+
+.wound-zone-leader {
+  stroke: var(--zone-color);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wound-zone.is-selected .wound-zone-leader,
+.wound-zone.is-inspected .wound-zone-leader {
+  opacity: 1;
+}
+
+.wound-zone-hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.wound-zone-marker {
+  fill: var(--zone-color);
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.wound-zone.is-selected .wound-zone-marker {
+  stroke-width: 4;
+}
+
+.wound-zone:focus-visible .wound-zone-marker {
+  stroke: #162039;
+  stroke-width: 5;
+  paint-order: stroke;
+}
+
+.woundosome-map .wound-zone-number {
+  fill: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.woundosome-image-caption {
+  margin: 0.6rem 0 0.85rem;
+  color: #626b7c;
+  font-size: 0.65rem;
+  line-height: 1.5;
 }
 
 .woundosome-zone-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.4rem;
 }
 
 .woundosome-zone-list button {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  min-height: 34px;
+  gap: 0.5rem;
+  min-height: 44px;
   border: 1px solid #c6d0e5;
   border-radius: 8px;
   background: #fff;
   color: #35415a;
-  padding: 0.4rem 0.5rem;
+  padding: 0.5rem;
   text-align: left;
   cursor: pointer;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
+}
+
+.woundosome-zone-list button.is-selected,
+.woundosome-zone-list button.is-inspected {
+  border-color: var(--zone-color);
+  box-shadow: inset 0 0 0 1px var(--zone-color);
 }
 
 .woundosome-zone-list button.is-selected {
-  border-color: #a52525;
-  background: #fff0f0;
-  color: #7d1b1b;
+  background: #edf1fa;
   font-weight: 700;
 }
 
 .wound-zone-dot {
-  flex: 0 0 9px;
-  width: 9px;
-  height: 9px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: #6f8fd0;
+  background: var(--zone-color);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
-.wound-zone-dot--plantar {
-  background: #9c6fd0;
+.wound-zone-check {
+  margin-left: auto;
+  color: var(--zone-color);
 }
 
 .woundosome-advice {
@@ -798,9 +986,16 @@ svg .vessel-path:hover {
 }
 
 @media (max-width: 680px) {
-  .woundosome-layout {
-    grid-template-columns: 1fr;
+  .woundosome-zone-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .woundosome-map {
+    height: 280px;
+  }
+}
+
+@media (max-width: 420px) {
+  .woundosome-projections { grid-template-columns: 1fr; }
 }
 
 

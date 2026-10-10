@@ -1,5 +1,6 @@
 import { getBlockingPlanFindings } from './planAnalysis';
 import { territoryFromVesselId, validateTargetArterialPath } from './lesions';
+import { getPatMeasurementError, getPatMeasurements } from '../data/pedalAccelerationTime';
 
 const metadataKeys = new Set( [ 'id', 'lesionId', 'scope' ] );
 
@@ -28,6 +29,10 @@ export const validateCaseStep = (
 				translate( 'Select a Fontaine stage.', 'endoplanner' )
 			);
 		const clinical = data.clinical || {};
+		getPatMeasurements( clinical ).forEach( ( measurement ) => {
+			const error = getPatMeasurementError( measurement );
+			if ( error ) errors.push( translate( error, 'endoplanner' ) );
+		} );
 		if (
 			! [ clinical.wound, clinical.ischemia, clinical.infection ].every(
 				Number.isInteger

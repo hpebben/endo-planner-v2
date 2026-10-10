@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import SegmentedControl from '../UI/SegmentedControl';
 import WoundosomeSelector from '../WoundosomeSelector';
+import PedalAccelerationTime from '../PedalAccelerationTime';
+import { getPatMeasurements } from '../../data/pedalAccelerationTime';
 
 const stageOptions = [
   { label: __('I Asymptomatic', 'endoplanner'), value: 'i' },
@@ -124,6 +126,10 @@ export default function Step1({ data, setData }) {
         field="ischemia"
         value={clinical.ischemia}
         onChange={(value) => setClinicalGrade('ischemia', value)}
+      />
+      <PedalAccelerationTime
+        value={getPatMeasurements(clinical)}
+        onChange={(patMeasurements) => setClinicalGrade('patMeasurements', patMeasurements)}
       />
       <WifiGrade
         title={__('Foot infection', 'endoplanner')}

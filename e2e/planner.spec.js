@@ -111,7 +111,7 @@ async function seed(page, data, step, savedProfile = null) {
   await page.route('https://endoplanner.thesisapps.com/**', (route) => route.abort());
   await page.addInitScript(
     ({ stateKey, profileKey, caseData, currentStep, profileData }) => {
-      localStorage.setItem(
+      if (!localStorage.getItem(stateKey)) localStorage.setItem(
         stateKey,
         JSON.stringify({
           schemaVersion: 3,
@@ -382,16 +382,127 @@ test('maps Fontaine IV wound locations to a wound-informed TAP consideration', a
 
   const selector = page.getByTestId('woundosome-selector');
   await expect(selector).toBeVisible();
-  await expect(selector.locator('.foot-outline')).toHaveCount(2);
-  await expect(selector.locator('.toe-crease')).toHaveCount(2);
-  await expect(selector.locator('.plantar-landmark')).toHaveCount(1);
-  await selector.getByRole('checkbox', { name: 'Hallux / first ray' }).click();
+  await expect(selector.getByTestId('woundosome-ap')).toBeVisible();
+  await expect(selector.getByTestId('woundosome-lateral')).toBeVisible();
+  const imagesLoaded = await selector.locator('svg image').evaluateAll((images) => (
+    Promise.all(images.map((image) => new Promise((resolve) => {
+      const probe = new Image();
+      probe.onload = () => resolve(probe.naturalWidth > 500);
+      probe.onerror = () => resolve(false);
+      probe.src = image.getAttribute('href');
+    })))
+  ));
+  expect(imagesLoaded).toEqual([true, true]);
+  await selector.getByTestId('wound-zone-ap-hallux-first-ray').locator('.wound-zone-marker').click();
+  await expect(selector.getByTestId('wound-zone-lateral-hallux-first-ray')).toHaveAttribute('aria-checked', 'true');
+  await expect(selector.getByRole('button', { name: 'Hallux / first ray', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(selector.getByText('Anterior tibial → dorsalis pedis TAP')).toBeVisible();
   await expect(selector.getByText('Posterior tibial → plantar arch TAP')).toBeVisible();
 
   await expect.poll(() => page.evaluate((key) => (
     JSON.parse(localStorage.getItem(key))?.data?.clinical?.woundLocations
   ), STATE_KEY)).toEqual(['hallux-first-ray']);
+
+  await selector.getByTestId('wound-zone-lateral-medial-heel').focus();
+  await page.keyboard.press('Space');
+  await expect(selector.getByRole('button', { name: 'Medial heel', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await expect(page.getByTestId('wound-zone-ap-hallux-first-ray')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByTestId('wound-zone-lateral-medial-heel')).toHaveAttribute('aria-checked', 'true');
+  await page.getByTestId('woundosome-selector').getByRole('button', { name: 'Clear', exact: true }).click();
+  await expect(page.getByTestId('woundosome-selector').locator('[aria-checked="true"]')).toHaveCount(0);
+});
+
+test('keeps PAT optional, classifies each measured artery and restores it after reload', async ({ page }) => {
+  await seed(page, baseCase(), 0);
+  await page.goto('./');
+  const pat = page.getByTestId('pat-assessment');
+  await expect(pat.getByRole('button', { name: /Pedal acceleration time/ })).toHaveAttribute('aria-expanded', 'false');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Disease anatomy', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+
+  await pat.getByRole('button', { name: /Pedal acceleration time/ }).click();
+  await pat.getByRole('button', { name: '+ Add PAT measurement', exact: true }).click();
+  const first = pat.getByTestId('pat-measurement').first();
+  await first.getByLabel('Artery measured', { exact: true }).selectOption('dorsalis-pedis');
+  for (const [milliseconds, result] of [
+    ['120', 'Category 1'], ['121', 'Category 2'], ['180', 'Category 2'],
+    ['181', 'Category 3'], ['224', 'Category 3'], ['225', 'Boundary value'], ['226', 'Category 4'],
+  ]) {
+    await first.getByLabel('PAT (ms)', { exact: true }).fill(milliseconds);
+    await expect(first.locator('.pat-category')).toContainText(result);
+  }
+  await pat.getByRole('button', { name: '+ Add another artery', exact: true }).click();
+  const second = pat.getByTestId('pat-measurement').nth(1);
+  await second.getByLabel('Artery measured', { exact: true }).selectOption('lateral-plantar');
+  await second.getByLabel('PAT (ms)', { exact: true }).fill('160');
+  await expect(second.locator('.pat-category')).toContainText('Category 2');
+  await page.reload();
+  await expect(pat.getByTestId('pat-measurement')).toHaveCount(2);
+  await expect(pat.getByLabel('PAT (ms)', { exact: true }).first()).toHaveValue('226');
+  await expect(pat.getByLabel('Artery measured', { exact: true }).nth(1)).toHaveValue('lateral-plantar');
+  await pat.getByRole('button', { name: 'Remove PAT measurement 1', exact: true }).click();
+  await expect(pat.getByTestId('pat-measurement')).toHaveCount(1);
+  await expect(pat.getByLabel('PAT (ms)', { exact: true })).toHaveValue('160');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Disease anatomy', exact: true })).toBeVisible();
+});
+
+test('checks partially entered PAT without changing WIfI grading', async ({ page }) => {
+  await seed(page, baseCase(), 0);
+  await page.goto('./');
+  const pat = page.getByTestId('pat-assessment');
+  await pat.getByRole('button', { name: /Pedal acceleration time/ }).click();
+  await pat.getByRole('button', { name: '+ Add PAT measurement', exact: true }).click();
+  await pat.getByLabel('PAT (ms)', { exact: true }).fill('200');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Choose the artery measured for PAT.');
+  await pat.getByLabel('Artery measured', { exact: true }).selectOption('medial-plantar');
+  await pat.getByLabel('PAT (ms)', { exact: true }).fill('-5');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('positive whole number');
+  await pat.getByRole('button', { name: 'Remove PAT measurement 1', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect.poll(() => page.evaluate((key) => (
+    JSON.parse(localStorage.getItem(key))?.data?.clinical
+  ), STATE_KEY)).toMatchObject({ wound: 2, ischemia: 2, infection: 1, patMeasurements: [] });
+});
+
+test('includes artery, PAT and category in the case summary and PDF', async ({ page }, testInfo) => {
+  const data = completeCase();
+  data.clinical.patMeasurements = [
+    { id: 'pat-1', artery: 'dorsalis-pedis', milliseconds: '120' },
+    { id: 'pat-2', artery: 'lateral-plantar', milliseconds: '200' },
+  ];
+  await seed(page, data, 3);
+  await page.goto('./');
+  const summary = page.getByTestId('pat-summary');
+  await expect(summary).toContainText('Dorsalis pedis artery — 120 ms — Category 1');
+  await expect(summary).toContainText('Lateral plantar artery — 200 ms — Category 3');
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const download = await downloadPromise;
+  await download.saveAs(testInfo.outputPath('pat-summary.pdf'));
+  expect(await download.failure()).toBeNull();
+});
+
+test('keeps colored wound selections and PAT inputs usable on a narrow screen', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page, baseCase(), 0);
+  await page.goto('./');
+  const selector = page.getByTestId('woundosome-selector');
+  await expect(selector.getByTestId('woundosome-ap')).toBeVisible();
+  await selector.getByRole('button', { name: 'Lateral heel', exact: true }).click();
+  await expect(selector.getByTestId('wound-zone-lateral-lateral-heel')).toHaveAttribute('aria-checked', 'true');
+  const pat = page.getByTestId('pat-assessment');
+  await pat.getByRole('button', { name: /Pedal acceleration time/ }).click();
+  await pat.getByRole('button', { name: '+ Add PAT measurement', exact: true }).click();
+  await pat.getByLabel('Artery measured', { exact: true }).selectOption('arcuate');
+  await pat.getByLabel('PAT (ms)', { exact: true }).fill('180');
+  await expect(pat.getByTestId('pat-measurement').locator('.pat-category')).toContainText('Category 2');
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(overflow).toBe(false);
 });
 
 test('keeps TAP selection below the active disease-anatomy selectors', async ({ page }) => {

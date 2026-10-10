@@ -6,12 +6,14 @@ import { analyzePlan } from './planAnalysis';
 import { formatTargetArterialPath, getLesionOptions, sideFromVesselId } from './lesions';
 import { formatScopeLabel, getScopeLesionIds } from './planScopes';
 import { getWoundosomeAdvice } from '../data/woundosome';
+import { getPatSummaryLines } from '../data/pedalAccelerationTime';
 
 const vesselSegments = Array.isArray(rawVesselData?.segments) ? rawVesselData.segments : [];
 const vesselName = (id) => vesselSegments.find((segment) => segment.id === id)?.name || id.replace(/_/g, ' ');
 
 const clean = (value) => String(value ?? '')
   .replace(/[–—]/g, '-')
+  .replace(/→/g, '->')
   .replace(/×/g, 'x')
   .replace(/≥/g, '>=')
   .replace(/≤/g, '<=');
@@ -169,6 +171,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     clinicalLines.push(`Estimated 1-year major amputation risk: approximately ${WIFI_STAGE_INFO[wifi.wifiStage].riskPercent}% (pooled observational estimate)`);
     clinicalLines.push(getWifiAction(wifi.wifiStage, wifi.ischemia));
   }
+  clinicalLines.push(...getPatSummaryLines(data.clinical));
   if (woundAdvice.zones.length) {
     clinicalLines.push(`Wound location: ${woundAdvice.zones.map((zone) => zone.label).join(', ')}`);
     clinicalLines.push(`Wound-informed TAP to consider: ${woundAdvice.primaryLabels.join(' or ')}`);
@@ -208,7 +211,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     28,
     806,
   );
-  doc.text('EndoPlanner v1.6.172', pageWidth - 28, 806, { align: 'right' });
+  doc.text('EndoPlanner v1.6.173', pageWidth - 28, 806, { align: 'right' });
 
   doc.save(reportFilename(data));
 }
