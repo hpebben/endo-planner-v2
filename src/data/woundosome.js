@@ -3,6 +3,11 @@ export const WOUNDOSOME_REFERENCE = {
   url: 'https://orbi.uliege.be/bitstream/2268/322037/1/L.Patrone%20Journal%20of%20Endovascular%20Therapy%20%282024%29%201-2.pdf',
 };
 
+export const FOOT_ANATOMY_REFERENCE = {
+  label: 'Manzi et al. — Vascular imaging of the foot (RadioGraphics, 2011)',
+  url: 'https://pubs.rsna.org/doi/10.1148/rg.316115511',
+};
+
 export const WOUND_ZONES = [
   {
     id: 'dorsal-toes',
@@ -22,7 +27,7 @@ export const WOUND_ZONES = [
     view: 'dorsal',
     primaryTapKeys: ['anterior', 'posterior'],
     alternativeTapKeys: [],
-    route: 'Assess both dorsalis pedis and medial plantar inflow; either may directly feed the first-toe wound bed',
+    route: 'Assess both dorsalis pedis and posterior tibial inflow: first dorsal metatarsal, medial plantar deep branch, or lateral plantar → plantar arch → first plantar metatarsal may supply the hallux',
   },
   {
     id: 'dorsum',
@@ -67,12 +72,12 @@ export const WOUND_ZONES = [
   {
     id: 'lateral-plantar',
     color: '#dc6b1b',
-    label: 'Lateral plantar foot',
+    label: 'Lateral plantar foot / fifth-ray side',
     shortLabel: 'Lateral plantar',
     view: 'plantar',
     primaryTapKeys: ['posterior'],
     alternativeTapKeys: ['peroneal'],
-    route: 'Posterior tibial artery → lateral plantar artery/plantar arch',
+    route: 'Posterior tibial artery → lateral plantar artery along the fifth-ray side → plantar arch (turns medially toward the first interspace)',
   },
   {
     id: 'medial-heel',

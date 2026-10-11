@@ -814,6 +814,8 @@ svg .vessel-path:hover {
 }
 
 .woundosome-projection {
+  display: flex;
+  flex-direction: column;
   margin: 0;
   overflow: hidden;
   border: 1px solid #c9d5e5;
@@ -831,8 +833,34 @@ svg .vessel-path:hover {
 
 .woundosome-map {
   display: block;
+  flex-shrink: 0;
   width: 100%;
   height: 340px;
+}
+
+.woundosome-landmarks {
+  pointer-events: none;
+
+  line { stroke: #25314f; stroke-width: 1.5; }
+  circle { fill: #25314f; }
+  rect { fill: #fff; fill-opacity: 0.94; stroke: #677187; stroke-width: 1; }
+  text {
+    fill: #25314f;
+    font-size: 13px;
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+}
+
+.woundosome-orientation {
+  flex: 1;
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  background: #fff;
+  color: #49556b;
+  font-size: 0.68rem;
+  line-height: 1.45;
 }
 
 .wound-zone {
@@ -865,7 +893,7 @@ svg .vessel-path:hover {
   stroke: var(--zone-color);
   stroke-width: 2;
   stroke-dasharray: 3 3;
-  opacity: 0;
+  opacity: 0.75;
   pointer-events: none;
 }
 
@@ -900,6 +928,18 @@ svg .vessel-path:hover {
   font-size: 13px;
   font-weight: 700;
   text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.woundosome-map .wound-zone-callout {
+  fill: #25314f;
+  stroke: #fff;
+  stroke-width: 4;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  font-size: 13px;
+  font-weight: 700;
   dominant-baseline: central;
   pointer-events: none;
 }
@@ -979,6 +1019,12 @@ svg .vessel-path:hover {
 
 .woundosome-advice a {
   color: #1747a6;
+}
+
+.woundosome-references {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .woundosome-caution {
