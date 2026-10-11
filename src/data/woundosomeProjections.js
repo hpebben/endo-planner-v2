@@ -1,47 +1,54 @@
-// Anatomical basis: Manzi et al., RadioGraphics 2011;31:1623–1636,
-// doi:10.1148/rg.316115511, Figs 2–7. Image coordinates refer to the
-// unmirrored LEFT-foot panels in Patrone et al. (2024), Fig. 3B and 3A.
-// In this AP panel the hallux is lower-left and the fifth ray is upper-right.
-// Markers locate wounds, not proven perfusion territories. Dorsal/plantar
-// surfaces superimpose in AP; medial/lateral heel surfaces superimpose laterally.
-// The lateral panel crops the toes, so it must not pretend to locate the hallux.
-const heelProjection = { x: 82, y: 307, rx: 63, ry: 49, rotate: 12 };
+import { FOOT_RAYS, FOOT_VIEWS, projectFootPoint } from './footArterialModel';
+
+// Wounds are surface locations, not vessel paths or sharp perfusion boundaries.
+// Project the same surface coordinates as the original patent arterial model.
+// Dorsal/plantar locations overlap in AP; heel surfaces overlap laterally.
+const location = (point, viewId, rx, ry, options = {}) => {
+  const [x, y] = projectFootPoint(point, viewId);
+  return { x, y, rx, ry, ...options };
+};
+const heel = location([0, 12, 18], 'lateral', 42, 37, { rotate: 25 });
 
 export const WOUND_PROJECTIONS = [
   {
     id: 'ap',
-    label: 'AP · left foot',
-    width: 382,
-    height: 500,
-    orientation: 'Hallux / first ray = medial; fifth ray = lateral. Dorsal and plantar surfaces overlap in AP. Use the lateral view for ankle and heel wounds.',
+    label: 'AP (dorsoplantar) · left foot',
+    width: FOOT_VIEWS.ap.width,
+    height: FOOT_VIEWS.ap.height,
+    orientation: 'Hallux / first ray = medial; fifth ray = lateral. Dorsal and plantar surfaces overlap in AP; use the lateral oblique view to distinguish their depth.',
     landmarks: [
-      { id: 'hallux', label: 'Hallux · medial', anchor: [193, 470], box: [12, 399, 128, 28] },
-      { id: 'fifth-ray', label: '5th ray · lateral', anchor: [367, 298], box: [240, 391, 132, 28] },
+      { id: 'hallux', label: 'Hallux · medial', anchor: projectFootPoint(FOOT_RAYS[0].tip, 'ap'), box: [12, 539, 140, 28] },
+      { id: 'fifth-ray', label: '5th ray · lateral', anchor: projectFootPoint(FOOT_RAYS[4].tip, 'ap'), box: [345, 507, 145, 28] },
     ],
     locations: {
-      'dorsal-toes': { x: 288, y: 302, rx: 64, ry: 29, rotate: -39, marker: [302, 310] },
-      'hallux-first-ray': { x: 180, y: 426, rx: 35, ry: 61, rotate: -18, marker: [184, 456] },
-      dorsum: { x: 217, y: 163, rx: 62, ry: 77, rotate: -24, marker: [207, 164] },
-      'plantar-toes': { x: 288, y: 302, rx: 64, ry: 29, rotate: -39, marker: [253, 357] },
-      'medial-plantar': { x: 117, y: 232, rx: 27, ry: 68, rotate: 2 },
-      'lateral-plantar': { x: 294, y: 179, rx: 33, ry: 71, rotate: -32, marker: [316, 188] },
+      'dorsal-toes': location([14, 222, 32], 'ap', 100, 36, { marker: [276, 422] }),
+      'hallux-first-ray': location([-51, 234, 27], 'ap', 25, 58, { rotate: 12, marker: [151, 453] }),
+      dorsum: location([-2, 120, 68], 'ap', 64, 65, { marker: [255, 222] }),
+      'lateral-ankle': location([35, 40, 85], 'ap', 25, 40, { marker: [358, 96] }),
+      'plantar-toes': location([14, 225, 8], 'ap', 100, 36, { marker: [314, 493] }),
+      'medial-plantar': location([-44, 120, 25], 'ap', 25, 55, { marker: [130, 285] }),
+      'lateral-plantar': location([48, 135, 13], 'ap', 25, 55, { marker: [366, 295] }),
+      'medial-heel': location([-29, 0, 14], 'ap', 24, 25, { marker: [150, 170] }),
+      'lateral-heel': location([29, 0, 14], 'ap', 24, 25, { marker: [357, 170] }),
     },
   },
   {
     id: 'lateral',
-    label: 'Lateral · left foot',
-    width: 488,
-    height: 500,
-    orientation: 'Medial and lateral heel wounds project onto the same heel: 8 and 9 are callouts, not separate territories in this view. The toes are outside this image; use AP or the color key for forefoot and instep wounds.',
-    landmarks: [
-      { id: 'dorsal', label: 'Dorsal', anchor: [420, 343], box: [358, 202, 91, 28] },
-      { id: 'plantar', label: 'Plantar', anchor: [277, 386], box: [308, 438, 92, 28] },
-    ],
+    label: 'Lateral oblique · left foot',
+    width: FOOT_VIEWS.lateral.width,
+    height: FOOT_VIEWS.lateral.height,
+    orientation: 'Dorsal vessels lie above the plantar vessels. Medial and lateral heel surfaces overlap: 8 and 9 are separate callouts to the same projected heel, not distinct perfusion territories.',
+    landmarks: [],
     locations: {
-      dorsum: { x: 374, y: 315, rx: 30, ry: 74, rotate: -27, marker: [414, 278] },
-      'lateral-ankle': { x: 252, y: 177, rx: 55, ry: 46, rotate: -12, marker: [392, 120] },
-      'medial-heel': { ...heelProjection, marker: [46, 409], markerLabel: 'Medial heel' },
-      'lateral-heel': { ...heelProjection, marker: [120, 453], markerLabel: 'Lateral heel' },
+      'dorsal-toes': location([14, 222, 32], 'lateral', 58, 25, { rotate: 25, marker: [526, 340] }),
+      'hallux-first-ray': location([-51, 234, 27], 'lateral', 39, 22, { rotate: 25, marker: [532, 437] }),
+      dorsum: location([-2, 120, 68], 'lateral', 65, 29, { rotate: 25, marker: [435, 245] }),
+      'lateral-ankle': location([35, 40, 85], 'lateral', 35, 42, { rotate: 25, marker: [350, 167] }),
+      'plantar-toes': location([14, 225, 8], 'lateral', 58, 25, { rotate: 25, marker: [492, 512] }),
+      'medial-plantar': location([-44, 120, 25], 'lateral', 55, 22, { rotate: 25, marker: [190, 460] }),
+      'lateral-plantar': location([48, 135, 13], 'lateral', 55, 22, { rotate: 25, marker: [315, 475] }),
+      'medial-heel': { ...heel, marker: [46, 360], markerLabel: 'Medial heel' },
+      'lateral-heel': { ...heel, marker: [56, 423], markerLabel: 'Lateral heel' },
     },
   },
 ];

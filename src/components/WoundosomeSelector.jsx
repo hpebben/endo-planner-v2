@@ -8,13 +8,11 @@ import {
   WOUND_ZONES,
 } from '../data/woundosome';
 import { WOUND_PROJECTIONS } from '../data/woundosomeProjections';
-import apAngiogram from '../assets/woundosome/foot-angiogram-ap.png';
-import lateralAngiogram from '../assets/woundosome/foot-angiogram-lateral.png';
-
-const ANGIOGRAMS = { ap: apAngiogram, lateral: lateralAngiogram };
+import FootAngiographicModel from './FootAngiographicModel';
 
 export default function WoundosomeSelector({ value = [], onChange }) {
   const [inspected, setInspected] = useState('');
+  const [showArteryLabels, setShowArteryLabels] = useState(false);
   const selected = new Set(value);
   const advice = getWoundosomeAdvice(value);
 
@@ -47,6 +45,17 @@ export default function WoundosomeSelector({ value = [], onChange }) {
         )}
       </div>
 
+      <div className="woundosome-model-toolbar">
+        <span className="woundosome-model-badge">{__('Idealized patent anatomy', 'endoplanner')}</span>
+        <button
+          type="button"
+          aria-pressed={showArteryLabels}
+          onClick={() => setShowArteryLabels((shown) => !shown)}
+          data-testid="foot-artery-label-toggle"
+        >
+          {__('Artery labels', 'endoplanner')}
+        </button>
+      </div>
       <div className="woundosome-projections">
         {WOUND_PROJECTIONS.map((projection) => (
           <figure className="woundosome-projection" key={projection.id}>
@@ -55,16 +64,10 @@ export default function WoundosomeSelector({ value = [], onChange }) {
               className="woundosome-map"
               viewBox={`0 0 ${projection.width} ${projection.height}`}
               role="group"
-              aria-label={`${projection.label} foot angiogram — wound locations`}
+              aria-label={`${projection.label} — patent reference arteries and wound locations`}
               data-testid={`woundosome-${projection.id}`}
             >
-              <image
-                href={ANGIOGRAMS[projection.id]}
-                width={projection.width}
-                height={projection.height}
-                aria-hidden="true"
-                preserveAspectRatio="none"
-              />
+              <FootAngiographicModel viewId={projection.id} showLabels={showArteryLabels} />
               <g className="woundosome-landmarks" aria-label={__('Anatomical orientation', 'endoplanner')}>
                 {projection.landmarks.map((landmark) => {
                   const [x, y, width, height] = landmark.box;
@@ -135,7 +138,7 @@ export default function WoundosomeSelector({ value = [], onChange }) {
       </div>
 
       <p className="woundosome-image-caption">
-        {__('Anatomical orientation and arterial supply: Manzi et al. (RadioGraphics, 2011), Figs. 2–7. Reference left-foot angiograms: Patrone et al. (2024), Fig. 3A–B, © The Author(s). Colored areas indicate projected wound locations; confirm the actual feeding artery in the patient.', 'endoplanner')}
+        {__('Original angiographic-style reference model based on Manzi et al. (RadioGraphics, 2011). All black arteries are patent; colors mark wound locations. Both views show the same classical arterial configuration, including the pedal–plantar loop. Individual branching and wound supply vary.', 'endoplanner')}
       </p>
       <div className="woundosome-zone-list" aria-label={__('Wound locations', 'endoplanner')}>
         {WOUND_ZONES.map((zone, index) => (
