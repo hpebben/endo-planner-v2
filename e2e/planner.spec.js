@@ -384,19 +384,22 @@ test('maps Fontaine IV wound locations to a wound-informed TAP consideration', a
   await expect(selector).toBeVisible();
   await expect(selector.getByTestId('woundosome-ap')).toBeVisible();
   await expect(selector.getByTestId('woundosome-lateral')).toBeVisible();
-  const imagesLoaded = await selector.locator('svg image').evaluateAll((images) => (
-    Promise.all(images.map((image) => new Promise((resolve) => {
-      const probe = new Image();
-      probe.onload = () => resolve(probe.naturalWidth > 500);
-      probe.onerror = () => resolve(false);
-      probe.src = image.getAttribute('href');
-    })))
-  ));
-  expect(imagesLoaded).toEqual([true, true]);
+  await expect(selector.locator('svg image')).toHaveCount(0);
+  await expect(selector.getByText('Idealized patent anatomy', { exact: true })).toBeVisible();
+  const arterialIds = [];
+  for (const view of ['ap', 'lateral']) {
+    const model = selector.getByTestId(`foot-anatomy-${view}`);
+    await expect(model).toBeVisible();
+    for (const id of ['dorsalis-pedis', 'deep-plantar', 'plantar-arch', 'medial-plantar', 'lateral-plantar', 'medial-calcaneal', 'lateral-calcaneal']) {
+      await expect(model.locator(`[data-artery-id="${id}"]`)).toHaveAttribute('data-patency', 'patent');
+    }
+    arterialIds.push(await model.locator('[data-artery-id]').evaluateAll((paths) => paths.map((path) => path.dataset.arteryId).sort()));
+  }
+  expect(arterialIds[0]).toEqual(arterialIds[1]);
   await expect(selector.getByTestId('wound-landmark-ap-hallux')).toContainText('Hallux · medial');
   await expect(selector.getByTestId('wound-landmark-ap-fifth-ray')).toContainText('5th ray · lateral');
   await selector.getByTestId('wound-zone-ap-hallux-first-ray').locator('.wound-zone-marker').click();
-  await expect(selector.getByTestId('wound-zone-lateral-hallux-first-ray')).toHaveCount(0);
+  await expect(selector.getByTestId('wound-zone-lateral-hallux-first-ray')).toHaveAttribute('aria-checked', 'true');
   await expect(selector.getByRole('button', { name: 'Hallux / first ray', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(selector.getByText('Anterior tibial → dorsalis pedis TAP')).toBeVisible();
   await expect(selector.getByText('Posterior tibial → plantar arch TAP')).toBeVisible();
@@ -425,9 +428,13 @@ test('keeps option 7 on the fifth-ray side and all wound controls synchronized',
   ));
   const hallux = await position('hallux-first-ray');
   const lateralSole = await position('lateral-plantar');
-  expect(Math.hypot(hallux[0] - 193, hallux[1] - 470)).toBeLessThan(40);
-  expect(Math.hypot(lateralSole[0] - 193, lateralSole[1] - 470)).toBeGreaterThan(250);
-  expect(Math.hypot(lateralSole[0] - 367, lateralSole[1] - 298)).toBeLessThan(150);
+  const landmark = async (id) => selector.getByTestId(`wound-landmark-ap-${id}`).locator('circle').evaluate((circle) => (
+    [Number(circle.getAttribute('cx')), Number(circle.getAttribute('cy'))]
+  ));
+  const halluxTip = await landmark('hallux'), fifthTip = await landmark('fifth-ray');
+  expect(Math.hypot(hallux[0] - halluxTip[0], hallux[1] - halluxTip[1])).toBeLessThan(65);
+  expect(lateralSole[0]).toBeGreaterThan(fifthTip[0]);
+  expect(lateralSole[0] - halluxTip[0]).toBeGreaterThan(200);
   await selector.getByTestId('wound-zone-ap-lateral-plantar').locator('.wound-zone-marker').click();
   await expect(selector.getByRole('button', { name: 'Lateral plantar foot / fifth-ray side', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(selector.getByRole('button', { name: 'Hallux / first ray', exact: true })).toHaveAttribute('aria-pressed', 'false');
@@ -437,7 +444,7 @@ test('keeps option 7 on the fifth-ray side and all wound controls synchronized',
   await expect(key).toHaveCount(9);
   for (let i = 0; i < 9; i += 1) await key.nth(i).click();
   await expect(key.locator('[aria-hidden="true"].wound-zone-check')).toHaveCount(9);
-  await expect(selector.locator('[role="checkbox"][aria-checked="true"]')).toHaveCount(10);
+  await expect(selector.locator('[role="checkbox"][aria-checked="true"]')).toHaveCount(18);
   await page.reload();
   await expect(selector.locator('.woundosome-zone-list button[aria-pressed="true"]')).toHaveCount(9);
   // Dorsum is visible in both projections and toggles both controls together.
@@ -445,6 +452,27 @@ test('keeps option 7 on the fifth-ray side and all wound controls synchronized',
   await page.keyboard.press('Enter');
   await expect(selector.getByTestId('wound-zone-ap-dorsum')).toHaveAttribute('aria-checked', 'false');
   await expect(selector.getByRole('button', { name: 'Dorsum of foot', exact: true })).toHaveAttribute('aria-pressed', 'false');
+});
+
+test('shows artery labels in both reference views without losing wound selections', async ({ page }) => {
+  await seed(page, { ...baseCase(), clinical: { wound: 2, ischemia: 2, infection: 1, woundLocations: ['lateral-plantar'] } }, 0);
+  await page.goto('./');
+  const selector = page.getByTestId('woundosome-selector');
+  const toggle = selector.getByTestId('foot-artery-label-toggle');
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(selector.locator('.foot-artery-labels')).toHaveCount(0);
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  for (const view of ['ap', 'lateral']) {
+    await expect(selector.getByTestId(`foot-artery-labels-${view}`)).toContainText('Deep plantar');
+    await expect(selector.getByTestId(`wound-zone-${view}-lateral-plantar`)).toHaveAttribute('aria-checked', 'true');
+  }
+  await selector.getByTestId('wound-zone-lateral-hallux-first-ray').focus();
+  await page.keyboard.press('Space');
+  await expect(selector.getByTestId('wound-zone-ap-hallux-first-ray')).toHaveAttribute('aria-checked', 'true');
+  await toggle.click();
+  await expect(selector.locator('.foot-artery-labels')).toHaveCount(0);
+  await expect(selector.getByTestId('wound-zone-lateral-hallux-first-ray')).toHaveAttribute('aria-checked', 'true');
 });
 
 test('keeps PAT optional, classifies each measured artery and restores it after reload', async ({ page }) => {

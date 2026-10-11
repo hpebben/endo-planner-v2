@@ -823,6 +823,38 @@ svg .vessel-path:hover {
   background: #e6e9ee;
 }
 
+.woundosome-model-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+
+  button {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #b9c6dd;
+    border-radius: 8px;
+    background: #fff;
+    color: #25314f;
+    font-size: 0.72rem;
+    cursor: pointer;
+
+    &[aria-pressed='true'] { background: #e1eafb; border-color: #1747a6; }
+    &:focus-visible { outline: 2px solid #1747a6; outline-offset: 2px; }
+  }
+}
+
+.woundosome-model-badge {
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: #dceee8;
+  color: #21574b;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 .woundosome-projection figcaption {
   padding: 0.55rem 0.75rem;
   background: #25314f;
@@ -835,7 +867,40 @@ svg .vessel-path:hover {
   display: block;
   flex-shrink: 0;
   width: 100%;
-  height: 340px;
+  height: 400px;
+}
+
+.foot-angiographic-model { pointer-events: none; }
+.foot-soft-tissue {
+  fill: #aeb6bf;
+  fill-opacity: 0.12;
+  stroke: #768490;
+  stroke-opacity: 0.2;
+  stroke-width: 1;
+}
+.foot-bones {
+  fill-opacity: 0.52;
+  stroke: #73818b;
+  stroke-opacity: 0.28;
+  stroke-width: 1;
+}
+.foot-artery {
+  fill: none;
+  stroke: #252e35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.foot-artery-labels {
+  line { stroke: #536172; stroke-width: 1; }
+  circle { fill: #536172; }
+  rect { fill: #fff; fill-opacity: 0.96; stroke: #86919c; stroke-width: 0.8; }
+  text {
+    fill: #25314f;
+    font-size: 13px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
 }
 
 .woundosome-landmarks {
@@ -1036,12 +1101,13 @@ svg .vessel-path:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .woundosome-map {
-    height: 280px;
+    height: 340px;
   }
 }
 
 @media (max-width: 420px) {
   .woundosome-projections { grid-template-columns: 1fr; }
+  .woundosome-map { height: 380px; }
 }
 
 
