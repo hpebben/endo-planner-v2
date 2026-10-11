@@ -393,11 +393,14 @@ test('maps Fontaine IV wound locations to a wound-informed TAP consideration', a
     })))
   ));
   expect(imagesLoaded).toEqual([true, true]);
+  await expect(selector.getByTestId('wound-landmark-ap-hallux')).toContainText('Hallux · medial');
+  await expect(selector.getByTestId('wound-landmark-ap-fifth-ray')).toContainText('5th ray · lateral');
   await selector.getByTestId('wound-zone-ap-hallux-first-ray').locator('.wound-zone-marker').click();
-  await expect(selector.getByTestId('wound-zone-lateral-hallux-first-ray')).toHaveAttribute('aria-checked', 'true');
+  await expect(selector.getByTestId('wound-zone-lateral-hallux-first-ray')).toHaveCount(0);
   await expect(selector.getByRole('button', { name: 'Hallux / first ray', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(selector.getByText('Anterior tibial → dorsalis pedis TAP')).toBeVisible();
   await expect(selector.getByText('Posterior tibial → plantar arch TAP')).toBeVisible();
+  await expect(selector.getByRole('link', { name: /Manzi et al/ })).toHaveAttribute('href', 'https://pubs.rsna.org/doi/10.1148/rg.316115511');
 
   await expect.poll(() => page.evaluate((key) => (
     JSON.parse(localStorage.getItem(key))?.data?.clinical?.woundLocations
@@ -411,6 +414,37 @@ test('maps Fontaine IV wound locations to a wound-informed TAP consideration', a
   await expect(page.getByTestId('wound-zone-lateral-medial-heel')).toHaveAttribute('aria-checked', 'true');
   await page.getByTestId('woundosome-selector').getByRole('button', { name: 'Clear', exact: true }).click();
   await expect(page.getByTestId('woundosome-selector').locator('[aria-checked="true"]')).toHaveCount(0);
+});
+
+test('keeps option 7 on the fifth-ray side and all wound controls synchronized', async ({ page }) => {
+  await seed(page, { ...baseCase(), clinical: { wound: 2, ischemia: 2, infection: 1, woundLocations: [] } }, 0);
+  await page.goto('./');
+  const selector = page.getByTestId('woundosome-selector');
+  const position = async (id) => selector.getByTestId(`wound-zone-ap-${id}`).locator('.wound-zone-marker').evaluate((marker) => (
+    [Number(marker.getAttribute('cx')), Number(marker.getAttribute('cy'))]
+  ));
+  const hallux = await position('hallux-first-ray');
+  const lateralSole = await position('lateral-plantar');
+  expect(Math.hypot(hallux[0] - 193, hallux[1] - 470)).toBeLessThan(40);
+  expect(Math.hypot(lateralSole[0] - 193, lateralSole[1] - 470)).toBeGreaterThan(250);
+  expect(Math.hypot(lateralSole[0] - 367, lateralSole[1] - 298)).toBeLessThan(150);
+  await selector.getByTestId('wound-zone-ap-lateral-plantar').locator('.wound-zone-marker').click();
+  await expect(selector.getByRole('button', { name: 'Lateral plantar foot / fifth-ray side', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(selector.getByRole('button', { name: 'Hallux / first ray', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await selector.getByRole('button', { name: 'Clear', exact: true }).click();
+
+  const key = selector.locator('.woundosome-zone-list button');
+  await expect(key).toHaveCount(9);
+  for (let i = 0; i < 9; i += 1) await key.nth(i).click();
+  await expect(key.locator('[aria-hidden="true"].wound-zone-check')).toHaveCount(9);
+  await expect(selector.locator('[role="checkbox"][aria-checked="true"]')).toHaveCount(10);
+  await page.reload();
+  await expect(selector.locator('.woundosome-zone-list button[aria-pressed="true"]')).toHaveCount(9);
+  // Dorsum is visible in both projections and toggles both controls together.
+  await selector.getByTestId('wound-zone-lateral-dorsum').focus();
+  await page.keyboard.press('Enter');
+  await expect(selector.getByTestId('wound-zone-ap-dorsum')).toHaveAttribute('aria-checked', 'false');
+  await expect(selector.getByRole('button', { name: 'Dorsum of foot', exact: true })).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('keeps PAT optional, classifies each measured artery and restores it after reload', async ({ page }) => {

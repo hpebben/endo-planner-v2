@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import {
+  FOOT_ANATOMY_REFERENCE,
   getWoundosomeAdvice,
   WOUNDOSOME_REFERENCE,
   WOUND_ZONES,
@@ -36,7 +37,7 @@ export default function WoundosomeSelector({ value = [], onChange }) {
         <div>
           <h2 className="section-title">{__('Wound location (woundosome)', 'endoplanner')}</h2>
           <p className="section-subtitle">
-            {__('Select every ulcer or gangrene location on the angiograms or in the color key. Matching colors and numbers identify the same location in both projections.', 'endoplanner')}
+            {__('Select every ulcer or gangrene location using the numbered markers or color key. In AP, identify the hallux (medial) and fifth ray (lateral) first.', 'endoplanner')}
           </p>
         </div>
         {value.length > 0 && (
@@ -64,6 +65,19 @@ export default function WoundosomeSelector({ value = [], onChange }) {
                 aria-hidden="true"
                 preserveAspectRatio="none"
               />
+              <g className="woundosome-landmarks" aria-label={__('Anatomical orientation', 'endoplanner')}>
+                {projection.landmarks.map((landmark) => {
+                  const [x, y, width, height] = landmark.box;
+                  return (
+                    <g key={landmark.id} data-testid={`wound-landmark-${projection.id}-${landmark.id}`}>
+                      <line x1={x + width / 2} y1={y + height / 2} x2={landmark.anchor[0]} y2={landmark.anchor[1]} />
+                      <circle cx={landmark.anchor[0]} cy={landmark.anchor[1]} r="3" />
+                      <rect x={x} y={y} width={width} height={height} rx="5" />
+                      <text x={x + width / 2} y={y + height / 2}>{landmark.label}</text>
+                    </g>
+                  );
+                })}
+              </g>
               {WOUND_ZONES.map((zone, index) => {
                 const location = projection.locations[zone.id];
                 if (!location) return null;
@@ -107,17 +121,21 @@ export default function WoundosomeSelector({ value = [], onChange }) {
                     <circle className="wound-zone-hit" cx={marker[0]} cy={marker[1]} r="22" />
                     <circle className="wound-zone-marker" cx={marker[0]} cy={marker[1]} r="14" />
                     <text x={marker[0]} y={marker[1]} className="wound-zone-number" aria-hidden="true">{index + 1}</text>
+                    {location.markerLabel && (
+                      <text x={marker[0] + 22} y={marker[1]} className="wound-zone-callout" aria-hidden="true">{location.markerLabel}</text>
+                    )}
                     <title>{`${zone.label}${isSelected ? ' — selected' : ''}`}</title>
                   </g>
                 );
               })}
             </svg>
+            <p className="woundosome-orientation">{projection.orientation}</p>
           </figure>
         ))}
       </div>
 
       <p className="woundosome-image-caption">
-        {__('Reference left-foot angiograms: Patrone et al. (2024), Fig. 3A–B, © The Author(s). Colors mark approximate projected wound locations; dorsal/plantar and medial/lateral tissues can overlap in these views.', 'endoplanner')}
+        {__('Anatomical orientation and arterial supply: Manzi et al. (RadioGraphics, 2011), Figs. 2–7. Reference left-foot angiograms: Patrone et al. (2024), Fig. 3A–B, © The Author(s). Colored areas indicate projected wound locations; confirm the actual feeding artery in the patient.', 'endoplanner')}
       </p>
       <div className="woundosome-zone-list" aria-label={__('Wound locations', 'endoplanner')}>
         {WOUND_ZONES.map((zone, index) => (
@@ -155,15 +173,17 @@ export default function WoundosomeSelector({ value = [], onChange }) {
               </p>
             )}
             <p className="woundosome-caution">
-              {__('Confirm the true feeding artery with AP and lateral foot angiography. A patent pedal arch or robust collaterals may make indirect revascularization effective; multi-zone wounds may require more than one inflow route.', 'endoplanner')}
+              {__('Confirm the true feeding artery with AP and lateral oblique foot angiography. A patent pedal arch or robust collaterals may make indirect revascularization effective; multi-zone wounds may require more than one inflow route.', 'endoplanner')}
             </p>
           </>
         ) : (
           <p>{__('Select at least one wound location to generate a TAP consideration.', 'endoplanner')}</p>
         )}
-        <a href={WOUNDOSOME_REFERENCE.url} target="_blank" rel="noreferrer">
-          {WOUNDOSOME_REFERENCE.label}
-        </a>
+        <div className="woundosome-references">
+          {[FOOT_ANATOMY_REFERENCE, WOUNDOSOME_REFERENCE].map((reference) => (
+            <a key={reference.url} href={reference.url} target="_blank" rel="noreferrer">{reference.label}</a>
+          ))}
+        </div>
       </div>
     </section>
   );
