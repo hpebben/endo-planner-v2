@@ -1,12 +1,13 @@
 // Original idealized LEFT-foot arterial model, not a patient angiogram.
 // Topology: Manzi et al. RadioGraphics 2011, doi:10.1148/rg.316115511,
 // Figs 3, 5, 7–10; Higashimori 2017, IntechOpen chapter 53810; see asset README.
+// Digital border branches also follow Elsevier Complete Anatomy's DMA anatomy.
 // Drawing units are illustrative. x: medial (-) / lateral (+), y: heel to toes,
 // z: plantar (low) / dorsal (high). Both views project this SAME vessel graph.
 
 export const FOOT_NODES = {
   ataInflow: [1, 56, 160], ataAnkle: [5, 58, 101],
-  dpTarsal: [1, 78, 85], dpMid: [-8, 104, 73],
+  dpTarsal: [1, 78, 95], dpMid: [-8, 104, 83],
   dpArcuate: [-16, 124, 62], dpDeepOrigin: [-19, 133, 54],
   ptaInflow: [-32, 22, 160], ptaCommunicating: [-31, 27, 112],
   ptaCalcaneal: [-31, 33, 82], plantarBifurcation: [-28, 68, 33],
@@ -43,7 +44,7 @@ artery('posterior-communicating', 'Peroneal–posterior tibial communicating bra
 artery('medial-malleolar', 'Anterior medial malleolar artery', ['ataAnkle', [-12, 59, 87], [-34, 53, 72]], 1.1, 'anterior');
 artery('lateral-malleolar', 'Anterior lateral malleolar artery', ['ataAnkle', [26, 64, 88], [43, 47, 75]], 1.1, 'anterior');
 
-artery('medial-tarsal', 'Medial tarsal artery', ['dpMid', [-24, 99, 64], 'medialTarsal'], 1.25, 'anterior');
+artery('medial-tarsal', 'Medial tarsal artery', ['dpMid', [-24, 99, 79], 'medialTarsal'], 1.25, 'anterior');
 artery('medial-tarsal-proximal', 'Proximal medial tarsal branch', ['dpTarsal', [-17, 76, 67], [-34, 82, 55]], 0.85, 'anterior');
 artery('lateral-tarsal', 'Lateral tarsal artery', ['dpTarsal', [22, 91, 64], 'lateralTarsal', 'arcuateLateral'], 1.55, 'anterior');
 artery('lateral-tarsal-cutaneous', 'Lateral tarsal cutaneous branch', ['lateralTarsal', [55, 101, 37], [61, 123, 29]], 0.8, 'anterior');
@@ -110,14 +111,14 @@ artery('medial-plantar-deep', 'Medial plantar deep branch to the first plantar m
 // The exposed medial hallux and lateral fifth-toe margins complete the
 // digital supply; they are not an invented fifth intermetatarsal space.
 [['dorsal', 1, 'medial', 'dma1Head'], ['plantar', 1, 'medial', 'pma1Head'],
-  ['dorsal', 5, 'lateral', 'arcuateLateral'], ['plantar', 5, 'lateral', 'lateralPlantarTurn']].forEach(([surface, rayId, side, origin]) => {
+  ['dorsal', 5, 'lateral', 'dma4Mid'], ['plantar', 5, 'lateral', 'lateralPlantarTurn']].forEach(([surface, rayId, side, origin]) => {
   const ray = FOOT_RAYS[rayId - 1];
   const offset = (side === 'medial' ? -1 : 1) * (ray.width / 2 + 2);
   const z = surface === 'dorsal' ? 20 : 8;
   const endId = `${surface}Digit${rayId}${side}`;
   FOOT_NODES[endId] = [ray.tip[0] + offset, ray.tip[1] - 1, z];
   const route = rayId === 5
-    ? [origin, [57, 151, z + 3], [ray.head[0] + offset, ray.head[1] + 8, z], endId]
+    ? [origin, surface === 'dorsal' ? [55, 174, 29] : [57, 151, z + 3], [ray.head[0] + offset, ray.head[1] + 8, z], endId]
     : [origin, [-49, 231, z], [-61, 247, z], endId];
   artery(`${surface}-digital-${rayId}-${side}`, `${surface === 'dorsal' ? 'Dorsal' : 'Proper plantar'} digital artery, toe ${rayId}, ${side}`, route, 0.85, surface === 'dorsal' ? 'anterior' : 'posterior');
 });

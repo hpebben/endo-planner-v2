@@ -24,6 +24,11 @@ orientation; they are schematic context rather than a diagnostic bone atlas.
   Disease* (2017), https://www.intechopen.com/chapters/53810.
   The foot anatomy sections corroborate the tarsal/arcuate connections, plantar
   arch, four intermetatarsal arteries and distal digital branching.
+- Elsevier, *Complete Anatomy: Dorsal Metatarsal Arteries*,
+  https://www.elsevier.com/resources/anatomy/cardiovascular-system/arteries/dorsal-metatarsal-arteries/17853.
+  Corroborates the first/fourth metatarsal border branches, including the dorsal
+  branch along the outer fifth metatarsal from the **fourth DMA**, not a direct
+  branch from the arcuate artery. No platform images are redistributed.
 
 ## Arterial relationships represented
 
@@ -40,6 +45,8 @@ orientation; they are schematic context rather than a diagnostic bone atlas.
   the deep plantar arch. Four plantar metatarsal arteries course distally in
   the interspaces and divide near the metatarsal heads into proper digital
   branches. Both sides of all five toes receive digital branches.
+  The outer fifth toe receives its dorsal border branch from the fourth dorsal
+  metatarsal artery and its plantar border branch from the lateral plantar.
 - The medial plantar superficial course supplies the medial instep; its deep
   branch communicates with the first plantar metatarsal. The medial tarsal–
   medial plantar superficial connection corresponds to Manzi's "deep pedal arch", distinct

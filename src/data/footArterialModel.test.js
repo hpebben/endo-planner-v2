@@ -97,6 +97,13 @@ describe('patent reference arterial anatomy', () => {
     });
   });
 
+  test('supplies the outer fifth toe from fourth DMA dorsally and LPA plantarly', () => {
+    const dorsalOrigin = ends('dorsal-digital-5-lateral')[0];
+    expect(artery('dorsal-metatarsal-4').nodeIds).toContain(dorsalOrigin);
+    expect(artery('arcuate').nodeIds).not.toContain(dorsalOrigin);
+    expect(ends('plantar-digital-5-lateral')[0]).toBe(ends('lateral-plantar')[1]);
+  });
+
   test('distinguishes medial plantar superficial/tarsal and deep/first-metatarsal connections', () => {
     expect(ends('medial-plantar-deep')).toEqual(['medialPlantarBranch', 'pma1Mid']);
     expect(ends('tarsal-plantar-connection')).toEqual(['medialTarsal', 'medialPlantarSuperficial']);
