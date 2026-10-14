@@ -11,6 +11,30 @@ const validTargetPath = [
 ];
 
 describe( 'wizard validation with explicit route and device scopes', () => {
+
+	test.each( [ 'i', 'iia', 'iib', 'iii' ] )( 'does not require hidden wound assessments for Fontaine %s', ( stage ) => {
+		expect( validateStep( 0, { stage, clinical: {} } ) ).toEqual( [] );
+	} );
+
+	test( 'requires WIfI grades for Fontaine IV', () => {
+		expect( validateStep( 0, {
+			stage: 'iv',
+			clinical: { woundLocations: [ 'dorsum' ] },
+		} ) ).toContain( 'Assess all three WIfI components.' );
+	} );
+
+	test.each( [ 'i', 'iia', 'iib', 'iii', 'iv' ] )( 'keeps PAT optional and validates entered measurements in Fontaine %s', ( stage ) => {
+		const clinical = { wound: 2, ischemia: 2, infection: 1, woundLocations: [ 'dorsum' ] };
+		expect( validateStep( 0, { stage, clinical } ) ).toEqual( [] );
+		expect( validateStep( 0, {
+			stage,
+			clinical: { ...clinical, patMeasurements: [ { artery: '', milliseconds: '160' } ] },
+		} ) ).toContain( 'Choose the artery measured for PAT.' );
+		expect( validateStep( 0, {
+			stage,
+			clinical: { ...clinical, patMeasurements: [ { artery: 'dorsalis-pedis', milliseconds: '160' } ] },
+		} ) ).toEqual( [] );
+	} );
 	test( 'requires a wound location for Fontaine IV', () => {
 		const errors = validateStep( 0, {
 			stage: 'iv',

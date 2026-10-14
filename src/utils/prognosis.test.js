@@ -13,7 +13,7 @@ describe('WIfI clinical staging', () => {
   });
 
   test('calculates W2 I1 fI1 as stage 3', () => {
-    expect(computePrognosis({ clinical: { wound: 2, ischemia: 1, infection: 1 } })).toMatchObject({
+    expect(computePrognosis({ stage: 'iv', clinical: { wound: 2, ischemia: 1, infection: 1 } })).toMatchObject({
       wifiStage: 3,
       riskCategory: 'Moderate',
       isComplete: true,
@@ -21,6 +21,15 @@ describe('WIfI clinical staging', () => {
   });
 
   test('does not calculate a stage from missing components', () => {
-    expect(computePrognosis({ clinical: { wound: 2, ischemia: null, infection: 1 } }).isComplete).toBe(false);
+    expect(computePrognosis({ stage: 'iv', clinical: { wound: 2, ischemia: null, infection: 1 } }).isComplete).toBe(false);
+  });
+
+  test.each(['i', 'iia', 'iib', 'iii', ''])('ignores saved WIfI grades outside Fontaine IV (%s)', (stage) => {
+    expect(computePrognosis({ stage, clinical: { wound: 3, ischemia: 3, infection: 3 } })).toMatchObject({
+      isApplicable: false,
+      isComplete: false,
+      wifiStage: null,
+      riskCategory: null,
+    });
   });
 });

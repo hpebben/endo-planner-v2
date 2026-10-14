@@ -1,6 +1,7 @@
 import { getBlockingPlanFindings } from './planAnalysis';
 import { territoryFromVesselId, validateTargetArterialPath } from './lesions';
 import { getPatMeasurementError, getPatMeasurements } from '../data/pedalAccelerationTime';
+import { getActiveWoundLocations, isFontaineIV } from './clinicalStage';
 
 const metadataKeys = new Set( [ 'id', 'lesionId', 'scope' ] );
 
@@ -34,6 +35,7 @@ export const validateCaseStep = (
 			if ( error ) errors.push( translate( error, 'endoplanner' ) );
 		} );
 		if (
+			isFontaineIV( data.stage ) &&
 			! [ clinical.wound, clinical.ischemia, clinical.infection ].every(
 				Number.isInteger
 			)
@@ -43,8 +45,8 @@ export const validateCaseStep = (
 			);
 		}
 		if (
-			String( data.stage || '' ).toLowerCase() === 'iv' &&
-			! ( clinical.woundLocations || [] ).length
+			isFontaineIV( data.stage ) &&
+			! getActiveWoundLocations( data ).length
 		) {
 			errors.push(
 				translate(
