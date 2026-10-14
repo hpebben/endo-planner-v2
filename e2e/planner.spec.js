@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { readFileSync } = require('node:fs');
 
 const STATE_KEY = 'endoplannerState';
 const PROFILE_KEY = 'endoplanner.preferenceProfile';
@@ -473,6 +474,69 @@ test('shows artery labels in both reference views without losing wound selection
   await toggle.click();
   await expect(selector.locator('.foot-artery-labels')).toHaveCount(0);
   await expect(selector.getByTestId('wound-zone-lateral-hallux-first-ray')).toHaveAttribute('aria-checked', 'true');
+});
+
+test('shows WIfI and woundosome only in Fontaine IV while PAT is optional in every stage', async ({ page }) => {
+  await seed(page, { ...baseCase(), stage: '', clinical: {} }, 0);
+  await page.goto('./');
+  const fontaine = page.getByRole('radiogroup', { name: 'Fontaine stage', exact: true });
+  const pat = page.getByTestId('pat-assessment');
+  for (const label of ['I Asymptomatic', 'IIa ≥200 m', 'IIb <200 m', 'III Rest pain']) {
+    await fontaine.getByRole('radio', { name: label, exact: true }).click();
+    await expect(page.getByTestId('wifi-assessment')).toHaveCount(0);
+    await expect(page.getByTestId('woundosome-selector')).toHaveCount(0);
+    await expect(pat).toBeVisible();
+    await expect(pat.getByRole('button', { name: /Pedal acceleration time/ })).toHaveAttribute('aria-expanded', 'false');
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Disease anatomy', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+  }
+  await fontaine.getByRole('radio', { name: 'IV Ulcer/gangrene', exact: true }).click();
+  await expect(page.getByTestId('wifi-assessment')).toBeVisible();
+  await expect(page.getByTestId('woundosome-selector')).toBeVisible();
+  await expect(pat).toBeVisible();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Assess all three WIfI components.');
+  await expect(page.getByRole('alert')).toContainText('Select at least one wound or gangrene location.');
+});
+
+test('preserves stage-specific assessments and PAT without leaking hidden results into summary or PDF', async ({ page }, testInfo) => {
+  const data = completeCase();
+  data.clinical.patMeasurements = [{ id: 'pat-1', artery: 'dorsalis-pedis', milliseconds: '120' }];
+  await seed(page, data, 0);
+  await page.goto('./');
+  await page.getByRole('radiogroup', { name: 'Fontaine stage', exact: true }).getByRole('radio', { name: 'III Rest pain', exact: true }).click();
+  await expect(page.getByTestId('wifi-assessment')).toHaveCount(0);
+  await expect(page.getByTestId('woundosome-selector')).toHaveCount(0);
+  await expect(page.getByTestId('pat-assessment').getByLabel('PAT (ms)', { exact: true })).toHaveValue('120');
+  await page.reload();
+  await expect(page.getByTestId('wifi-assessment')).toHaveCount(0);
+  await expect(page.getByTestId('pat-assessment').getByLabel('PAT (ms)', { exact: true })).toHaveValue('120');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByText('Woundosome route to consider', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  const indication = page.locator('.case-summary__indication');
+  await expect(indication).not.toContainText('WIfI');
+  await expect(page.getByTestId('woundosome-summary')).toHaveCount(0);
+  await expect(page.getByTestId('pat-summary')).toContainText('Dorsalis pedis artery — 120 ms — Category 1');
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const download = await downloaded;
+  const pdfPath = testInfo.outputPath('fontaine-iii-with-pat.pdf');
+  await download.saveAs(pdfPath);
+  expect(await download.failure()).toBeNull();
+  const pdf = readFileSync(pdfPath, 'latin1');
+  expect(pdf).not.toContain('WIfI:');
+  expect(pdf).not.toContain('Wound location:');
+  expect(pdf).not.toContain('Wound-informed TAP to consider:');
+  expect(pdf).toContain('PAT: Dorsalis pedis artery');
+  expect(pdf).toContain('120 ms');
+  await indication.getByRole('button', { name: 'Edit clinical assessment', exact: true }).click();
+  await page.getByRole('radiogroup', { name: 'Fontaine stage', exact: true }).getByRole('radio', { name: 'IV Ulcer/gangrene', exact: true }).click();
+  await expect(page.getByRole('radiogroup', { name: 'Wound grade', exact: true }).getByRole('radio', { name: '2', exact: true })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByTestId('wound-zone-ap-dorsum')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByTestId('pat-assessment').getByLabel('PAT (ms)', { exact: true })).toHaveValue('120');
 });
 
 test('keeps PAT optional, classifies each measured artery and restores it after reload', async ({ page }) => {

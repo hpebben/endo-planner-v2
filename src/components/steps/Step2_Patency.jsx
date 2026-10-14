@@ -16,6 +16,7 @@ import {
   validateTargetArterialPath,
 } from '../../utils/lesions';
 import { getWoundosomeAdvice } from '../../data/woundosome';
+import { getActiveWoundLocations } from '../../utils/clinicalStage';
 
 // Parse vessel-map JSON
 const parseVesselData = (data) => {
@@ -59,7 +60,7 @@ export default function Step2_Patency({ data, setData }) {
   const lesionOptions = getLesionOptions(data.patencySegments || {}, savedTargetPath);
   const lesionById = new Map(lesionOptions.map((lesion) => [lesion.value, lesion]));
   const endpointCandidates = TARGET_ROUTE_ENDPOINT_IDS.filter((id) => sideFromVesselId(id) === targetSide);
-  const woundAdvice = getWoundosomeAdvice(data.clinical?.woundLocations || []);
+  const woundAdvice = getWoundosomeAdvice(getActiveWoundLocations(data));
 
   useEffect(() => {
     if (!targetSide && selectedSides.length === 1) setTargetSide(selectedSides[0]);

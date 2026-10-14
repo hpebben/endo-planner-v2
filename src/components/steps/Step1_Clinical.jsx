@@ -5,6 +5,7 @@ import SegmentedControl from '../UI/SegmentedControl';
 import WoundosomeSelector from '../WoundosomeSelector';
 import PedalAccelerationTime from '../PedalAccelerationTime';
 import { getPatMeasurements } from '../../data/pedalAccelerationTime';
+import { isFontaineIV } from '../../utils/clinicalStage';
 
 const stageOptions = [
   { label: __('I Asymptomatic', 'endoplanner'), value: 'i' },
@@ -99,43 +100,47 @@ export default function Step1({ data, setData }) {
         ariaLabel={__('Fontaine stage', 'endoplanner')}
       />
 
-      {data.stage === 'iv' && (
-        <WoundosomeSelector
-          value={clinical.woundLocations || []}
-          onChange={(woundLocations) => setData((previous) => ({
-            ...previous,
-            clinical: { ...(previous.clinical || {}), woundLocations },
-          }))}
-        />
+      {isFontaineIV(data.stage) && (
+        <>
+          <WoundosomeSelector
+            value={clinical.woundLocations || []}
+            onChange={(woundLocations) => setData((previous) => ({
+              ...previous,
+              clinical: { ...(previous.clinical || {}), woundLocations },
+            }))}
+          />
+
+          <div className="section-spacer" />
+          <div data-testid="wifi-assessment">
+            <h2 className="section-title">{__('WIfI component grades', 'endoplanner')}</h2>
+            <p className="section-subtitle">
+              {__('All three components must be assessed before a clinical stage is calculated.', 'endoplanner')}
+            </p>
+            <WifiGrade
+              title={__('Wound', 'endoplanner')}
+              field="wound"
+              value={clinical.wound}
+              onChange={(value) => setClinicalGrade('wound', value)}
+            />
+            <WifiGrade
+              title={__('Ischemia', 'endoplanner')}
+              field="ischemia"
+              value={clinical.ischemia}
+              onChange={(value) => setClinicalGrade('ischemia', value)}
+            />
+            <WifiGrade
+              title={__('Foot infection', 'endoplanner')}
+              field="infection"
+              value={clinical.infection}
+              onChange={(value) => setClinicalGrade('infection', value)}
+            />
+          </div>
+        </>
       )}
 
-      <div className="section-spacer" />
-      <h2 className="section-title">{__('WIfI component grades', 'endoplanner')}</h2>
-      <p className="section-subtitle">
-        {__('All three components must be assessed before a clinical stage is calculated.', 'endoplanner')}
-      </p>
-
-      <WifiGrade
-        title={__('Wound', 'endoplanner')}
-        field="wound"
-        value={clinical.wound}
-        onChange={(value) => setClinicalGrade('wound', value)}
-      />
-      <WifiGrade
-        title={__('Ischemia', 'endoplanner')}
-        field="ischemia"
-        value={clinical.ischemia}
-        onChange={(value) => setClinicalGrade('ischemia', value)}
-      />
       <PedalAccelerationTime
         value={getPatMeasurements(clinical)}
         onChange={(patMeasurements) => setClinicalGrade('patMeasurements', patMeasurements)}
-      />
-      <WifiGrade
-        title={__('Foot infection', 'endoplanner')}
-        field="infection"
-        value={clinical.infection}
-        onChange={(value) => setClinicalGrade('infection', value)}
       />
     </div>
   );

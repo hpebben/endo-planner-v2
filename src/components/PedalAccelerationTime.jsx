@@ -42,7 +42,7 @@ export default function PedalAccelerationTime({ value = [], onChange }) {
       {expanded && (
         <div id={`${fieldId}-content`} className="pat-content">
           <p className="pat-description">
-            {__('Record the time from systolic onset to peak flow in a pedal artery of the case limb. The category is calculated automatically; PAT complements the WIfI ischemia assessment.', 'endoplanner')}
+            {__('Record the time from systolic onset to peak flow in a pedal artery of the case limb. The category is calculated automatically; PAT complements the clinical perfusion assessment.', 'endoplanner')}
           </p>
           {value.map((row, index) => {
             const result = classifyPat(row.milliseconds);

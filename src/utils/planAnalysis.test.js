@@ -42,6 +42,23 @@ const baseCase = {
 };
 
 describe('compatibility and anatomy recommendations', () => {
+  test('uses saved wound assessments only while Fontaine IV is selected', () => {
+    const data = {
+      ...baseCase,
+      stage: 'iv',
+      clinical: { wound: 3, ischemia: 3, infection: 3, woundLocations: ['lateral-plantar'] },
+      targetArterialPath: [],
+      targetArterialPathKey: 'anterior',
+    };
+    expect(analyzePlan(data).map((item) => item.id)).toEqual(expect.arrayContaining([
+      'woundosome-tap-review', 'target-path-missing',
+    ]));
+    ['i', 'iia', 'iib', 'iii'].forEach((stage) => {
+      expect(analyzePlan({ ...data, stage }).map((item) => item.id)).not.toEqual(expect.arrayContaining(['woundosome-tap-review']));
+      expect(analyzePlan({ ...data, stage }).map((item) => item.id)).not.toEqual(expect.arrayContaining(['target-path-missing']));
+    });
+  });
+
   test('detects platform and sheath incompatibilities', () => {
     const blocking = getBlockingPlanFindings(baseCase);
     expect(blocking.map((item) => item.title)).toEqual(expect.arrayContaining([

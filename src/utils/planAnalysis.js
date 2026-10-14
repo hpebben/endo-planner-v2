@@ -1,6 +1,7 @@
 import computePrognosis from './prognosis';
 import { normalizeWireRole, WIRE_ROLES } from '../data/wireCatalog';
 import { getWoundosomeAdvice, WOUNDOSOME_REFERENCE } from '../data/woundosome';
+import { getActiveWoundLocations } from './clinicalStage';
 import { CLOSURE_GUIDE_URL, findClosureCompatibilityIssue } from './closureAdvice';
 import {
   getLesionOptions,
@@ -422,7 +423,7 @@ export const analyzePlan = (data = {}) => {
   });
 
   const wifi = computePrognosis(data);
-  const woundAdvice = getWoundosomeAdvice(data.clinical?.woundLocations || []);
+  const woundAdvice = getWoundosomeAdvice(getActiveWoundLocations(data));
   if (
     woundAdvice.primaryTapKeys.length &&
     data.targetArterialPathKey &&

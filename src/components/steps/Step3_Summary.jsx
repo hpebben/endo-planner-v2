@@ -7,6 +7,7 @@ import InlineModal from '../UI/InlineModal';
 import { analyzePlan } from '../../utils/planAnalysis';
 import { getWoundosomeAdvice, WOUNDOSOME_REFERENCE } from '../../data/woundosome';
 import { getPatSummaryLines } from '../../data/pedalAccelerationTime';
+import { getActiveWoundLocations } from '../../utils/clinicalStage';
 import { formatTargetArterialPath, getLesionOptions, vesselName } from '../../utils/lesions';
 import {
   buildScopeOptions,
@@ -185,7 +186,7 @@ export default function StepSummary({ data, setStep }) {
   const wifiInfo = wifi.isComplete ? WIFI_STAGE_INFO[wifi.wifiStage] : null;
   const glassInfo = glass.stage ? GLASS_STAGE_INFO[glass.stage] : null;
   const planFindings = analyzePlan(data);
-  const woundAdvice = getWoundosomeAdvice(data.clinical?.woundLocations || []);
+  const woundAdvice = getWoundosomeAdvice(getActiveWoundLocations(data));
   const patLines = getPatSummaryLines(data.clinical);
 
   const accessItems = accessRows.flatMap((row) => [
@@ -236,9 +237,11 @@ export default function StepSummary({ data, setStep }) {
           <div>
             {__('Fontaine stage', 'endoplanner')}: <b>{formatStage(stage)}</b>
           </div>
-          <div>
-            {__('WIfI components', 'endoplanner')}: <b>{wifiCode}</b>
-          </div>
+          {wifi.isApplicable && (
+            <div>
+              {__('WIfI components', 'endoplanner')}: <b>{wifiCode}</b>
+            </div>
+          )}
           {patLines.length > 0 && (
             <div className="pat-summary" data-testid="pat-summary">
               {patLines.map((line, index) => <div key={index}>{line}</div>)}
@@ -251,7 +254,7 @@ export default function StepSummary({ data, setStep }) {
               <a href={WOUNDOSOME_REFERENCE.url} target="_blank" rel="noreferrer">{WOUNDOSOME_REFERENCE.label}</a>
             </div>
           )}
-          {wifi.isComplete ? (
+          {wifi.isApplicable && (wifi.isComplete ? (
             <div className="clinical-guidance wifi-prediction">
               <p>
                 {`Clinical stage ${wifi.wifiStage}, approximately ${wifiInfo.riskPercent}% pooled estimated 1-year risk of major amputation. ${getWifiAction(wifi.wifiStage, wifi.ischemia)}`}
@@ -264,7 +267,7 @@ export default function StepSummary({ data, setStep }) {
             <div className="row-add-label text-red-500">
               {__('Complete wound, ischemia and foot-infection grading before interpreting WIfI.', 'endoplanner')}
             </div>
-          )}
+          ))}
           <button type="button" className="stage-btn" onClick={() => setStep?.(0)}>
             {__('Edit clinical assessment', 'endoplanner')}
           </button>

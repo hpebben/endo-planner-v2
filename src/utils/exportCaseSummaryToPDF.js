@@ -7,6 +7,7 @@ import { formatTargetArterialPath, getLesionOptions, sideFromVesselId } from './
 import { formatScopeLabel, getScopeLesionIds } from './planScopes';
 import { getWoundosomeAdvice } from '../data/woundosome';
 import { getPatSummaryLines } from '../data/pedalAccelerationTime';
+import { getActiveWoundLocations } from './clinicalStage';
 
 const vesselSegments = Array.isArray(rawVesselData?.segments) ? rawVesselData.segments : [];
 const vesselName = (id) => vesselSegments.find((segment) => segment.id === id)?.name || id.replace(/_/g, ' ');
@@ -149,7 +150,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const wifi = computePrognosis(data);
   const glass = computeGlass(data.patencySegments || {}, data.targetArterialPath);
-  const woundAdvice = getWoundosomeAdvice(data.clinical?.woundLocations || []);
+  const woundAdvice = getWoundosomeAdvice(getActiveWoundLocations(data));
 
   doc.setFillColor(17, 49, 149);
   doc.rect(0, 0, pageWidth, 54, 'F');
@@ -163,10 +164,12 @@ export default async function exportCaseSummaryToPDF(data = {}) {
 
   const clinicalLines = [
     `Fontaine stage: ${formatStage(data.stage)}`,
-    wifi.isComplete
-      ? `WIfI: W${wifi.wound} I${wifi.ischemia} fI${wifi.infection} - clinical stage ${wifi.wifiStage}`
-      : 'WIfI: incomplete',
   ];
+  if (wifi.isApplicable) {
+    clinicalLines.push(wifi.isComplete
+      ? `WIfI: W${wifi.wound} I${wifi.ischemia} fI${wifi.infection} - clinical stage ${wifi.wifiStage}`
+      : 'WIfI: incomplete');
+  }
   if (wifi.isComplete) {
     clinicalLines.push(`Estimated 1-year major amputation risk: approximately ${WIFI_STAGE_INFO[wifi.wifiStage].riskPercent}% (pooled observational estimate)`);
     clinicalLines.push(getWifiAction(wifi.wifiStage, wifi.ischemia));
@@ -211,7 +214,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     28,
     806,
   );
-  doc.text('EndoPlanner v1.6.175', pageWidth - 28, 806, { align: 'right' });
+  doc.text('EndoPlanner v1.6.176', pageWidth - 28, 806, { align: 'right' });
 
   doc.save(reportFilename(data));
 }

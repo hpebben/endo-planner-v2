@@ -1,3 +1,5 @@
+import { isFontaineIV } from './clinicalStage';
+
 // SVS WIfI clinical stages for estimated 1-year major amputation risk.
 // Matrix order: [wound][ischemia][foot infection].
 // 1 = very low, 2 = low, 3 = moderate, 4 = high.
@@ -48,7 +50,8 @@ export default function computePrognosis(data = {}) {
   const wound = clinical.wound ?? null;
   const ischemia = clinical.ischemia ?? null;
   const infection = clinical.infection ?? null;
-  const wifiStage = computeWifiStage(wound, ischemia, infection);
+  const isApplicable = isFontaineIV(data.stage);
+  const wifiStage = isApplicable ? computeWifiStage(wound, ischemia, infection) : null;
 
   return {
     wound,
@@ -56,6 +59,7 @@ export default function computePrognosis(data = {}) {
     infection,
     wifiStage,
     riskCategory: wifiStage ? RISK_CATEGORY[wifiStage] : null,
+    isApplicable,
     isComplete: wifiStage !== null,
   };
 }
