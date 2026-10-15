@@ -589,6 +589,38 @@ svg .vessel-path:hover {
 
 }
 
+.clinical-center {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0.75rem 0 1.5rem;
+
+  > .clinical-block,
+  > .woundosome-selector,
+  > .pat-assessment {
+    width: 100%;
+    max-width: 800px;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  .clinical-block {
+    padding: 1.5rem;
+    border: 1px solid #d9e1ef;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .clinical-block > .section-title { margin-top: 0; }
+  .wifi-grade-section { margin: 1.75rem 0 0; }
+  .wifi-grade-section + .wifi-grade-section {
+    padding-top: 1.5rem;
+    border-top: 1px solid #e6ebf3;
+  }
+}
+
 .clinical-center .clear-grade-btn {
   display: block;
   margin: 0.75rem auto 0;
@@ -2233,7 +2265,7 @@ svg .vessel-path:hover {
   background: #fff7f5;
 }
 
-#case-summary .recommendations-intro {
+:is(#case-summary, .plan-review-content) .recommendations-intro {
   max-width: 42rem;
   margin: 0 auto 1rem;
   color: #5e6472;
@@ -2241,13 +2273,13 @@ svg .vessel-path:hover {
   line-height: 1.45;
 }
 
-#case-summary .recommendations-list {
+:is(#case-summary, .plan-review-content) .recommendations-list {
   display: grid;
   gap: 0.8rem;
   text-align: left;
 }
 
-#case-summary .recommendation-item {
+:is(#case-summary, .plan-review-content) .recommendation-item {
   position: relative;
   padding: 0.85rem 1rem;
   border-left: 5px solid #4f6bba;
@@ -2255,22 +2287,22 @@ svg .vessel-path:hover {
   background: #f7f9ff;
 }
 
-#case-summary .recommendation-item--error {
+:is(#case-summary, .plan-review-content) .recommendation-item--error {
   border-left-color: #b42318;
   background: #fff4f2;
 }
 
-#case-summary .recommendation-item--warning {
+:is(#case-summary, .plan-review-content) .recommendation-item--warning {
   border-left-color: #c27803;
   background: #fff9eb;
 }
 
-#case-summary .recommendation-item--recommendation {
+:is(#case-summary, .plan-review-content) .recommendation-item--recommendation {
   border-left-color: #2563eb;
   background: #f2f6ff;
 }
 
-#case-summary .recommendation-badge {
+:is(#case-summary, .plan-review-content) .recommendation-badge {
   display: inline-block;
   margin-bottom: 0.3rem;
   color: #60687a;
@@ -2280,44 +2312,44 @@ svg .vessel-path:hover {
   text-transform: uppercase;
 }
 
-#case-summary .recommendation-item h4,
-#case-summary .recommendation-item p {
+:is(#case-summary, .plan-review-content) .recommendation-item h4,
+:is(#case-summary, .plan-review-content) .recommendation-item p {
   margin: 0;
 }
 
-#case-summary .recommendation-item p {
+:is(#case-summary, .plan-review-content) .recommendation-item p {
   margin-top: 0.3rem;
   color: #3d4555;
   font-size: 0.8rem;
   line-height: 1.45;
 }
 
-#case-summary .recommendation-item details {
+:is(#case-summary, .plan-review-content) .recommendation-item details {
   margin-top: 0.65rem;
   font-size: 0.76rem;
 }
 
-#case-summary .recommendation-item summary {
+:is(#case-summary, .plan-review-content) .recommendation-item summary {
   color: #23458f;
   cursor: pointer;
   font-weight: 650;
 }
 
-#case-summary .recommendation-item ol,
-#case-summary .recommendation-references {
+:is(#case-summary, .plan-review-content) .recommendation-item ol,
+:is(#case-summary, .plan-review-content) .recommendation-references {
   margin: 0.6rem 0 0;
   padding-left: 1.25rem;
 }
 
-#case-summary .recommendation-item li + li {
+:is(#case-summary, .plan-review-content) .recommendation-item li + li {
   margin-top: 0.35rem;
 }
 
-#case-summary .recommendation-references a {
+:is(#case-summary, .plan-review-content) .recommendation-references a {
   color: #1747a6;
 }
 
-#case-summary .recommendations-clear {
+:is(#case-summary, .plan-review-content) .recommendations-clear {
   padding: 0.8rem;
   border-radius: 8px;
   background: #edf8f1;
@@ -2761,7 +2793,7 @@ svg .vessel-path:hover {
 /* Map-centred intervention planner ------------------------------------------- */
 .visual-plan-workspace {
   display: grid;
-  grid-template-columns: minmax(470px, 1.08fr) minmax(370px, 0.92fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   width: min(100%, 1120px);
   margin: 0 auto;
@@ -2775,7 +2807,7 @@ svg .vessel-path:hover {
 
 .visual-plan-context {
   display: grid;
-  grid-template-columns: minmax(235px, 1fr) minmax(190px, 0.76fr);
+  grid-template-columns: minmax(250px, 0.7fr) minmax(0, 1.3fr);
   min-width: 0;
   overflow: hidden;
   border: 1px solid #dce3f1;
@@ -2795,25 +2827,98 @@ svg .vessel-path:hover {
   height: 445px;
 }
 
-.visual-plan-map-note {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  max-width: 235px;
-  margin: 0.25rem auto 0;
-  color: #697286;
-  font-size: 0.62rem;
-  line-height: 1.25;
-  text-align: left;
+.visual-plan-map h3,
+.selected-woundosomes h3,
+.visual-plan-target h3 {
+  margin: 0 0 0.7rem;
+  color: #193b83;
+  font-size: 0.9rem;
+  text-align: center;
 }
 
-.visual-plan-route-key {
-  flex: 0 0 18px;
+.visual-plan-map-note {
+  margin: 0.6rem 0 0;
+  color: #697286;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.visual-plan-map-legend {
+  display: grid;
+  justify-content: center;
+  justify-items: center;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+  color: #4a5670;
+  font-size: 0.72rem;
+
+  > span { display: flex; align-items: center; gap: 0.6rem; }
+}
+
+.visual-plan-legend-line {
+  display: inline-block;
+  flex: 0 0 32px;
+  width: 32px;
   height: 4px;
   border-radius: 999px;
-  background: #2563eb;
+
+  &--path { background: #2563eb; }
+  &--lesion { background: #d91f4b; }
 }
+
+.visual-plan-foot-context { min-width: 0; padding: 1rem; }
+.selected-woundosome-views {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+
+  figure { min-width: 0; margin: 0; overflow: hidden; border: 1px solid #d9e1ef; border-radius: 9px; background: #f4f6f9; }
+  figcaption { padding: 0.5rem 0.3rem; background: #25314f; color: #fff; font-size: 0.65rem; font-weight: 700; text-align: center; }
+  svg { display: block; width: 100%; height: 270px; }
+  figure > p { margin: 0; padding: 0.45rem; color: #5d687c; font-size: 0.61rem; line-height: 1.4; }
+  .wound-zone { cursor: default; pointer-events: none; }
+}
+.selected-woundosome-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li { display: flex; align-items: center; gap: 0.4rem; color: #41516b; font-size: 0.7rem; }
+  .wound-zone-dot { width: 22px; height: 22px; flex: 0 0 22px; font-size: 0.65rem; }
+}
+.selected-woundosome-caption { margin: 0.65rem 0 0; color: #70798a; font-size: 0.65rem; line-height: 1.4; text-align: left; }
+.visual-plan-target {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid #cddcf6;
+  border-radius: 10px;
+  background: #f3f7ff;
+  text-align: left;
+
+  h3 { text-align: left; margin-bottom: 0.4rem; font-size: 0.8rem; }
+  > p { margin: 0; color: #465d84; font-size: 0.72rem; line-height: 1.7; overflow-wrap: anywhere; }
+}
+.visual-plan-support {
+  margin-top: 0.85rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid #cddcf6;
+
+  > summary { color: #23458f; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
+  > p { color: #66728a; font-size: 0.7rem; }
+  .intervention-row { padding: 0.65rem 0; }
+}
+.visual-plan-editing {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.65fr) minmax(0, 1.35fr);
+  align-items: start;
+  gap: 1rem;
+  min-width: 0;
+}
+
 
 .vessel-segment.plan-edit-disabled {
   cursor: default;
@@ -2831,9 +2936,10 @@ svg .vessel-path:hover {
 
 .visual-plan-schematic {
   min-width: 0;
-  max-height: 520px;
-  overflow-y: auto;
-  padding: 0.65rem;
+  padding: 0.85rem;
+  border: 1px solid #dce3f1;
+  border-radius: 14px;
+  background: #fff;
 }
 
 .visual-plan-schematic-heading {
@@ -2998,6 +3104,7 @@ svg .vessel-path:hover {
 }
 
 .visual-plan-composer-header > div {
+  flex: 1;
   min-width: 0;
 }
 
@@ -3141,26 +3248,76 @@ svg .vessel-path:hover {
   white-space: nowrap;
 }
 
-.visual-plan-unassigned {
-  width: min(100%, 780px);
-  margin: 1rem auto 0;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid #d69a8f;
-  border-radius: 12px;
-  background: #fff7f5;
-  color: #5e443f;
-  text-align: left;
-}
-
-.visual-plan-unassigned > summary {
+.plan-review-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid currentColor;
+  border-radius: 9px;
   cursor: pointer;
-  color: #8d3427;
-  font-size: 0.75rem;
-  font-weight: 750;
-}
-
-.visual-plan-unassigned > p {
   font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.2;
+
+  svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  &--error { color: #b42318; background: #fff0ed; }
+  &--warning { color: #ad5a00; background: #fff5e4; }
+  &--recommendation { color: #1e56b8; background: #edf4ff; }
+  &:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+}
+.plan-review-count { display: grid; place-items: center; min-width: 1.3em; height: 1.3em; padding: 0.15em; border-radius: 50%; background: rgba(0, 0, 0, 0.07); }
+.plan-review-content {
+  width: min(680px, calc(100vw - 4rem));
+  color: #34415b;
+  text-align: left;
+
+  .summary-card { padding: 0; box-shadow: none; background: transparent; }
+  .card-title { margin-bottom: 0.5rem; color: #193b83; font-size: 1rem; font-weight: 750; }
+}
+.plan-review-modal { background: #fff; max-width: calc(100vw - 2rem); box-sizing: border-box; }
+.plan-review-heading { display: flex; align-items: start; justify-content: space-between; gap: 0.75rem; margin: 0.75rem 0 1rem; }
+.plan-review-heading p { margin: 0.35rem 0 0; color: #66728a; font-size: 0.8rem; }
+.plan-review-close { flex: 0 0 30px; width: 30px; height: 30px; border: 1px solid #cdd6e7; border-radius: 50%; background: #f1f5fd; color: #264c9a; font-size: 1.2rem; cursor: pointer; }
+.plan-review-devices {
+  padding: 0.8rem;
+  border: 1px solid #d9e1f0;
+  border-radius: 10px;
+  background: #f6f9ff;
+  h3 { margin: 0 0 0.6rem; font-size: 0.85rem; color: #193b83; }
+  ul { display: grid; gap: 0.4rem; list-style: none; margin: 0; padding: 0; }
+  li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; }
+  .device-glyph { flex: 0 0 44px; width: 44px; height: 22px; }
+  p { margin: 0; font-size: 0.8rem; }
+}
+.plan-review-case-note { color: #66728a; font-size: 0.75rem; line-height: 1.45; }
+.starred-device-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  max-width: 720px;
+  margin: 0 0 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #e0e6f1;
+
+  > strong { flex: 0 0 100%; color: #6e5b1c; font-size: 0.75rem; }
+  button { max-width: 100%; padding: 0.5rem 0.65rem; border: 1px solid #decc8f; border-radius: 8px; background: #fffbed; color: #554818; font-size: 0.74rem; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+  button:focus-visible { outline: 2px solid #9a7412; outline-offset: 2px; }
+}
+@media (max-width: 700px) {
+  .visual-plan-composer-header { flex-wrap: wrap; }
+  .visual-plan-composer-header > div { flex: 1 1 calc(100% - 3rem); }
+  .visual-plan-composer-header h3 { white-space: normal; overflow-wrap: anywhere; }
+  .plan-review-button { margin-left: 0; }
+  .step4-intervention .row-inner { min-width: 0; width: 100%; }
+  .step4-intervention .device-row { flex-wrap: wrap; justify-content: center; row-gap: 2.5rem; }
+  .step4-intervention .device-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.4rem 0.75rem; }
+  .selected-woundosome-views svg { height: 210px; }
+  .clinical-center { gap: 2rem; }
+  .clinical-center .clinical-block { padding: 1rem; }
 }
 
 .visual-plan-empty {
@@ -3188,7 +3345,8 @@ svg .vessel-path:hover {
   }
 
   .visual-plan-workspace,
-  .visual-plan-context {
+  .visual-plan-context,
+  .visual-plan-editing {
     grid-template-columns: 1fr;
   }
 
@@ -3202,10 +3360,10 @@ svg .vessel-path:hover {
   }
 }
 
-@media (min-width: 701px) and (max-width: 1040px) {
-  .visual-plan-workspace {
-    grid-template-columns: 1fr;
-  }
+@media (min-width: 701px) and (max-width: 900px) {
+  .visual-plan-context { grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr); }
+  .visual-plan-editing { grid-template-columns: minmax(0, 1fr); }
+  .selected-woundosome-views svg { height: 220px; }
 }
 .ref-image.wifi-img {
   max-width: 350px;

@@ -3,8 +3,10 @@ import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import VesselMap from './VesselMap';
 import DeviceGlyph from './UI/DeviceGlyph';
+import SelectedWoundosomeSummary from './SelectedWoundosomeSummary';
+import PlanReviewButton from './PlanReviewButton';
 import { createLesionScope, createTargetPathScope, formatScopeLabel, scopeKey } from '../utils/planScopes';
-import { formatTargetArterialPath } from '../utils/lesions';
+import { formatTargetArterialPath, sideFromVesselId } from '../utils/lesions';
 import { getVisualPlanItems, rowsForPlanScope } from '../utils/visualPlan';
 
 const scopeDescription = (option, targetPath) => {
@@ -22,6 +24,8 @@ const scopeDescription = (option, targetPath) => {
 
 export default function VisualPlanWorkspace({
   targetPath,
+  selectedWounds,
+  findings,
   lesionOptions,
   zoneOptions,
   navRows,
@@ -33,13 +37,6 @@ export default function VisualPlanWorkspace({
 }) {
   const options = useMemo(() => {
     const next = [];
-    if (targetPath.length) {
-      next.push({
-        code: 'PATH',
-        label: __('Target arterial path', 'endoplanner'),
-        scope: createTargetPathScope(),
-      });
-    }
     lesionOptions.forEach((lesion) => {
       next.push({
         code: lesion.code,
@@ -56,7 +53,7 @@ export default function VisualPlanWorkspace({
       });
     });
     return next;
-  }, [targetPath, lesionOptions, zoneOptions]);
+  }, [lesionOptions, zoneOptions]);
 
   const defaultScopeKey = options.find((option) => option.lesion) ? scopeKey(options.find((option) => option.lesion).scope) : scopeKey(options[0]?.scope || {});
   const [activeScopeKey, setActiveScopeKey] = useState(defaultScopeKey);
@@ -76,14 +73,14 @@ export default function VisualPlanWorkspace({
     if (option) setActiveScopeKey(scopeKey(option.scope));
   };
 
-  if (!options.length) {
-    return <div className="visual-plan-empty">{__('Return to Disease anatomy and select at least one lesion or target arterial path.', 'endoplanner')}</div>;
-  }
+  const pathScope = createTargetPathScope();
+  const sharedNavigationRows = rowsForPlanScope(navRows, pathScope);
 
   return (
     <div className="visual-plan-workspace" data-testid="visual-intervention-planner">
       <div className="visual-plan-context">
         <div className="visual-plan-map" aria-label={__('Arterial map with planned devices', 'endoplanner')}>
+          <h3>{__('Disease anatomy', 'endoplanner')}</h3>
           <VesselMap
             selectedSegments={lesionOptions.map((lesion) => lesion.value)}
             targetSegments={targetPath}
@@ -92,13 +89,32 @@ export default function VisualPlanWorkspace({
             activePlanningSegment={activeLesionId}
             toggleSegment={chooseLesionFromMap}
           />
-          <div className="visual-plan-map-note">
-            <span className="visual-plan-route-key" aria-hidden="true" />
-            {__('Blue = target path · red = lesion · click a lesion to plan it', 'endoplanner')}
+          <div className="visual-plan-map-legend" aria-label={__('Anatomy legend', 'endoplanner')}>
+            <span><i className="visual-plan-legend-line visual-plan-legend-line--path" aria-hidden="true" />{__('Target path', 'endoplanner')}</span>
+            <span><i className="visual-plan-legend-line visual-plan-legend-line--lesion" aria-hidden="true" />{__('Lesion', 'endoplanner')}</span>
           </div>
+          <p className="visual-plan-map-note">{__('Select a red lesion to plan it', 'endoplanner')}</p>
         </div>
+        <div className="visual-plan-foot-context">
+          <SelectedWoundosomeSummary selectedIds={selectedWounds} />
+          <section className="visual-plan-target" aria-label={__('Target arterial path information', 'endoplanner')}>
+            <h3>{[sideFromVesselId(targetPath[0]), __('Target arterial path', 'endoplanner')].filter(Boolean).join(' · ')}</h3>
+            <p>{targetPath.length ? formatTargetArterialPath(targetPath) : __('No target arterial path selected.', 'endoplanner')}</p>
+            {(targetPath.length > 0 || sharedNavigationRows.length > 0) && (
+              <details className="visual-plan-support" data-testid="shared-route-support">
+                <summary>{__('Shared route support', 'endoplanner')}{sharedNavigationRows.length ? ` (${sharedNavigationRows.length})` : ''}</summary>
+                <p>{__('Optional support/exchange wires or catheters used across the target route.', 'endoplanner')}</p>
+                {renderNavigationRows(sharedNavigationRows)}
+                {targetPath.length > 0 && <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(pathScope)}>+ {__('Add support device', 'endoplanner')}</button>}
+              </details>
+            )}
+          </section>
+        </div>
+      </div>
 
-        <div className="visual-plan-schematic" aria-label={__('Device plan beside arterial tree', 'endoplanner')}>
+      <div className="visual-plan-editing">
+
+        <div className="visual-plan-schematic" aria-label={__('Lesion plans at a glance', 'endoplanner')}>
           <div className="visual-plan-schematic-heading">
             <strong>{__('Plan at a glance', 'endoplanner')}</strong>
             <span>{__('Select a row to edit', 'endoplanner')}</span>
@@ -138,9 +154,8 @@ export default function VisualPlanWorkspace({
             );
           })}
         </div>
-      </div>
 
-      <div className="visual-plan-composer" data-testid={`plan-scope-group-${activeOption.code}`}>
+      {activeOption ? <div className="visual-plan-composer" data-testid={`plan-scope-group-${activeOption.code}`}>
         <header className="visual-plan-composer-header">
           <span className="plan-scope-group-code">{activeOption.code}</span>
           <div>
@@ -148,29 +163,9 @@ export default function VisualPlanWorkspace({
             <h3>{activeOption.label}</h3>
             <p>{scopeDescription(activeOption, targetPath)}</p>
           </div>
+          <PlanReviewButton option={activeOption} description={scopeDescription(activeOption, targetPath)} navRows={activeNavigationRows} therapyRows={activeTherapyRows} findings={findings} />
         </header>
 
-        {activeOption.scope.type === 'targetPath' ? (
-          <div className="quick-plan-stage">
-            <div className="quick-plan-stage-heading">
-              <span>1</span>
-              <div>
-                <h4>{__('Route support', 'endoplanner')}</h4>
-                <p>{__('Support/exchange wire, support catheter or path-level device', 'endoplanner')}</p>
-              </div>
-            </div>
-            {activeNavigationRows.length ? (
-              renderNavigationRows(activeNavigationRows)
-            ) : (
-              <p className="plan-scope-empty">{__('No path-level support device selected.', 'endoplanner')}</p>
-            )}
-            <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(activeOption.scope)}>
-              <span aria-hidden="true">+</span>
-              {__('Add support device', 'endoplanner')}
-            </button>
-          </div>
-        ) : (
-          <>
             <div className="quick-plan-stage">
               <div className="quick-plan-stage-heading">
                 <span>1</span>
@@ -207,8 +202,10 @@ export default function VisualPlanWorkspace({
                 {__('Add treatment device', 'endoplanner')}
               </button>
             </div>
-          </>
-        )}
+      </div> : <div className="visual-plan-empty">
+        <p>{__('Return to Disease anatomy and select a lesion to plan treatment.', 'endoplanner')}</p>
+        <PlanReviewButton navRows={navRows} therapyRows={therapyRows} findings={findings} />
+      </div>}
       </div>
     </div>
   );
@@ -216,6 +213,8 @@ export default function VisualPlanWorkspace({
 
 VisualPlanWorkspace.propTypes = {
   targetPath: PropTypes.arrayOf(PropTypes.string).isRequired,
+  selectedWounds: PropTypes.arrayOf(PropTypes.string).isRequired,
+  findings: PropTypes.arrayOf(PropTypes.object).isRequired,
   lesionOptions: PropTypes.arrayOf(PropTypes.object).isRequired,
   zoneOptions: PropTypes.arrayOf(PropTypes.object).isRequired,
   navRows: PropTypes.arrayOf(PropTypes.object).isRequired,
