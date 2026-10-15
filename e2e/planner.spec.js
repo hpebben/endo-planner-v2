@@ -216,7 +216,7 @@ test('edits and validates the target arterial path directly on the vessel map', 
       }, STATE_KEY)
     )
     .toEqual({
-      schemaVersion: 5,
+      schemaVersion: 6,
       key: 'posterior',
       endpoint: 'Left_plantar_arch',
     });
@@ -230,7 +230,8 @@ test('plans lesions without a PATH tab and keeps shared support available in rou
   await expect(workspace.getByTestId('visual-scope-PATH')).toHaveCount(0);
   await expect(workspace.getByTestId('visual-scope-L1')).toContainText('Left superficial femoral artery');
 
-  const support = workspace.getByTestId('shared-route-support');
+  const support = workspace.locator('.visual-plan-schematic').getByTestId('shared-route-support');
+  await expect(workspace.locator('.visual-plan-foot-context').getByTestId('shared-route-support')).toHaveCount(0);
   await support.getByText('Shared route support', { exact: true }).click();
   await support.getByRole('button', { name: /Add support device/ }).click();
 
@@ -274,7 +275,7 @@ test('shows chosen devices as schematics below the anatomy and selected woundoso
   await expect(wounds.locator('[data-wound-id="dorsum"]')).toHaveCount(2);
   await expect(wounds.locator('[data-wound-id]')).toHaveCount(2);
   await expect(wounds.getByRole('checkbox')).toHaveCount(0);
-  await expect(workspace.getByRole('region', { name: 'Target arterial path information' })).toContainText('dorsal pedal artery');
+  await expect(workspace.getByRole('region', { name: 'Target arterial path information' })).toContainText('dorsalis pedis artery');
   const positions = await workspace.evaluate((element) => {
     const context = element.querySelector('.visual-plan-context').getBoundingClientRect();
     const editing = element.querySelector('.visual-plan-editing').getBoundingClientRect();
@@ -796,4 +797,136 @@ test('does not assign an unlinked legacy choice just because only one lesion exi
   await page.getByTestId('plan-scope-group-L1').getByRole('button', { name: 'Add crossing device', exact: true }).click();
   await page.getByTestId('plan-scope-group-L1').getByRole('button', { name: 'Wire', exact: true }).click();
   await expect(page.getByRole('dialog').getByRole('button', { name: /Choose starred device: Unused local support wire/ })).toBeVisible();
+});
+
+
+test('extends the saved target route into metatarsal and digital arteries and exports the selected branch', async ({ page }, testInfo) => {
+  const data = completeCase();
+  data.clinical.woundLocations = ['hallux-first-ray'];
+  await seed(page, data, 1);
+  await page.goto('./');
+  const outflow = page.getByRole('combobox', { name: 'Pedal outflow target', exact: true });
+  await expect(outflow).toHaveValue('dorsal-metatarsal-1');
+  await outflow.selectOption('dorsal-digital-1-medial');
+  const route = page.getByLabel('Selected target route', { exact: true });
+  await expect(route).toContainText(/first dorsal metatarsal artery/i);
+  await expect(route).toContainText(/dorsal digital artery, toe 1, medial/i);
+  for (const view of ['ap', 'lateral']) {
+    const foot = page.getByTestId('selected-woundosomes').getByTestId(`foot-anatomy-${view}`);
+    await expect(foot.locator('[data-route-artery-id="dorsal-metatarsal-1"]')).toHaveCount(1);
+    await expect(foot.locator('[data-route-artery-id="dorsal-digital-1-medial"]')).toHaveCount(1);
+  }
+  await page.reload();
+  await expect(outflow).toHaveValue('dorsal-digital-1-medial');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Target arterial path information' })).toContainText(/dorsal digital artery, toe 1, medial/i);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const download = await downloaded;
+  const file = testInfo.outputPath('pedal-digital-route.pdf');
+  await download.saveAs(file);
+  const pdfText = [...readFileSync(file, 'latin1').matchAll(/\(((?:\\.|[^\\()])*)\)\s*Tj/g)].map((match) => match[1]).join(' ');
+  expect(pdfText).toContain('digital artery, toe 1, medial');
+});
+
+test('routes plantar and heel wounds through the correct named branches', async ({ page }) => {
+  const data = completeCase();
+  data.clinical.woundLocations = ['lateral-plantar', 'lateral-heel'];
+  await seed(page, data, 1);
+  await page.goto('./');
+  const inflow = page.getByRole('radiogroup', { name: 'Distal target artery', exact: true });
+  await inflow.getByRole('radio', { name: /Posterior tibial/ }).click();
+  const outflow = page.getByRole('combobox', { name: 'Pedal outflow target', exact: true });
+  await expect(outflow).toHaveValue('lateral-plantar');
+  await outflow.selectOption('plantar-metatarsal-3');
+  const route = page.getByLabel('Selected target route', { exact: true });
+  await expect(route).toContainText(/posterior tibial artery.*lateral plantar artery.*deep plantar arch.*3 plantar metatarsal artery/i);
+  await inflow.getByRole('radio', { name: /Peroneal/ }).click();
+  await expect(outflow).toHaveValue('lateral-calcaneal');
+  await expect(route).toContainText(/peroneal lateral calcaneal branch/i);
+  for (const view of ['ap', 'lateral']) {
+    const foot = page.getByTestId('selected-woundosomes').getByTestId(`foot-anatomy-${view}`);
+    await expect(foot.locator('[data-route-artery-id="lateral-calcaneal"]')).toHaveCount(1);
+    await expect(foot.locator('[data-route-artery-id="dorsalis-pedis"]')).toHaveCount(0);
+  }
+});
+
+test('shows a 5 cm lesion as a short red fill inside a red-outlined SFA and preserves it in planning and PDF', async ({ page }, testInfo) => {
+  await seed(page, completeCase(), 1);
+  await page.goto('./');
+  await page.locator('.segment-edit-trigger').first().click();
+  const editor = page.locator('.param-box');
+  await editor.getByText('Lesion extent on map (optional)', { exact: true }).click();
+  await editor.getByRole('spinbutton', { name: 'Measured lesion length (cm)', exact: true }).fill('5');
+  await editor.getByRole('button', { name: 'Save lesion', exact: true }).click();
+  const artery = page.getByRole('button', { name: 'Left superficial femoral artery', exact: true });
+  expect(Number(await artery.getAttribute('data-lesion-fraction'))).toBeCloseTo(5 / 35);
+  await expect(artery.locator('.vessel-segment')).toHaveCSS('fill', 'rgb(34, 42, 50)');
+  await expect(artery.locator('.vessel-segment')).toHaveCSS('stroke', 'rgb(217, 31, 75)');
+  await expect(artery.locator('.vessel-lesion-fill')).toHaveCount(1);
+  await expect(artery.locator('.vessel-lesion-fill')).toHaveAttribute('clip-path', /url/);
+  await expect(page.locator('.segment-edit-trigger').first()).toContainText('5 cm');
+  await page.reload();
+  expect(Number(await artery.getAttribute('data-lesion-fraction'))).toBeCloseTo(5 / 35);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  const planned = page.getByRole('button', { name: 'Plan devices for Left superficial femoral artery', exact: true });
+  expect(Number(await planned.getAttribute('data-lesion-fraction'))).toBeCloseTo(5 / 35);
+  await expect(page.getByTestId('plan-scope-group-L1').locator('.visual-plan-composer-header')).toContainText('5 cm');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const download = await downloaded;
+  const file = testInfo.outputPath('measured-lesion.pdf');
+  await download.saveAs(file);
+  expect(readFileSync(file, 'latin1')).toContain('5 cm');
+});
+
+test('lets the user override the drawing reference without changing the measured lesion length', async ({ page }) => {
+  const data = completeCase();
+  data.patencySegments[lesionId].measuredLengthCm = '5';
+  data.patencySegments[lesionId].length = '3-10';
+  await seed(page, data, 1);
+  await page.goto('./');
+  await page.locator('.segment-edit-trigger').first().click();
+  const editor = page.locator('.param-box');
+  await editor.getByText('Lesion extent on map (optional)', { exact: true }).click();
+  await editor.getByRole('spinbutton', { name: 'Arterial segment reference length (cm)', exact: true }).fill('40');
+  await editor.getByRole('button', { name: 'Save lesion', exact: true }).click();
+  expect(Number(await page.getByRole('button', { name: 'Left superficial femoral artery', exact: true }).getAttribute('data-lesion-fraction'))).toBeCloseTo(0.125);
+  await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key))?.data?.patencySegments?.Left_superficial_femoral_artery, STATE_KEY)).toMatchObject({ measuredLengthCm: '5', referenceLengthCm: '40', length: '3-10' });
+});
+
+test('uses a right-foot reference and retains right-sided digital route identifiers', async ({ page }) => {
+  const data = completeCase();
+  data.targetArterialPath = targetPath.map((id) => id.replace('Left_', 'Right_').replace('anterior_tibial_', 'anterior_tibital_'));
+  data.targetArterialPathSide = 'Right';
+  data.patencySegments = { Right_superficial_femoral_artery: data.patencySegments[lesionId] };
+  data.clinical.woundLocations = ['hallux-first-ray'];
+  await seed(page, data, 1);
+  await page.goto('./');
+  await page.getByRole('combobox', { name: 'Pedal outflow target', exact: true }).selectOption('dorsal-digital-1-medial');
+  const preview = page.getByTestId('selected-woundosomes');
+  await expect(preview.getByRole('img', { name: /AP.*right foot/ })).toHaveCount(1);
+  await expect(preview.locator('svg > g[transform*="scale(-1 1)"]')).toHaveCount(2);
+  await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key))?.data?.targetArterialPath?.at(-1), STATE_KEY)).toBe('Right_pedal_dorsal_digital_1_medial');
+});
+
+test('keeps pedal route controls and measured lesion fields usable on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seed(page, completeCase(), 1);
+  await page.goto('./');
+  await page.getByRole('combobox', { name: 'Pedal outflow target', exact: true }).selectOption('dorsal-metatarsal-2');
+  await page.locator('.segment-edit-trigger').first().click();
+  const editor = page.locator('.param-box');
+  await editor.getByText('Lesion extent on map (optional)', { exact: true }).click();
+  await editor.getByRole('spinbutton', { name: 'Measured lesion length (cm)', exact: true }).fill('5.5');
+  await editor.getByRole('button', { name: 'Save lesion', exact: true }).click();
+  await expect(editor).toHaveCount(0);
+  const metrics = await page.evaluate(() => ({
+    width: document.documentElement.scrollWidth,
+    viewport: window.innerWidth,
+    offenders: [...document.querySelectorAll('body *')].filter((element) => element.getBoundingClientRect().right > innerWidth + 1 && element.getClientRects().length).slice(0, 12).map((element) => ({ tag: element.tagName, className: element.getAttribute('class'), right: element.getBoundingClientRect().right })),
+  }));
+  expect(metrics.width, JSON.stringify(metrics.offenders)).toBeLessThanOrEqual(metrics.viewport);
 });

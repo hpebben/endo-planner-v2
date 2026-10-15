@@ -63,13 +63,22 @@
 }
 
 .vessel-segment.selected {
-  stroke: red;
-  stroke-width: 3;
+  fill: #222a32;
+  stroke: #d91f4b;
+  stroke-width: 2.6;
 }
-
-.vessel-segment.selected {
-  stroke: red;
-  stroke-width: 3;
+.vessel-target-route {
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 8;
+  pointer-events: none;
+  filter: drop-shadow(0 0 2px rgba(37, 99, 235, 0.65));
+}
+.vessel-lesion-fill {
+  fill: #d91f4b;
+  stroke: #d91f4b;
+  stroke-width: 2.6;
+  pointer-events: none;
 }
 
 .selected-segments {
@@ -1845,17 +1854,8 @@ svg .vessel-path:hover {
 }
 
 /* Explicit target arterial path ------------------------------------------------ */
-.vessel-segment.targeted {
-  stroke: #2563eb;
-  stroke-width: 8;
-  filter: drop-shadow(0 0 2px rgba(37, 99, 235, 0.85));
-}
-
-.vessel-segment.targeted.selected {
-  stroke: #dc2626;
-  stroke-width: 4;
-  filter: drop-shadow(0 0 3px #2563eb) drop-shadow(0 0 3px #2563eb);
-}
+.vessel-segment.targeted:not(.selected) { stroke: #2563eb; stroke-width: 2; }
+.vessel-segment.targeted.selected { stroke: #d91f4b; stroke-width: 2.6; }
 
 .vessel-svg g[role='button']:focus-visible .vessel-segment {
   outline: none;
@@ -2879,6 +2879,60 @@ svg .vessel-path:hover {
   figure > p { margin: 0; padding: 0.45rem; color: #5d687c; font-size: 0.61rem; line-height: 1.4; }
   .wound-zone { cursor: default; pointer-events: none; }
 }
+.foot-planned-route path { fill: none; stroke: #2563eb; stroke-linecap: round; stroke-linejoin: round; }
+.pedal-outflow-selector {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border: 1px solid #d4dff3;
+  border-radius: 10px;
+  background: #f5f8ff;
+  label { display: grid; gap: 0.45rem; color: #23458f; font-size: 0.78rem; font-weight: 700; }
+  select { min-width: 0; width: 100%; box-sizing: border-box; padding: 0.55rem; border: 1px solid #acbfe4; border-radius: 7px; background: #fff; color: #354866; font-size: 0.75rem; }
+  p { margin: 0.55rem 0 0; color: #67748b; font-size: 0.68rem; line-height: 1.5; }
+}
+.target-path-panel > .selected-woundosomes { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #d4dff3; }
+.target-path-panel .selected-woundosome-views svg { height: 215px; }
+.patency-container {
+  grid-template-columns: minmax(230px, 0.85fr) minmax(0, 1.15fr);
+  align-items: start;
+  .controls-column { min-width: 0; }
+  .summary-box, .param-box { min-width: 0; width: 100%; box-sizing: border-box; }
+  .vessel-column { min-width: 0; }
+  .patency-svg { flex-direction: column; min-width: 0; max-width: 100%; }
+  .patency-svg > .vessel-map-wrapper { width: 100%; max-width: 100%; min-width: 0; }
+}
+.lesion-map-caption { max-width: 300px; margin: 0.75rem auto; color: #6a7284; font-size: 0.7rem; line-height: 1.5; text-align: center; }
+.segment-extent-label { display: block; margin-top: 0.3rem; color: #7e5564; font-size: 0.68rem; }
+.lesion-map-settings {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #d8dfec;
+  font-size: 0.75rem;
+  summary { color: #23458f; cursor: pointer; font-weight: 700; }
+  label { display: grid; gap: 0.35rem; margin-top: 0.8rem; text-align: left; }
+  input, select { width: 100%; min-width: 0; box-sizing: border-box; padding: 0.45rem; border: 1px solid #b5c3dd; border-radius: 6px; background: #fff; color: #354866; }
+  p { color: #6a7284; font-size: 0.7rem; line-height: 1.45; text-align: left; }
+}
+.lesion-save-actions { display: flex; justify-content: flex-end; gap: 0.65rem; margin-top: 1rem; }
+.visual-plan-schematic .visual-plan-support {
+  padding: 0.75rem;
+  border: 1px solid #d6e1f4;
+  border-radius: 10px;
+  background: #f5f8ff;
+  .row-inner { min-width: 0; gap: 0.65rem; }
+  .device-row { flex-wrap: wrap; gap: 0.4rem; }
+  .device-button { width: 66px; height: 66px; padding: 0.35rem; font-size: 0.65rem; }
+  .device-button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .device-button .device-glyph { width: 45px; height: 24px; }
+  .intervention-row { margin: 0.75rem 0; border-bottom: 1px solid #d6e1f4; }
+  .scoped-add-btn { max-width: 100%; padding: 0.55rem; white-space: normal; font-size: 0.75rem; }
+}
+.shared-support-device-summary { display: grid; gap: 0.4rem; margin: 0.7rem 0; }
+@media (max-width: 800px) {
+  .patency-container { grid-template-columns: minmax(0, 1fr); }
+  .target-path-panel .selected-woundosome-views svg { height: 200px; }
+}
+
 .selected-woundosome-key {
   display: flex;
   flex-wrap: wrap;
@@ -2930,8 +2984,8 @@ svg .vessel-path:hover {
 
 .vessel-svg g[aria-pressed='true'] .vessel-segment.plan-active {
   stroke: #d91f4b;
-  stroke-width: 10;
-  filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.85)) drop-shadow(0 0 5px rgba(217, 31, 75, 0.55));
+  stroke-width: 2.8;
+  filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.55));
 }
 
 .visual-plan-schematic {

@@ -20,10 +20,10 @@ const sideFromId = (id) => {
 };
 
 const isFp = (id) => /superficial_femoral|popliteal/.test(normalizeId(id));
-const isIp = (id) => /anterior_tib|posterior_tib|peroneal|tibioperoneal/.test(normalizeId(id));
+const isIp = (id) => !/_pedal_/.test(normalizeId(id)) && /anterior_tib|posterior_tib|peroneal|tibioperoneal/.test(normalizeId(id));
 const isCruralTarget = (id) => /anterior_tib|posterior_tib|peroneal_artery/.test(normalizeId(id));
 const isTibioperonealTrunk = (id) => /tibioperoneal_trunk/.test(normalizeId(id));
-const isPedal = (id) => /dorsal_pedal|plantar|metatarsal/.test(normalizeId(id));
+const isPedal = (id) => /_pedal_|dorsal_pedal|plantar|metatarsal/.test(normalizeId(id));
 const isInflow = (id) => /aorta|iliac|common_femoral|profunda/.test(normalizeId(id));
 
 const lesionGrade = (values = {}, territory = 'FP', id = '') => {

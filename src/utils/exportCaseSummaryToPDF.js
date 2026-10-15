@@ -1,16 +1,12 @@
 import computePrognosis from './prognosis';
 import computeGlass from './glass';
-import rawVesselData from '../assets/vessel-map.json';
 import { WIFI_STAGE_INFO, getWifiAction } from './guidelineRecommendations';
 import { analyzePlan } from './planAnalysis';
-import { formatTargetArterialPath, getLesionOptions, sideFromVesselId } from './lesions';
+import { formatTargetArterialPath, getLesionOptions, sideFromVesselId, vesselName, lesionLengthLabel } from './lesions';
 import { formatScopeLabel, getScopeLesionIds } from './planScopes';
 import { getWoundosomeAdvice } from '../data/woundosome';
 import { getPatSummaryLines } from '../data/pedalAccelerationTime';
 import { getActiveWoundLocations } from './clinicalStage';
-
-const vesselSegments = Array.isArray(rawVesselData?.segments) ? rawVesselData.segments : [];
-const vesselName = (id) => vesselSegments.find((segment) => segment.id === id)?.name || id.replace(/_/g, ' ');
 
 const clean = (value) => String(value ?? '')
   .replace(/[–—]/g, '-')
@@ -182,7 +178,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
   }
 
   const anatomyLines = Object.entries(data.patencySegments || {}).map(([id, values]) => (
-    `${vesselName(id)}: ${[values.type, values.length ? `${values.length} cm` : '', values.calcium ? `${values.calcium} calcium` : ''].filter(Boolean).join(', ')}`
+    `${vesselName(id)}: ${[values.type, lesionLengthLabel(values), values.calcium ? `${values.calcium} calcium` : ''].filter(Boolean).join(', ')}`
   ));
   if (!anatomyLines.length) anatomyLines.push('No vessel data entered.');
   anatomyLines.unshift('::DISEASE ANATOMY');
@@ -214,7 +210,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     28,
     806,
   );
-  doc.text('EndoPlanner v1.6.177', pageWidth - 28, 806, { align: 'right' });
+  doc.text('EndoPlanner v1.6.178', pageWidth - 28, 806, { align: 'right' });
 
   doc.save(reportFilename(data));
 }

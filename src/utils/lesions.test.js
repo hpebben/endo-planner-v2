@@ -16,10 +16,11 @@ describe( 'target arterial path and lesion labels', () => {
 			'Right_popliteal_artery_artery',
 			'Right_anterior_tibital_artery',
 			'Right_dorsal_pedal_artery',
+			'Right_pedal_arcuate',
 		] );
 		expect( inferTargetPathKey( path ) ).toBe( 'anterior' );
 		expect( formatTargetArterialPath( path ) ).toMatch(
-			/superficial femoral artery.*dorsal pedal artery/i
+			/superficial femoral artery.*dorsalis pedis artery/i
 		);
 	} );
 
@@ -50,6 +51,7 @@ describe( 'target arterial path and lesion labels', () => {
 			'Left_popliteal_artery_artery',
 			'Left_tibioperoneal_trunk',
 			'Left_posterior_tibial_artery',
+			'Left_lateral_plantar_artery',
 			'Left_plantar_arch',
 		] );
 		expect( validateTargetArterialPath( path ) ).toMatchObject( {

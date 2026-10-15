@@ -2,12 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import VesselMap from '../VesselMap';
 import ParameterPopup from '../UI/ParameterPopup';
 import SegmentedControl from '../UI/SegmentedControl';
+import PedalOutflowSelector from '../PedalOutflowSelector';
+import SelectedWoundosomeSummary from '../SelectedWoundosomeSummary';
+import { footArteryIdForVessel } from '../../data/pedalRoutes';
+import { getLesionExtent } from '../../utils/lesionExtent';
 import { __ } from '@wordpress/i18n';
 import rawVesselData from '../../assets/vessel-map.json';
 import {
   buildTargetArterialPath,
   buildTargetPathToSegment,
   getLesionOptions,
+  lesionLengthLabel,
   inferTargetPathKey,
   shortVesselName,
   sideFromVesselId,
@@ -149,7 +154,7 @@ export default function Step2_Patency({ data, setData }) {
 
   const chooseTargetPath = (targetKey) => {
     if (!targetSide) return;
-    const path = buildTargetArterialPath(targetSide, targetKey);
+    const path = buildTargetArterialPath(targetSide, targetKey, { woundLocations: getActiveWoundLocations(data) });
     setData((prev) => ({
       ...prev,
       targetArterialPath: path,
@@ -164,7 +169,7 @@ export default function Step2_Patency({ data, setData }) {
     if (!targetSide) return;
     const initialPath = savedTargetPath.length
       ? savedTargetPath
-      : buildTargetArterialPath(targetSide, selectedTargetKey || 'anterior');
+      : buildTargetArterialPath(targetSide, selectedTargetKey || 'anterior', { woundLocations: getActiveWoundLocations(data) });
     setDraftTargetPath(initialPath);
     setRouteNote(data.targetArterialPathNote || '');
     setRouteEditMessage('Choose the intended distal target directly on the arterial map.');
@@ -173,13 +178,13 @@ export default function Step2_Patency({ data, setData }) {
   };
 
   const chooseRouteEndpoint = (endpointId) => {
-    const path = buildTargetPathToSegment(targetSide, endpointId);
+    const path = buildTargetPathToSegment(targetSide, endpointId, { woundLocations: getActiveWoundLocations(data) });
     if (!path.length) {
       setRouteEditMessage('Choose an infrapopliteal or pedal endpoint on the planned limb.');
       return;
     }
     setDraftTargetPath(path);
-    setRouteEditMessage(`Proposed continuous route to ${shortVesselName(endpointId)}.`);
+    setRouteEditMessage(`Proposed continuous route to ${shortVesselName(path[path.length - 1])}.`);
   };
 
   const saveEditedRoute = () => {
@@ -226,12 +231,14 @@ export default function Step2_Patency({ data, setData }) {
           <div className="svg-wrapper patency-svg vessel-map-wrapper">
             <VesselMap
               selectedSegments={selectedSegments}
+              lesions={data.patencySegments || {}}
               targetSegments={activeTargetPath}
               targetEndpointCandidates={endpointCandidates}
               routeEditMode={routeEditMode}
               toggleSegment={routeEditMode ? chooseRouteEndpoint : openSegment}
               setTooltip={handleTooltip}
             />
+            <p className="lesion-map-caption">{__('Red outline = affected artery; solid red = estimated lesion extent. Position is schematic.', 'endoplanner')}</p>
             {routeEditMode && (
               <div className="route-edit-map-badge" role="status">
                 {__('Editing target route', 'endoplanner')}
@@ -266,8 +273,9 @@ export default function Step2_Patency({ data, setData }) {
                     '15-20': '15\u201320cm',
                     '>20': '>20cm',
                   };
-                  const lengthLabel = lengthMap[vals.length] || vals.length;
+                  const lengthLabel = vals.measuredLengthCm ? lesionLengthLabel(vals) : lengthMap[vals.length] || vals.length;
                   const summary = `${vals.type || ''} | ${lengthLabel} | ${vals.calcium}`;
+                  const extent = getLesionExtent(id, vals);
                   return (
                     <li key={id}>
                       <button
@@ -278,6 +286,7 @@ export default function Step2_Patency({ data, setData }) {
                         <span className="lesion-code-chip">{lesion?.code}</span>
                         <strong>{name}</strong>{' '}
                         <span className="segment-summary">({summary})</span>
+                        {extent.fraction !== null && <small className="segment-extent-label">{`${extent.kind === 'lower-bound' ? '≥' : '≈'}${Math.round(extent.fraction * 100)}% ${__('of reference segment length', 'endoplanner')}`}</small>}
                       </button>
                       <button
                         type="button"
@@ -297,6 +306,7 @@ export default function Step2_Patency({ data, setData }) {
 
           {activeSegment && (
             <ParameterPopup
+              segmentId={activeSegment}
               segmentName={
                 vesselSegments.find((s) => s.id === activeSegment)?.name ||
                 activeSegment
@@ -356,7 +366,7 @@ export default function Step2_Patency({ data, setData }) {
                   onChange={(side) => {
                     setTargetSide(side);
                     if (activeTargetKey) {
-                      const path = buildTargetArterialPath(side, activeTargetKey);
+                      const path = buildTargetArterialPath(side, activeTargetKey, { pedalTarget: footArteryIdForVessel(activeTargetPath[activeTargetPath.length - 1]) || undefined, woundLocations: getActiveWoundLocations(data) });
                       setDraftTargetPath(path);
                       if (!routeEditMode) {
                         setData((prev) => ({
@@ -397,6 +407,24 @@ export default function Step2_Patency({ data, setData }) {
               })}
             </div>
 
+            {activeTargetKey && activeTargetPath.length > 0 && (
+              <PedalOutflowSelector
+                targetKey={activeTargetKey}
+                targetPath={activeTargetPath}
+                selectedWounds={getActiveWoundLocations(data)}
+                onChange={(pedalTarget) => {
+                  const path = buildTargetArterialPath(targetSide, activeTargetKey, { pedalTarget });
+                  if (!path.length) return;
+                  if (routeEditMode) {
+                    setDraftTargetPath(path);
+                    setRouteEditMessage(`Proposed continuous route to ${shortVesselName(path[path.length - 1])}.`);
+                  } else {
+                    setData((prev) => ({ ...prev, targetArterialPath: path, targetArterialPathSide: targetSide, targetArterialPathKey: activeTargetKey }));
+                  }
+                }}
+              />
+            )}
+
             {routeEditMode && (
               <div className="target-path-editor" data-testid="target-path-editor">
                 <strong>{__('Choose the distal endpoint on the map', 'endoplanner')}</strong>
@@ -429,6 +457,7 @@ export default function Step2_Patency({ data, setData }) {
             {!routeEditMode && data.targetArterialPathNote && (
               <p className="target-path-note"><b>{__('Route note', 'endoplanner')}:</b> {data.targetArterialPathNote}</p>
             )}
+            {activeTargetPath.length > 0 && <SelectedWoundosomeSummary selectedIds={getActiveWoundLocations(data)} targetPath={activeTargetPath} />}
           </div>
           )}
 

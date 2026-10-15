@@ -68,6 +68,7 @@ describe('GLASS calculation', () => {
       'Left_popliteal_artery_artery',
       'Left_tibioperoneal_trunk',
       'Left_posterior_tibial_artery',
+      'Left_lateral_plantar_artery',
       'Left_plantar_arch',
     ]);
     expect(posterior.ipGrade).toBe(1);
