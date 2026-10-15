@@ -8,6 +8,7 @@ import Step3 from './steps/Step4_Intervention';
 import Step4 from './steps/Step3_Summary';
 import { ProgressBar } from '@wordpress/components';
 import { migratePlanRowScopes } from '../utils/planScopes';
+import { separatePlanDeviceSuggestions } from '../utils/planDeviceSuggestions';
 import { validateCaseStep } from '../utils/caseValidation';
 
 const STORAGE_KEY = 'endoplannerState';
@@ -56,6 +57,10 @@ export default function Wizard() {
             }));
           }
         }
+        const availablePlan = separatePlanDeviceSuggestions(migratedData);
+        migratedData.navRows = availablePlan.navRows;
+        migratedData.therapyRows = availablePlan.therapyRows;
+        migratedData.planDeviceSuggestions = availablePlan.planDeviceSuggestions;
         const lesionIds = Object.keys(migratedData.patencySegments || {});
         const defaultLesionId = lesionIds.length === 1 ? lesionIds[0] : '';
         migratedData.navRows = migratePlanRowScopes(migratedData.navRows || [], {

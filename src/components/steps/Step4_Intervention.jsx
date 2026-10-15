@@ -5,6 +5,7 @@ import SegmentedControl from '../UI/SegmentedControl';
 import InlineDeviceSelect from '../UI/InlineDeviceSelect';
 import InlineModal from '../UI/InlineModal';
 import DeviceGlyph from '../UI/DeviceGlyph';
+import StarredDeviceChoices from '../UI/StarredDeviceChoices';
 import {
   FilterChips,
   ProductFirstLayout,
@@ -33,10 +34,8 @@ import {
 import { getLesionOptions } from '../../utils/lesions';
 import {
   buildScopeOptions,
-  createLesionScope,
-  createTargetPathScope,
   getPlanScope,
-  hasPlanItemContent,
+  formatScopeLabel,
   migratePlanRowScopes,
   scopeFromValue,
   scopeKey,
@@ -49,6 +48,8 @@ import {
   snapshotPreferenceProfile,
 } from '../../utils/preferenceProfile';
 import { analyzePlan } from '../../utils/planAnalysis';
+import { getActiveWoundLocations } from '../../utils/clinicalStage';
+import { getSuggestedDeviceProfiles, mergeDeviceProfiles, separatePlanDeviceSuggestions } from '../../utils/planDeviceSuggestions';
 import {
   CLOSURE_GUIDE_URL,
   CLOSURE_CATALOG,
@@ -76,7 +77,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.172';
+const APPLICATION_VERSION = '1.6.177';
 
 const preferenceTypes = [
   { key: 'needle', legacyId: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg, modal: 'needle' },
@@ -337,7 +338,7 @@ VesselDropdown.propTypes = {
   onSave: PropTypes.func.isRequired,
 };
 
-function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
+function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
   const [size, setSize] = useState(values.size || '');
   const [length, setLength] = useState(values.length || '');
   useEffect(() => { setSize(values.size || ''); setLength(values.length || ''); }, [values]);
@@ -350,6 +351,7 @@ function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Needle', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+      <StarredDeviceChoices profiles={preferredProfiles} onSelect={(profile) => { setSize(profile.size || ''); setLength(profile.length || ''); onSave(profile); onRequestClose(); }} />
       <SelectControl
         label={__('Needle size', 'endoplanner')}
         value={size}
@@ -375,9 +377,10 @@ NeedleModal.propTypes = {
   onRequestClose: PropTypes.func.isRequired,
   values: PropTypes.object,
   onSave: PropTypes.func.isRequired,
+  preferredProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
-function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
+function SheathModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
   const [frSize, setFrSize] = useState(values.frSize || '');
   const [length, setLength] = useState(values.length || '');
   useEffect(() => { setFrSize(values.frSize || ''); setLength(values.length || ''); }, [values]);
@@ -392,6 +395,7 @@ function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
   };
   return (
     <SimpleModal title={__('Sheath', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+      <StarredDeviceChoices profiles={preferredProfiles} onSelect={(profile) => { setFrSize(profile.frSize || ''); setLength(profile.length || ''); onSave(profile); onRequestClose(); }} />
       <SelectControl
         label={__('French size', 'endoplanner')}
         value={frSize}
@@ -417,6 +421,7 @@ SheathModal.propTypes = {
   onRequestClose: PropTypes.func.isRequired,
   values: PropTypes.object,
   onSave: PropTypes.func.isRequired,
+  preferredProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
 function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
@@ -441,6 +446,7 @@ function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave, preferr
   };
   return (
     <SimpleModal title={__('Catheter', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+      <StarredDeviceChoices profiles={preferredProfiles} onSelect={commit} />
       <CatalogProductPicker
         catalog={CATHETER_CATALOG}
         form={form}
@@ -582,6 +588,7 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
 
   return (
     <SimpleModal title={__('Wire', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+      <StarredDeviceChoices profiles={preferredProfiles} onSelect={commit} />
       <ProductFirstLayout
         product={form.product}
         productOptions={productOptions}
@@ -698,6 +705,7 @@ function BalloonModal({ isOpen, anchor, onRequestClose, values, onSave, preferre
   };
   return (
     <SimpleModal title={__('PTA Balloon', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+      <StarredDeviceChoices profiles={preferredProfiles} onSelect={commit} />
       <CatalogProductPicker
         catalog={BALLOON_CATALOG}
         form={form}
@@ -761,6 +769,7 @@ function StentModal({ isOpen, anchor, onRequestClose, values, onSave, preferredP
   };
   return (
     <SimpleModal title={__('Stent', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+      <StarredDeviceChoices profiles={preferredProfiles} onSelect={commit} />
       <CatalogProductPicker
         catalog={STENT_CATALOG}
         form={form}
@@ -830,6 +839,7 @@ function SpecialDeviceModal({ isOpen, anchor, onRequestClose, values, onSave, pr
 
   return (
     <SimpleModal title={__('Special device', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
+      <StarredDeviceChoices profiles={preferredProfiles} onSelect={commit} />
       <CatalogProductPicker
         catalog={SPECIAL_DEVICE_CATALOG}
         form={form}
@@ -898,7 +908,7 @@ const RowControls = ({ onAdd, onRemove, showRemove, label, showAdd = true }) => 
 );
 RowControls.propTypes = { onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, label: PropTypes.string, showAdd: PropTypes.bool };
 
-function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredCatheterProfiles = [] }) {
+function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredCatheterProfiles = [], preferredNeedleProfiles = [], preferredSheathProfiles = [] }) {
   const [vesselOpen, setVesselOpen] = useState(false);
   const [needleOpen, setNeedleOpen] = useState(false);
   const [sheathOpen, setSheathOpen] = useState(false);
@@ -1089,6 +1099,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove, prefe
           }}
           values={needles[needleIdx] || {}}
           onSave={(val) => updateNeedle(needleIdx, val)}
+          preferredProfiles={preferredNeedleProfiles}
         />
         <SheathModal
           isOpen={sheathOpen}
@@ -1100,6 +1111,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove, prefe
           }}
           values={sheaths[sheathIdx] || {}}
           onSave={(val) => updateSheath(sheathIdx, val)}
+          preferredProfiles={preferredSheathProfiles}
         />
         <CatheterModal
           isOpen={catOpen}
@@ -1126,6 +1138,8 @@ AccessRow.propTypes = {
   onRemove: PropTypes.func.isRequired,
   showRemove: PropTypes.bool,
   preferredCatheterProfiles: PropTypes.arrayOf(PropTypes.object),
+  preferredNeedleProfiles: PropTypes.arrayOf(PropTypes.object),
+  preferredSheathProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
 function ScopeChip({ value, options, onChange }) {
@@ -1364,7 +1378,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, pref
 
 TherapyRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredBalloonProfiles: PropTypes.arrayOf(PropTypes.object), preferredStentProfiles: PropTypes.arrayOf(PropTypes.object), preferredSpecialProfiles: PropTypes.array, scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
 
-function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove, accessRows }) {
+function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove, accessRows, preferredDevices = [] }) {
   const data = values || {};
   const method = data.method || '';
   const selectedDevice = normalizeClosureLabel(data.device);
@@ -1383,6 +1397,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove, acce
           <InlineDeviceSelect
             image={closureImg}
             options={closureOptions}
+            preferredValues={preferredDevices.map(normalizeClosureLabel)}
             value={selectedDevice}
             onChange={(val) => onChange({ ...data, device: val })}
             buttonLabel={__('Choose', 'endoplanner')}
@@ -1397,7 +1412,7 @@ function ClosureRow({ index, values, onChange, onAdd, onRemove, showRemove, acce
   );
 }
 
-ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, accessRows: PropTypes.arrayOf(PropTypes.object).isRequired };
+ClosureRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, accessRows: PropTypes.arrayOf(PropTypes.object).isRequired, preferredDevices: PropTypes.array };
 
 // --- Main Step Component --------------------------------------------------
 export default function Step4({ data, setData }) {
@@ -1422,12 +1437,14 @@ export default function Step4({ data, setData }) {
   const defaultClosure = { method: DEFAULTS.closure.method };
 
   const [accessRows, setAccessRows] = useState(initRows(data.accessRows, defaultAccess));
-  const [navRows, setNavRows] = useState(() => migratePlanRowScopes(data.navRows || [], {
+  const availablePlan = separatePlanDeviceSuggestions(data);
+  const [deviceSuggestions] = useState(availablePlan.planDeviceSuggestions);
+  const [navRows, setNavRows] = useState(() => migratePlanRowScopes(availablePlan.navRows || [], {
     defaultLesionId,
     targetPath,
     rowType: 'navigation',
   }).map((row) => ({ id: row.id || uid(), ...row })));
-  const [therapyRows, setTherapyRows] = useState(() => migratePlanRowScopes(data.therapyRows || [], {
+  const [therapyRows, setTherapyRows] = useState(() => migratePlanRowScopes(availablePlan.therapyRows || [], {
     defaultLesionId,
     targetPath,
     rowType: 'therapy',
@@ -1444,83 +1461,6 @@ export default function Step4({ data, setData }) {
       .map((slot) => slot?.value ?? slot?.data ?? slot)
       .filter(hasPreferenceValue);
 
-  const rowHasContent = (row) => hasPlanItemContent(row);
-
-  const applyPreferencesToCase = (preferences, overwrite = false) => {
-    const needles = preferenceValues(preferences, 'needle');
-    const sheaths = preferenceValues(preferences, 'sheath');
-    const catheters = preferenceValues(preferences, 'catheter');
-    const wires = preferenceValues(preferences, 'wire');
-    const balloons = preferenceValues(preferences, 'balloon');
-    const stents = preferenceValues(preferences, 'stent');
-    const specialDevices = preferenceValues(preferences, 'specialDevice');
-    const closureDevices = preferenceValues(preferences, 'closureDevice');
-
-    setAccessRows((previous) => {
-      if (!overwrite && previous.some(rowHasContent)) return previous;
-      const current = previous[0] || { id: uid() };
-      return [{
-        ...current,
-        needles: needles.length ? needles : (current.needles || []),
-        sheaths: sheaths.length ? sheaths : (current.sheaths || []),
-        catheters: catheters.length ? catheters : (current.catheters || []),
-      }];
-    });
-
-    setNavRows((previous) => {
-      if (!overwrite && previous.some(rowHasContent)) return previous;
-      if (!wires.length && !catheters.length && !specialDevices.length) return previous;
-      const rows = wires.length ? wires.map((wireValue, index) => {
-        const isSupportWire = normalizeWireRole(wireValue.role || wireValue.type) === WIRE_ROLES.SUPPORT;
-        const preferredScope = isSupportWire && targetPath.length
-          ? createTargetPathScope()
-          : (defaultLesionId ? createLesionScope(defaultLesionId) : null);
-        return {
-          id: previous[index]?.id || uid(),
-          ...(preferredScope ? { scope: preferredScope } : {}),
-          wire: wireValue,
-        };
-      }) : [{
-        id: previous[0]?.id || uid(),
-        ...(targetPath.length
-          ? { scope: createTargetPathScope() }
-          : (defaultLesionId ? { scope: createLesionScope(defaultLesionId) } : {})),
-      }];
-      if (catheters[0]) rows[0].catheter = catheters[0];
-      const reentryDevice = specialDevices.find((value) => {
-        const text = typeof value === 'string'
-          ? value
-          : [value?.product, value?.category].filter(Boolean).join(' ');
-        return text.toLowerCase().includes('re-entry');
-      });
-      if (reentryDevice) rows[0].device = reentryDevice;
-      return rows;
-    });
-
-    setTherapyRows((previous) => {
-      if (!overwrite && previous.some(rowHasContent)) return previous;
-      if (!balloons.length && !stents.length && !specialDevices.length) return previous;
-      const rowCount = Math.max(balloons.length, stents.length, 1);
-      return Array.from({ length: rowCount }, (_, index) => ({
-        id: previous[index]?.id || uid(),
-        ...(defaultLesionId ? { scope: createLesionScope(defaultLesionId) } : {}),
-        ...(balloons[index] ? { balloon: balloons[index] } : {}),
-        ...(stents[index] ? { stent: stents[index] } : {}),
-        ...(index === 0 && specialDevices[0] ? { device: specialDevices[0] } : {}),
-      }));
-    });
-
-    setClosureRows((previous) => {
-      if (!overwrite && previous.some(rowHasContent)) return previous;
-      if (!closureDevices.length) return previous;
-      return closureDevices.map((device, index) => ({
-        id: previous[index]?.id || uid(),
-        method: 'Closure device',
-        device,
-      }));
-    });
-  };
-
   useEffect(() => {
     const profile = loadPreferenceProfile(APPLICATION_VERSION);
     if (!profile) return;
@@ -1528,7 +1468,6 @@ export default function Step4({ data, setData }) {
     setPreferenceProfile(profile);
     setPrefsData(normalized);
     setSavedPreferences(normalized);
-    applyPreferencesToCase(normalized, false);
     setData((previous) => ({
       ...previous,
       appliedPreferenceProfile: snapshotPreferenceProfile(profile),
@@ -1565,7 +1504,6 @@ export default function Step4({ data, setData }) {
     const profile = savePreferenceProfile(serialized, preferenceProfile, APPLICATION_VERSION);
     setPreferenceProfile(profile);
     setSavedPreferences(serialized);
-    applyPreferencesToCase(serialized, true);
     setData((previous) => ({
       ...previous,
       appliedPreferenceProfile: snapshotPreferenceProfile(profile),
@@ -1632,11 +1570,11 @@ export default function Step4({ data, setData }) {
   const activePreferenceSlot = prefsPicker
     ? (prefsData[prefsPicker.typeKey] || []).find((slot) => slot.id === prefsPicker.slotId)
     : null;
-  const preferredWireProfiles = preferenceValues(savedPreferences, 'wire');
-  const preferredCatheterProfiles = preferenceValues(savedPreferences, 'catheter');
-  const preferredBalloonProfiles = preferenceValues(savedPreferences, 'balloon');
-  const preferredStentProfiles = preferenceValues(savedPreferences, 'stent');
-  const preferredSpecialProfiles = preferenceValues(savedPreferences, 'specialDevice');
+  const preferredWireProfiles = mergeDeviceProfiles(preferenceValues(savedPreferences, 'wire'), getSuggestedDeviceProfiles(deviceSuggestions, 'wire'));
+  const preferredCatheterProfiles = mergeDeviceProfiles(preferenceValues(savedPreferences, 'catheter'), getSuggestedDeviceProfiles(deviceSuggestions, 'catheter'));
+  const preferredBalloonProfiles = mergeDeviceProfiles(preferenceValues(savedPreferences, 'balloon'), getSuggestedDeviceProfiles(deviceSuggestions, 'balloon'));
+  const preferredStentProfiles = mergeDeviceProfiles(preferenceValues(savedPreferences, 'stent'), getSuggestedDeviceProfiles(deviceSuggestions, 'stent'));
+  const preferredSpecialProfiles = mergeDeviceProfiles(preferenceValues(savedPreferences, 'specialDevice'), getSuggestedDeviceProfiles(deviceSuggestions, 'specialDevice'));
   const navigationScopeOptions = buildScopeOptions(lesionOptions, targetPath, {
     includeTargetPath: true,
     includeTreatmentZones: true,
@@ -1645,17 +1583,18 @@ export default function Step4({ data, setData }) {
     includeTargetPath: false,
     includeTreatmentZones: true,
   });
-  const allKnownScopeKeys = new Set([...navigationScopeOptions, ...therapyScopeOptions].map((option) => option.value));
-  const zoneOptions = therapyScopeOptions.filter((option) => (
-    option.scope.type === 'treatmentZone'
-    && [...navRows, ...therapyRows].some((row) => scopeKey(row) === option.value)
-  ));
-  const unassignedNavRows = navRows.filter((row) => (
-    hasPlanItemContent(row) && !allKnownScopeKeys.has(scopeKey(row))
-  ));
-  const unassignedTherapyRows = therapyRows.filter((row) => (
-    hasPlanItemContent(row) && !allKnownScopeKeys.has(scopeKey(row))
-  ));
+  const zoneOptions = [...navRows, ...therapyRows].reduce((options, row) => {
+    const scope = getPlanScope(row);
+    if (scope?.type === 'treatmentZone' && !options.some((option) => scopeKey(option.scope) === scopeKey(scope))) {
+      const shortLabel = formatScopeLabel(scope, lesionOptions);
+      const option = { scope, value: scopeKey(scope), shortLabel, label: `${shortLabel} — combined treatment zone` };
+      options.push(option);
+      [navigationScopeOptions, therapyScopeOptions].forEach((scopeOptions) => {
+        if (!scopeOptions.some((candidate) => candidate.value === option.value)) scopeOptions.push(option);
+      });
+    }
+    return options;
+  }, []);
 
   const addNavigationRow = (scope) => setNavRows((previous) => [
     ...previous,
@@ -1700,7 +1639,7 @@ export default function Step4({ data, setData }) {
   const closureRecommendations = getClosureAdvice(accessRows);
 
   useEffect(() => {
-    setData((previous) => ({ ...previous, accessRows, navRows, therapyRows, closureRows }));
+    setData((previous) => ({ ...previous, accessRows, navRows, therapyRows, closureRows, planDeviceSuggestions: deviceSuggestions }));
   }, [accessRows, navRows, therapyRows, closureRows]);
 
   return (
@@ -1883,6 +1822,8 @@ export default function Step4({ data, setData }) {
             onRemove={() => setAccessRows((prev) => prev.filter((r) => r.id !== row.id))}
             showRemove={accessRows.length > 1}
             preferredCatheterProfiles={preferredCatheterProfiles}
+            preferredNeedleProfiles={preferenceValues(savedPreferences, 'needle')}
+            preferredSheathProfiles={preferenceValues(savedPreferences, 'sheath')}
           />
         ))}
         <RowControls
@@ -1901,11 +1842,13 @@ export default function Step4({ data, setData }) {
       <section className="intervention-section scoped-plan-section" data-testid="scoped-intervention-plan">
         <div className="section-heading">{__('Visual device plan', 'endoplanner')}</div>
         <p className="scoped-plan-intro">
-          {__('Select PATH or a lesion beside the arterial tree, then add the devices for that part of the procedure. Only one planning panel is shown at a time.', 'endoplanner')}
+          {__('Review the anatomy and selected woundosomes, then select a lesion below to plan its crossing and treatment devices.', 'endoplanner')}
         </p>
 
         <VisualPlanWorkspace
           targetPath={targetPath}
+          selectedWounds={getActiveWoundLocations(data)}
+          findings={planFindings}
           lesionOptions={lesionOptions}
           zoneOptions={zoneOptions}
           navRows={navRows}
@@ -1915,15 +1858,6 @@ export default function Step4({ data, setData }) {
           addNavigationRow={addNavigationRow}
           addTherapyRow={addTherapyRow}
         />
-
-        {(unassignedNavRows.length > 0 || unassignedTherapyRows.length > 0) && (
-          <details className="visual-plan-unassigned" data-testid="plan-scope-group-UNASSIGNED">
-            <summary>{__('Assign unlinked preferred or legacy devices', 'endoplanner')}</summary>
-            <p>{__('Use Move once to place each item on PATH, a lesion or a combined treatment zone.', 'endoplanner')}</p>
-            {renderNavigationRows(unassignedNavRows)}
-            {renderTherapyRows(unassignedTherapyRows)}
-          </details>
-        )}
       </section>
 
       <section className="intervention-section">
@@ -1962,41 +1896,9 @@ export default function Step4({ data, setData }) {
             onRemove={() => setClosureRows((prev) => prev.filter((r) => r.id !== row.id))}
             showRemove={closureRows.length > 1}
             accessRows={accessRows}
+            preferredDevices={preferenceValues(savedPreferences, 'closureDevice')}
           />
         ))}
-      </section>
-
-      <section className="intervention-section plan-considerations" data-testid="live-plan-considerations">
-        <div className="section-heading">{__('Recommendations & Considerations', 'endoplanner')}</div>
-        <p className="plan-considerations-intro">
-          {__('Resolve incompatibilities before export. Technique considerations are generated from the recorded lesion morphology and access strategy.', 'endoplanner')}
-        </p>
-        {planFindings.length ? (
-          <div className="plan-considerations-list">
-            {planFindings.map((item) => (
-              <article key={item.id} className={`plan-consideration plan-consideration--${item.level}`}>
-                <span>{item.level === 'error' ? __('Incompatible', 'endoplanner') : item.level}</span>
-                <h4>{item.title}</h4>
-                <p>{item.summary}</p>
-                {(item.details.length > 0 || item.references.length > 0) && (
-                  <details>
-                    <summary>{__('Technique notes and sources', 'endoplanner')}</summary>
-                    {item.details.length > 0 && <ol>{item.details.map((detail) => <li key={detail}>{detail}</li>)}</ol>}
-                    {item.references.length > 0 && (
-                      <ul>
-                        {item.references.map((reference) => (
-                          <li key={reference.url}><a href={reference.url} target="_blank" rel="noreferrer">{reference.label}</a></li>
-                        ))}
-                      </ul>
-                    )}
-                  </details>
-                )}
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="plan-considerations-clear">{__('No incompatibilities or anatomy-triggered considerations identified from the recorded data.', 'endoplanner')}</p>
-        )}
       </section>
     </div>
   );

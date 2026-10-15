@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 
-export default function InlineModal({ title, isOpen, onRequestClose, children }) {
+export default function InlineModal({ title, isOpen, onRequestClose, children, className = '' }) {
   const modalRef = useRef(null);
   const prevFocusRef = useRef(null);
+  const titleId = useId();
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -19,6 +20,22 @@ export default function InlineModal({ title, isOpen, onRequestClose, children })
       if (event.key === 'Escape') {
         event.preventDefault();
         onRequestClose();
+      }
+      if (event.key === 'Tab' && modalRef.current) {
+        const elements = [...modalRef.current.querySelectorAll('button, a[href], input, select, textarea, summary, [tabindex="0"]')]
+          .filter((element) => !element.disabled && element.getClientRects().length);
+        const first = elements[0];
+        const last = elements[elements.length - 1];
+        if (!first) {
+          event.preventDefault();
+          modalRef.current.focus();
+        } else if (event.shiftKey && (document.activeElement === first || document.activeElement === modalRef.current)) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     };
 
@@ -42,15 +59,16 @@ export default function InlineModal({ title, isOpen, onRequestClose, children })
       onClick={onRequestClose}
     >
       <div
-        className="inline-modal centered"
+        className={`inline-modal centered ${className}`.trim()}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
         tabIndex="-1"
         ref={modalRef}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        {title ? <div className="modal-header">{title}</div> : null}
+        {title ? <div className="modal-header" id={titleId}>{title}</div> : null}
         {children}
       </div>
     </div>
@@ -64,4 +82,5 @@ InlineModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
+  className: PropTypes.string,
 };

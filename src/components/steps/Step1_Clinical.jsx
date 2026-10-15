@@ -89,16 +89,18 @@ export default function Step1({ data, setData }) {
 
   return (
     <div className="clinical-center">
-      <h2 className="section-title">{__('Fontaine stage', 'endoplanner')}</h2>
-      <p className="section-subtitle">
-        {__('Choose the stage that best matches the clinical presentation; IIa and IIb are separated at a 200 metre walking distance.', 'endoplanner')}
-      </p>
-      <SegmentedControl
-        options={stageOptions}
-        value={data.stage}
-        onChange={(stage) => setData((previous) => ({ ...previous, stage }))}
-        ariaLabel={__('Fontaine stage', 'endoplanner')}
-      />
+      <section className="clinical-block fontaine-assessment" aria-label={__('Fontaine stage', 'endoplanner')}>
+        <h2 className="section-title">{__('Fontaine stage', 'endoplanner')}</h2>
+        <p className="section-subtitle">
+          {__('Choose the stage that best matches the clinical presentation; IIa and IIb are separated at a 200 metre walking distance.', 'endoplanner')}
+        </p>
+        <SegmentedControl
+          options={stageOptions}
+          value={data.stage}
+          onChange={(stage) => setData((previous) => ({ ...previous, stage }))}
+          ariaLabel={__('Fontaine stage', 'endoplanner')}
+        />
+      </section>
 
       {isFontaineIV(data.stage) && (
         <>
@@ -110,8 +112,7 @@ export default function Step1({ data, setData }) {
             }))}
           />
 
-          <div className="section-spacer" />
-          <div data-testid="wifi-assessment">
+          <section className="clinical-block wifi-assessment" data-testid="wifi-assessment" aria-label={__('WIfI component grades', 'endoplanner')}>
             <h2 className="section-title">{__('WIfI component grades', 'endoplanner')}</h2>
             <p className="section-subtitle">
               {__('All three components must be assessed before a clinical stage is calculated.', 'endoplanner')}
@@ -134,7 +135,7 @@ export default function Step1({ data, setData }) {
               value={clinical.infection}
               onChange={(value) => setClinicalGrade('infection', value)}
             />
-          </div>
+          </section>
         </>
       )}
 

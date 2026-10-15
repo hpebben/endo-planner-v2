@@ -133,27 +133,33 @@ async function seed(page, data, step, savedProfile = null) {
   );
 }
 
-test('applies a versioned local setup to access, crossing, therapy and closure', async ({ page }) => {
+test('offers local preferences as starred choices without adding unused devices', async ({ page }) => {
   await seed(page, baseCase(), 2, profile);
   await page.goto('./');
-
-  await expect(page.getByRole('heading', { name: 'Intervention plan' })).toBeVisible();
-  await expect(page.getByRole('button', { name: '6 Fr' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'ASAHI Gladius MG 18 PV ES' }).first()).toBeVisible();
-  await expect(page.getByRole('radio', { name: 'Closure device' })).toHaveAttribute('aria-checked', 'true');
-  await expect(page.getByRole('radio', { name: '6F AngioSeal' })).toBeVisible();
-
+  await expect(page.getByRole('heading', { name: 'Intervention plan', exact: true })).toBeVisible();
+  await expect.poll(() => page.evaluate((key) => {
+    const data = JSON.parse(localStorage.getItem(key))?.data;
+    return { nav: data?.navRows, therapy: data?.therapyRows, sheath: data?.accessRows?.[0]?.sheaths?.[0], closure: data?.closureRows?.[0]?.method || '' };
+  }, STATE_KEY)).toEqual({ nav: [], therapy: [], sheath: {}, closure: '' });
+  const composer = page.getByTestId('plan-scope-group-L1');
+  await composer.getByRole('button', { name: 'Add crossing device', exact: true }).click();
+  await composer.getByRole('button', { name: 'Wire', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('combobox', { name: 'Product' })).toContainText('★ ASAHI Gladius MG 18 PV ES');
+  await dialog.getByRole('button', { name: /Choose starred device: ASAHI Gladius MG 18 PV ES/ }).click();
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(composer.getByRole('button', { name: 'ASAHI Gladius MG 18 PV ES', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Sheath', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Choose starred device: 6 Fr · 25 cm/ }).click();
+  await page.getByRole('radio', { name: 'Closure device', exact: true }).click();
+  await expect(page.getByRole('radio', { name: '★ 6F AngioSeal', exact: true })).toHaveAttribute('aria-checked', 'false');
   await page.getByRole('button', { name: /Set local preferences/ }).click();
   await expect(page.getByText('Profile v1 · revision 2')).toBeVisible();
-
-  await expect
-    .poll(() =>
-      page.evaluate((key) => {
-        const stored = JSON.parse(localStorage.getItem(key));
-        return stored?.data?.appliedPreferenceProfile;
-      }, STATE_KEY)
-    )
-    .toMatchObject({ profileId: 'e2e-local-setup', revision: 2 });
+  await page.getByRole('button', { name: 'Save setup', exact: true }).click();
+  await expect.poll(() => page.evaluate((key) => {
+    const data = JSON.parse(localStorage.getItem(key))?.data;
+    return { nav: data?.navRows?.length, therapy: data?.therapyRows?.length, closure: data?.closureRows?.[0]?.device || '', revision: data?.appliedPreferenceProfile?.revision };
+  }, STATE_KEY)).toEqual({ nav: 1, therapy: 0, closure: '', revision: 3 });
 });
 
 test('opens WIfI and GLASS guideline dialogs from the case summary', async ({ page }) => {
@@ -216,17 +222,17 @@ test('edits and validates the target arterial path directly on the vessel map', 
     });
 });
 
-test('plans one visual scope at a time and inherits PATH and lesion scopes', async ({ page }) => {
+test('plans lesions without a PATH tab and keeps shared support available in route context', async ({ page }) => {
   await seed(page, baseCase(), 2);
   await page.goto('./');
 
   const workspace = page.getByTestId('visual-intervention-planner');
-  await expect(workspace.getByTestId('visual-scope-PATH')).toBeVisible();
+  await expect(workspace.getByTestId('visual-scope-PATH')).toHaveCount(0);
   await expect(workspace.getByTestId('visual-scope-L1')).toContainText('Left superficial femoral artery');
 
-  await workspace.getByTestId('visual-scope-PATH').click();
-  const pathComposer = workspace.getByTestId('plan-scope-group-PATH');
-  await pathComposer.getByRole('button', { name: /Add support device/ }).click();
+  const support = workspace.getByTestId('shared-route-support');
+  await support.getByText('Shared route support', { exact: true }).click();
+  await support.getByRole('button', { name: /Add support device/ }).click();
 
   const sfaPlanningTarget = page.getByRole('button', {
     name: 'Plan devices for Left superficial femoral artery',
@@ -254,7 +260,7 @@ test('plans one visual scope at a time and inherits PATH and lesion scopes', asy
     });
 });
 
-test('shows chosen devices as schematics beside the arterial tree', async ({ page }) => {
+test('shows chosen devices as schematics below the anatomy and selected woundosomes', async ({ page }) => {
   await seed(page, completeCase(), 2);
   await page.goto('./');
 
@@ -264,6 +270,24 @@ test('shows chosen devices as schematics beside the arterial tree', async ({ pag
   await expect(lesionSummary).toContainText('5 × 120 mm');
   await expect(lesionSummary.locator('.device-glyph--wire')).toHaveCount(1);
   await expect(lesionSummary.locator('.device-glyph--balloon')).toHaveCount(1);
+  const wounds = workspace.getByTestId('selected-woundosomes');
+  await expect(wounds.locator('[data-wound-id="dorsum"]')).toHaveCount(2);
+  await expect(wounds.locator('[data-wound-id]')).toHaveCount(2);
+  await expect(wounds.getByRole('checkbox')).toHaveCount(0);
+  await expect(workspace.getByRole('region', { name: 'Target arterial path information' })).toContainText('dorsal pedal artery');
+  const positions = await workspace.evaluate((element) => {
+    const context = element.querySelector('.visual-plan-context').getBoundingClientRect();
+    const editing = element.querySelector('.visual-plan-editing').getBoundingClientRect();
+    const keys = [...element.querySelectorAll('.visual-plan-legend-line')].map((line) => {
+      const bounds = line.getBoundingClientRect();
+      return { width: bounds.width, y: bounds.y, color: getComputedStyle(line).backgroundColor };
+    });
+    return { contextBottom: context.bottom, editingTop: editing.top, keys };
+  });
+  expect(positions.editingTop).toBeGreaterThan(positions.contextBottom);
+  expect(positions.keys[0].width).toBe(positions.keys[1].width);
+  expect(positions.keys[1].y).toBeGreaterThan(positions.keys[0].y);
+  expect(positions.keys[1].color).toBe('rgb(217, 31, 75)');
 });
 
 test('starts device selection with preferred products and faceted specification filters', async ({ page }) => {
@@ -304,12 +328,14 @@ test('starts device selection with preferred products and faceted specification 
     },
   };
 
-  await seed(page, baseCase(), 2, productFirstProfile);
+  const data = completeCase();
+  data.navRows[0].wire = productFirstProfile.preferences.wire[0].value;
+  data.therapyRows[0].balloon = productFirstProfile.preferences.balloon[0].value;
+  await seed(page, data, 2, productFirstProfile);
   await page.goto('./');
 
-  // The saved profile is applied in a mount effect. Wait for that transaction
-  // to finish so opening a picker cannot be interrupted by the resulting row
-  // rerender.
+  // The selected devices were explicitly saved in the case; local preferences
+  // only mark the corresponding selector options with stars.
   await expect
     .poll(() =>
       page.evaluate((key) => {
@@ -345,6 +371,8 @@ test('starts device selection with preferred products and faceted specification 
   await dialog.getByTestId('filter-shaft').getByRole('button', { name: '80 cm' }).click();
   await dialog.getByRole('button', { name: 'Done' }).click();
 
+  await page.getByRole('button', { name: /Set local preferences/ }).click();
+  await page.getByRole('button', { name: 'Save setup', exact: true }).click();
   await expect
     .poll(() =>
       page.evaluate((key) => {
@@ -495,6 +523,11 @@ test('shows WIfI and woundosome only in Fontaine IV while PAT is optional in eve
   await expect(page.getByTestId('wifi-assessment')).toBeVisible();
   await expect(page.getByTestId('woundosome-selector')).toBeVisible();
   await expect(pat).toBeVisible();
+  const gaps = await page.locator('.clinical-center').evaluate((element) => {
+    const boxes = [...element.children].map((child) => child.getBoundingClientRect());
+    return boxes.slice(1).map((box, index) => box.top - boxes[index].bottom);
+  });
+  expect(gaps.every((gap) => gap >= 24)).toBe(true);
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('Assess all three WIfI components.');
   await expect(page.getByRole('alert')).toContainText('Select at least one wound or gangrene location.');
@@ -653,4 +686,114 @@ test('recommends a 6F rather than 8F AngioSeal for a 6F sheath', async ({ page }
   const advice = page.getByTestId('closure-advice');
   await expect(advice).toContainText('6F AngioSeal');
   await expect(advice).not.toContainText('8F AngioSeal');
+});
+
+for (const [level, mutate, expectedTitle] of [
+  ['recommendation', () => {}, 'Document calcium modification and bailout strategy'],
+  ['warning', (data) => { delete data.therapyRows[0].balloon.minimumSheathFr; }, 'Balloon introducer profile is unverified'],
+  ['error', (data) => { data.therapyRows[0].balloon.platform = '0.014'; }, 'Balloon platform has no matching scoped wire'],
+]) {
+  test(`opens the plan review with ${level} severity and restores keyboard focus`, async ({ page }) => {
+    const data = completeCase();
+    mutate(data);
+    await seed(page, data, 2);
+    await page.goto('./');
+    await expect(page.getByTestId('live-plan-considerations')).toHaveCount(0);
+    const button = page.getByTestId('plan-review-button');
+    await expect(button).toHaveClass(new RegExp(`plan-review-button--${level}`));
+    await button.click();
+    const dialog = page.getByRole('dialog', { name: 'Plan summary & recommendations', exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText('Selected devices for this plan', { exact: true })).toBeVisible();
+    await expect(dialog.getByTestId('recommendations-considerations')).toContainText(expectedTitle);
+    await expect(dialog).toContainText('ASAHI Gladius MG 18 PV ES');
+    await page.keyboard.press('Shift+Tab');
+    expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(button).toBeFocused();
+  });
+}
+
+for (const [stage, woundLocations] of [['iii', ['dorsum']], ['iv', []]]) {
+  test(`hides wound previews for Fontaine ${stage} with ${woundLocations.length} selected wounds`, async ({ page }) => {
+    const data = completeCase();
+    data.stage = stage;
+    data.clinical.woundLocations = woundLocations;
+    await seed(page, data, 2);
+    await page.goto('./');
+    await expect(page.getByTestId('selected-woundosomes')).toHaveCount(0);
+    await expect(page.getByRole('region', { name: 'Target arterial path information' })).toBeVisible();
+    await expect(page.getByTestId('visual-scope-L1')).toBeVisible();
+  });
+}
+
+test('keeps unlinked legacy devices as starred selector choices across reloads', async ({ page }) => {
+  const data = completeCase();
+  const secondLesion = 'Left_anterior_tibial_artery';
+  data.patencySegments[secondLesion] = { type: 'stenosis', length: '<3', calcium: 'none' };
+  data.navRows.push({ id: 'unused-wire', wire: { product: 'Legacy unused wire', platform: '0.018', length: '300 cm', role: 'CTO crossing' } });
+  data.therapyRows.push({ id: 'unused-balloon', balloon: { product: 'Legacy unused balloon', diameter: '3', length: '40', platform: '0.018', shaft: '150 cm', minimumSheathFr: '4 Fr', deliveryMode: 'Over-the-wire' } });
+  await seed(page, data, 2);
+  await page.goto('./');
+  await expect(page.getByTestId('plan-scope-group-UNASSIGNED')).toHaveCount(0);
+  await expect(page.getByTestId('visual-scope-L1')).toContainText('ASAHI Gladius MG 18 PV ES');
+  await expect.poll(() => page.evaluate((key) => {
+    const stored = JSON.parse(localStorage.getItem(key))?.data;
+    return { nav: stored?.navRows?.length, therapy: stored?.therapyRows?.length, choices: stored?.planDeviceSuggestions?.navigation?.length };
+  }, STATE_KEY)).toEqual({ nav: 1, therapy: 1, choices: 1 });
+  await page.reload();
+  await page.getByTestId('visual-scope-L2').click();
+  const composer = page.getByTestId('plan-scope-group-L2');
+  await composer.getByRole('button', { name: 'Add crossing device', exact: true }).click();
+  await composer.getByRole('button', { name: 'Wire', exact: true }).click();
+  let dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('combobox', { name: 'Product' })).toContainText('★ Legacy unused wire');
+  await dialog.getByRole('button', { name: /Choose starred device: Legacy unused wire/ }).click();
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+  await composer.getByRole('button', { name: 'Add treatment device', exact: true }).click();
+  await composer.getByRole('button', { name: 'Balloon', exact: true }).click();
+  dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: /Choose starred device: Legacy unused balloon/ }).click();
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect.poll(() => page.evaluate((key) => {
+    const stored = JSON.parse(localStorage.getItem(key))?.data;
+    return { wire: stored?.navRows?.[1]?.wire?.product, balloon: stored?.therapyRows?.[1]?.balloon?.product, scope: stored?.therapyRows?.[1]?.scope?.ids };
+  }, STATE_KEY)).toEqual({ wire: 'Legacy unused wire', balloon: 'Legacy unused balloon', scope: [secondLesion] });
+  await page.reload();
+  await expect(page.getByTestId('visual-scope-L2')).toContainText('Legacy unused wire');
+  await expect(page.getByTestId('visual-scope-L2')).toContainText('Legacy unused balloon');
+});
+
+test('keeps anatomy, wound previews and the review popup usable on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const data = completeCase();
+  data.clinical.woundLocations = ['hallux-first-ray', 'lateral-plantar', 'medial-heel'];
+  await seed(page, data, 2);
+  await page.goto('./');
+  await expect(page.getByTestId('selected-woundosomes').locator('[data-wound-id]')).toHaveCount(6);
+  await expect(page.getByTestId('visual-scope-L1')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+  await page.getByTestId('plan-review-button').click();
+  const dialog = page.getByRole('dialog', { name: 'Plan summary & recommendations', exact: true });
+  const bounds = await dialog.boundingBox();
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+  await dialog.getByRole('button', { name: 'Close plan review', exact: true }).click();
+  await expect(page.getByTestId('plan-review-button')).toBeFocused();
+});
+
+test('does not assign an unlinked legacy choice just because only one lesion exists', async ({ page }) => {
+  const data = baseCase();
+  data.navRows = [{ id: 'unused-support', wire: { product: 'Unused local support wire', role: 'Support / exchange', platform: '0.035', length: '260 cm' } }];
+  await seed(page, data, 2);
+  await page.goto('./');
+  await expect(page.getByTestId('visual-scope-L1')).toContainText('No devices yet');
+  await expect.poll(() => page.evaluate((key) => {
+    const stored = JSON.parse(localStorage.getItem(key))?.data;
+    return { selected: stored?.navRows?.length, available: stored?.planDeviceSuggestions?.navigation?.[0]?.wire?.product };
+  }, STATE_KEY)).toEqual({ selected: 0, available: 'Unused local support wire' });
+  await page.getByTestId('plan-scope-group-L1').getByRole('button', { name: 'Add crossing device', exact: true }).click();
+  await page.getByTestId('plan-scope-group-L1').getByRole('button', { name: 'Wire', exact: true }).click();
+  await expect(page.getByRole('dialog').getByRole('button', { name: /Choose starred device: Unused local support wire/ })).toBeVisible();
 });

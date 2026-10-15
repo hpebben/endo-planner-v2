@@ -11,10 +11,11 @@ export default function InlineDeviceSelect({
   image,
   showButton = true,
   alwaysOpen = false,
+  preferredValues = [],
 }) {
   const [open, setOpen] = useState(alwaysOpen);
   const containerRef = useRef(null);
-  const baseOptions = options.filter((o) => o !== 'Custom');
+  const baseOptions = options.filter((o) => o !== 'Custom').sort((a, b) => Number(preferredValues.includes(b)) - Number(preferredValues.includes(a)));
   const hasCustom = options.includes('Custom');
   const isKnown = baseOptions.includes(value);
   const [selection, setSelection] = useState(isKnown ? value : hasCustom && value ? 'Custom' : '');
@@ -81,7 +82,7 @@ export default function InlineDeviceSelect({
       {isOpen && (
         <div className="device-dropdown">
           <SegmentedControl
-            options={[...baseOptions.map((v) => ({ label: v, value: v })), ...(hasCustom ? [{ label: __('Custom', 'endoplanner'), value: 'Custom' }] : [])]}
+            options={[...baseOptions.map((v) => ({ label: preferredValues.includes(v) ? `★ ${v}` : v, value: v })), ...(hasCustom ? [{ label: __('Custom', 'endoplanner'), value: 'Custom' }] : [])]}
             value={selection}
             onChange={handleSelect}
             ariaLabel={__('Device', 'endoplanner')}
@@ -109,4 +110,5 @@ InlineDeviceSelect.propTypes = {
   image: PropTypes.string,
   showButton: PropTypes.bool,
   alwaysOpen: PropTypes.bool,
+  preferredValues: PropTypes.arrayOf(PropTypes.string),
 };
