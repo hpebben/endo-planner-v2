@@ -141,11 +141,11 @@ export const projectFootPoint = (point, viewId) => {
   return [view.origin[0] + view.scale * dot(point, view.u), view.origin[1] + view.scale * dot(point, view.v)];
 };
 const format = (value) => Number(value.toFixed(2));
-export const projectedCurve = (points, viewId, close = false) => {
+export const projectedCurve = (points, viewId, close = false, from = 0, to = points.length - 1) => {
   const projected = points.map((point) => projectFootPoint(point, viewId));
   if (!projected.length) return '';
-  let path = `M ${projected[0].map(format).join(' ')}`;
-  for (let i = 0; i < projected.length - 1; i += 1) {
+  let path = `M ${projected[from].map(format).join(' ')}`;
+  for (let i = from; i < to; i += 1) {
     const p0 = projected[Math.max(0, i - 1)], p1 = projected[i];
     const p2 = projected[i + 1], p3 = projected[Math.min(projected.length - 1, i + 2)];
     const c1 = p1.map((value, axis) => value + (p2[axis] - p0[axis]) / 6);
@@ -155,3 +155,4 @@ export const projectedCurve = (points, viewId, close = false) => {
   return path + (close ? ' Z' : '');
 };
 export const arteryPath = (arterialSegment, viewId) => projectedCurve(arterialSegment.nodeIds.map((id) => FOOT_NODES[id]), viewId);
+export const arteryRoutePath = (arterialSegment, viewId, range) => projectedCurve(arterialSegment.nodeIds.map((id) => FOOT_NODES[id]), viewId, false, range[0], range[1]);

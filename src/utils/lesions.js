@@ -1,12 +1,15 @@
 import rawVesselData from '../assets/vessel-map.json';
+import { buildPedalRoute, defaultPedalTarget, footArteryIdForVessel, getPedalVessels, pedalVesselId, PEDAL_ROUTE_CONNECTIONS } from '../data/pedalRoutes';
+import { getActiveWoundLocations } from './clinicalStage';
+import { positiveLength } from './lesionExtent';
 
 const vesselSegments = Array.isArray( rawVesselData?.segments )
 	? rawVesselData.segments
 	: [];
 const vesselNames = new Map(
-	vesselSegments.map( ( segment ) => [ segment.id, segment.name ] )
+	[...vesselSegments, ...getPedalVessels('Left'), ...getPedalVessels('Right')].map( ( segment ) => [ segment.id, segment.name ] )
 );
-const vesselIds = new Set( vesselSegments.map( ( segment ) => segment.id ) );
+const vesselIds = new Set( vesselNames.keys() );
 
 const idFor = ( side, leftId, rightId = leftId ) =>
 	side === 'Left' ? `Left_${ leftId }` : `Right_${ rightId }`;
@@ -29,7 +32,7 @@ export const shortVesselName = ( id ) =>
 
 export const territoryFromVesselId = ( id ) => {
 	const normalized = String( id || '' ).toLowerCase();
-	if ( /metatarsal|plantar|dorsal_pedal/.test( normalized ) ) return 'pedal';
+	if ( /_pedal_|metatarsal|plantar|dorsal_pedal/.test( normalized ) ) return 'pedal';
 	if (
 		/anterior_tib|posterior_tib|peroneal|tibioperoneal/.test( normalized )
 	)
@@ -52,10 +55,12 @@ const lengthLabel = ( value ) =>
 	value ||
 	'length not entered' );
 
+export const lesionLengthLabel = (values = {}) => positiveLength(values.measuredLengthCm) ? `${positiveLength(values.measuredLengthCm)} cm` : lengthLabel(values.length);
+
 export const lesionLabel = ( id, values = {} ) => {
 	const findings = [
 		values.type,
-		lengthLabel( values.length ),
+		lesionLengthLabel( values ),
 		values.calcium && `${ values.calcium } calcium`,
 	]
 		.filter( Boolean )
@@ -118,51 +123,33 @@ export const TARGET_PATH_OPTIONS = [
 	{
 		key: 'anterior',
 		shortLabel: 'Anterior tibial',
-		description: 'Anterior tibial → dorsalis pedis',
+		description: 'Anterior tibial → dorsalis pedis → pedal branches',
 	},
 	{
 		key: 'posterior',
 		shortLabel: 'Posterior tibial',
-		description: 'Posterior tibial → plantar arch',
+		description: 'Posterior tibial → plantar / calcaneal branches',
 	},
 	{
 		key: 'peroneal',
 		shortLabel: 'Peroneal',
-		description: 'Peroneal → distal collateral outflow',
+		description: 'Peroneal → perforating / calcaneal branches',
 	},
 ];
 
-export const buildTargetArterialPath = ( side, targetKey ) => {
-	if ( ! [ 'Left', 'Right' ].includes( side ) ) return [];
-	const common = [
-		idFor( side, 'common_femoral_artery' ),
-		idFor( side, 'superficial_femoral_artery' ),
-		idFor( side, 'popliteal_artery_artery' ),
-	];
+const proximalTargetPath = (side, targetKey) => {
+  if (!['Left', 'Right'].includes(side)) return [];
+  const common = [idFor(side, 'common_femoral_artery'), idFor(side, 'superficial_femoral_artery'), idFor(side, 'popliteal_artery_artery')];
+  if (targetKey === 'anterior') return [...common, idFor(side, 'anterior_tibial_artery', 'anterior_tibital_artery')];
+  if (targetKey === 'posterior' || targetKey === 'peroneal') return [...common, idFor(side, 'tibioperoneal_trunk'), idFor(side, targetKey === 'posterior' ? 'posterior_tibial_artery' : 'peroneal_artery')];
+  return [];
+};
 
-	if ( targetKey === 'anterior' ) {
-		return [
-			...common,
-			idFor( side, 'anterior_tibial_artery', 'anterior_tibital_artery' ),
-			idFor( side, 'dorsal_pedal_artery' ),
-		];
-	}
-	if ( targetKey === 'posterior' ) {
-		return [
-			...common,
-			idFor( side, 'tibioperoneal_trunk' ),
-			idFor( side, 'posterior_tibial_artery' ),
-			idFor( side, 'plantar_arch' ),
-		];
-	}
-	if ( targetKey === 'peroneal' ) {
-		return [
-			...common,
-			idFor( side, 'tibioperoneal_trunk' ),
-			idFor( side, 'peroneal_artery' ),
-		];
-	}
-	return [];
+export const buildTargetArterialPath = (side, targetKey, { pedalTarget, woundLocations = [] } = {}) => {
+  const proximal = proximalTargetPath(side, targetKey);
+  const foot = buildPedalRoute(targetKey, pedalTarget || defaultPedalTarget(targetKey, woundLocations));
+  if (!proximal.length || !foot.length) return [];
+  return [...proximal, ...foot.slice(1).map((id) => pedalVesselId(side, id))];
 };
 
 const addEdge = ( graph, from, to ) => {
@@ -189,8 +176,6 @@ const createTargetPathGraph = () => {
 		const peroneal = idFor( side, 'peroneal_artery' );
 		const dorsalPedal = idFor( side, 'dorsal_pedal_artery' );
 		const plantarArch = idFor( side, 'plantar_arch' );
-		const medialPlantar = idFor( side, 'medial_plantar_artery' );
-		const lateralPlantar = idFor( side, 'lateral_plantar_artery' );
 		const metatarsals = idFor( side, 'metatarsal_arteries' );
 
 		addEdge( graph, commonFemoral, superficialFemoral );
@@ -199,12 +184,10 @@ const createTargetPathGraph = () => {
 		addEdge( graph, popliteal, tibioperoneal );
 		addEdge( graph, tibioperoneal, posteriorTibial );
 		addEdge( graph, tibioperoneal, peroneal );
-		addEdge( graph, anteriorTibial, dorsalPedal );
-		addEdge( graph, posteriorTibial, plantarArch );
-		addEdge( graph, plantarArch, medialPlantar );
-		addEdge( graph, plantarArch, lateralPlantar );
-		addEdge( graph, plantarArch, metatarsals );
-		addEdge( graph, dorsalPedal, metatarsals );
+    PEDAL_ROUTE_CONNECTIONS.forEach(([from, to]) => addEdge(graph, pedalVesselId(side, from), pedalVesselId(side, to)));
+    // Retain the historical metatarsal-group identifier for saved cases.
+    addEdge(graph, dorsalPedal, metatarsals);
+    addEdge(graph, plantarArch, metatarsals);
 	} );
 	return graph;
 };
@@ -217,29 +200,22 @@ export const TARGET_ROUTE_ENDPOINT_IDS = [ ...targetPathGraph.keys() ].filter(
 		! /tibioperoneal_trunk/.test( id.toLowerCase() )
 );
 
-export const buildTargetPathToSegment = ( side, endpointId ) => {
-	if (
-		! [ 'Left', 'Right' ].includes( side ) ||
-		sideFromVesselId( endpointId ) !== side
-	)
-		return [];
-	if ( ! TARGET_ROUTE_ENDPOINT_IDS.includes( endpointId ) ) return [];
-
-	const startId = idFor( side, 'common_femoral_artery' );
-	const queue = [ [ startId ] ];
-	const visited = new Set( [ startId ] );
-	while ( queue.length ) {
-		const path = queue.shift();
-		const current = path[ path.length - 1 ];
-		if ( current === endpointId ) return path;
-		( targetPathGraph.get( current ) || [] ).forEach( ( next ) => {
-			if ( visited.has( next ) || sideFromVesselId( next ) !== side )
-				return;
-			visited.add( next );
-			queue.push( [ ...path, next ] );
-		} );
-	}
-	return [];
+export const buildTargetPathToSegment = (side, endpointId, { targetKey = '', woundLocations = [] } = {}) => {
+  if (!['Left', 'Right'].includes(side) || sideFromVesselId(endpointId) !== side || !TARGET_ROUTE_ENDPOINT_IDS.includes(endpointId)) return [];
+  const artery = footArteryIdForVessel(endpointId);
+  if (artery) {
+    const rootKey = artery === 'anterior-tibial' || artery === 'dorsalis-pedis' ? 'anterior' : artery === 'posterior-tibial' ? 'posterior' : artery === 'peroneal' ? 'peroneal' : '';
+    const preferredKey = targetKey || rootKey || (/plantar|medial-calcaneal/.test(artery) ? 'posterior' : /lateral-calcaneal|perforating/.test(artery) ? 'peroneal' : 'anterior');
+    return buildTargetArterialPath(side, preferredKey, {
+      pedalTarget: rootKey ? undefined : artery,
+      woundLocations,
+    });
+  }
+  // Legacy grouped endpoint, no invented individual digital target.
+  if (/metatarsal_arteries/.test(endpointId)) {
+    return [...proximalTargetPath(side, 'anterior'), idFor(side, 'dorsal_pedal_artery'), endpointId];
+  }
+  return [];
 };
 
 export const validateTargetArterialPath = ( path = [] ) => {
@@ -259,6 +235,7 @@ export const validateTargetArterialPath = ( path = [] ) => {
 		};
 	}
 	const side = sides[ 0 ];
+  if (new Set(ids).size !== ids.length) return { isValid: false, side, reason: 'The target path must not repeat an arterial segment.' };
 	if ( ids[ 0 ] !== idFor( side, 'common_femoral_artery' ) ) {
 		return {
 			isValid: false,
@@ -316,3 +293,24 @@ export const inferTargetPathKey = ( path = [] ) => {
 
 export const formatTargetArterialPath = ( path = [] ) =>
 	( Array.isArray( path ) ? path : [] ).map( shortVesselName ).join( ' → ' );
+
+
+export const upgradeLegacyTargetPath = (data = {}) => {
+  const path = data.targetArterialPath || [];
+  if (!path.length) return data;
+  const side = sideFromVesselId(path[0]), targetKey = inferTargetPathKey(path);
+  if (!side || !targetKey) return data;
+  const endpoint = path[path.length - 1];
+  const endArtery = footArteryIdForVessel(endpoint);
+  const endsAtInflow = ['anterior-tibial', 'posterior-tibial', 'peroneal', 'dorsalis-pedis'].includes(endArtery);
+  const oldArchJump = path.some((id, index) => /plantar_arch/.test(id) && /posterior_tibial_artery/.test(path[index - 1] || ''));
+  if (!endsAtInflow && !oldArchJump) return data;
+  // Do not silently repair a disconnected or cross-limb proximal route.
+  const expected = proximalTargetPath(side, targetKey);
+  if (expected.some((id, index) => path[index] !== id)) return data;
+  const rebuilt = buildTargetArterialPath(side, targetKey, {
+    pedalTarget: endsAtInflow ? undefined : endArtery || 'plantar-arch',
+    woundLocations: getActiveWoundLocations(data),
+  });
+  return rebuilt.length ? { ...data, targetArterialPath: rebuilt, targetArterialPathKey: targetKey, targetArterialPathSide: side } : data;
+};

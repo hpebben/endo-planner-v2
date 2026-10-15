@@ -2,7 +2,7 @@ import React, { useId } from 'react';
 import PropTypes from 'prop-types';
 import {
   FOOT_ARTERIES, FOOT_NODES, FOOT_RAYS, FOOT_VIEWS,
-  arteryPath, projectFootPoint, projectedCurve,
+  arteryPath, arteryRoutePath, projectFootPoint, projectedCurve,
 } from '../data/footArterialModel';
 
 // Faint original bony/soft-tissue context, without patient pixels. The vessel
@@ -103,7 +103,7 @@ const labels = {
   ],
 };
 
-export default function FootAngiographicModel({ viewId, showLabels = false }) {
+export default function FootAngiographicModel({ viewId, showLabels = false, routeHighlights = {} }) {
   const instance = useId().replace(/:/g, '');
   const prefix = `foot-model-${instance}-${viewId}`;
   const view = FOOT_VIEWS[viewId];
@@ -139,6 +139,11 @@ export default function FootAngiographicModel({ viewId, showLabels = false }) {
           </path>
         ))}
       </g>
+      <g className="foot-planned-route" aria-hidden="true">
+        {FOOT_ARTERIES.filter((segment) => routeHighlights[segment.id]).map((segment) => (
+          <path key={segment.id} data-route-artery-id={segment.id} d={arteryRoutePath(segment, viewId, routeHighlights[segment.id])} strokeWidth={segment.caliber + 1.7} />
+        ))}
+      </g>
       {showLabels && (
         <g className="foot-artery-labels" data-testid={`foot-artery-labels-${viewId}`}>
           {labels[viewId].map((label) => {
@@ -162,4 +167,5 @@ export default function FootAngiographicModel({ viewId, showLabels = false }) {
 FootAngiographicModel.propTypes = {
   viewId: PropTypes.oneOf(['ap', 'lateral']).isRequired,
   showLabels: PropTypes.bool,
+  routeHighlights: PropTypes.object,
 };

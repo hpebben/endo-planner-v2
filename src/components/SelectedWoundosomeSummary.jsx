@@ -4,9 +4,11 @@ import { __ } from '@wordpress/i18n';
 import FootAngiographicModel from './FootAngiographicModel';
 import { WOUND_PROJECTIONS } from '../data/woundosomeProjections';
 import { getWoundZones, WOUND_ZONES } from '../data/woundosome';
+import { getPedalRouteHighlights } from '../data/pedalRoutes';
 
-export default function SelectedWoundosomeSummary({ selectedIds }) {
+export default function SelectedWoundosomeSummary({ selectedIds, targetPath = [] }) {
   const zones = getWoundZones(selectedIds);
+  const right = /^Right_/.test(targetPath[0] || '');
   if (!zones.length) return null;
   return (
     <section className="selected-woundosomes" data-testid="selected-woundosomes" aria-label={__('Selected woundosomes', 'endoplanner')}>
@@ -14,9 +16,10 @@ export default function SelectedWoundosomeSummary({ selectedIds }) {
       <div className="selected-woundosome-views">
         {WOUND_PROJECTIONS.map((projection) => (
           <figure key={projection.id}>
-            <figcaption>{projection.label}</figcaption>
-            <svg viewBox={`0 0 ${projection.width} ${projection.height}`} role="img" aria-label={`${projection.label}: ${zones.map((zone) => zone.label).join(', ')}`}>
-              <FootAngiographicModel viewId={projection.id} />
+            <figcaption>{projection.label.replace('left foot', right ? 'right foot' : 'left foot')}</figcaption>
+            <svg viewBox={`0 0 ${projection.width} ${projection.height}`} role="img" aria-label={`${projection.label.replace('left foot', right ? 'right foot' : 'left foot')}: ${zones.map((zone) => zone.label).join(', ')}`}>
+              <g transform={right ? `translate(${projection.width} 0) scale(-1 1)` : undefined}>
+              <FootAngiographicModel viewId={projection.id} routeHighlights={getPedalRouteHighlights(targetPath)} />
               {zones.map((zone) => {
                 const location = projection.locations[zone.id];
                 if (!location) return null;
@@ -26,10 +29,11 @@ export default function SelectedWoundosomeSummary({ selectedIds }) {
                     <ellipse className="wound-zone-area" cx={location.x} cy={location.y} rx={location.rx} ry={location.ry} transform={`rotate(${location.rotate || 0} ${location.x} ${location.y})`} />
                     {location.marker && <line className="wound-zone-leader" x1={location.x} y1={location.y} x2={marker[0]} y2={marker[1]} />}
                     <circle className="wound-zone-marker" cx={marker[0]} cy={marker[1]} r="17" />
-                    <text className="wound-zone-number" x={marker[0]} y={marker[1]}>{WOUND_ZONES.indexOf(zone) + 1}</text>
+                    <text transform={right ? `translate(${2 * marker[0]} 0) scale(-1 1)` : undefined} className="wound-zone-number" x={marker[0]} y={marker[1]}>{WOUND_ZONES.indexOf(zone) + 1}</text>
                   </g>
                 );
               })}
+              </g>
             </svg>
             <p>{projection.id === 'ap' ? __('Hallux = medial · fifth ray = lateral', 'endoplanner') : __('Dorsal above plantar · heel surfaces overlap', 'endoplanner')}</p>
           </figure>
@@ -43,11 +47,12 @@ export default function SelectedWoundosomeSummary({ selectedIds }) {
           </li>
         ))}
       </ul>
-      <p className="selected-woundosome-caption">{__('Patent reference anatomy; colors mark selected wound locations. Confirm wound supply on the patient’s angiography.', 'endoplanner')}</p>
+      <p className="selected-woundosome-caption">{__('Patent reference anatomy; colors mark wound locations. Blue follows the planned pedal route. Confirm the route and wound filling on the patient’s angiography.', 'endoplanner')}</p>
     </section>
   );
 }
 
 SelectedWoundosomeSummary.propTypes = {
   selectedIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+  targetPath: PropTypes.arrayOf(PropTypes.string),
 };

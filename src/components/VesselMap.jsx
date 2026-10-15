@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useId, useLayoutEffect, useRef, useState } from 'react';
 import rawVesselData from '../assets/vessel-map.json';
+import { getLesionExtent, lesionExtentDescription } from '../utils/lesionExtent';
 import '../styles/style.scss';
 
 // Determine the actual segments array regardless of JSON shape.
@@ -15,6 +16,34 @@ const parseVesselData = (data) => {
 };
 
 const { root: vesselRoot, segments: vesselSegments } = parseVesselData(rawVesselData);
+
+function VesselShape({ shape, classes, selected, targeted, extent }) {
+  const shapeRef = useRef(null);
+  const clipId = `lesion-${useId().replace(/:/g, '')}`;
+  const [axis, setAxis] = useState('y');
+  useLayoutEffect(() => {
+    if (!selected || !shapeRef.current) return;
+    const bounds = shapeRef.current.getBBox();
+    setAxis(bounds.width > bounds.height ? 'x' : 'y');
+  }, [selected]);
+  const attrs = shape.attrs ? { ...shape.attrs } : shape.d ? { d: shape.d } : { points: shape.points };
+  const tag = shape.name || (shape.points ? 'polygon' : 'path');
+  delete attrs.class;
+  const start = extent?.start || 0, end = start + (extent?.fraction || 0);
+  const clip = axis === 'x' ? `M ${start} 0 H ${end} V 1 H ${start} Z` : `M 0 ${start} H 1 V ${end} H 0 Z`;
+  return (
+    <>
+      {targeted && React.createElement(tag, { ...attrs, className: 'vessel-target-route', 'aria-hidden': true })}
+      {React.createElement(tag, { ...attrs, className: classes, ref: shapeRef })}
+      {selected && extent?.fraction > 0 && (
+        <>
+          <defs><clipPath id={clipId} clipPathUnits="objectBoundingBox"><path d={clip} /></clipPath></defs>
+          {React.createElement(tag, { ...attrs, className: 'vessel-lesion-fill', clipPath: `url(#${clipId})`, 'aria-hidden': true })}
+        </>
+      )}
+    </>
+  );
+}
 
 // Calculate tooltip placement relative to the hovered segment
 const getTooltipPlacement = (segRect, wrapperRect, tipSize = { width: 0, height: 0 }) => {
@@ -57,6 +86,7 @@ const getTooltipPlacement = (segRect, wrapperRect, tipSize = { width: 0, height:
 
 export default function VesselMap({
   selectedSegments = [],
+  lesions = {},
   targetSegments = [],
   targetEndpointCandidates = [],
   routeEditMode = false,
@@ -119,28 +149,31 @@ export default function VesselMap({
           const isPlanningSegment = planningSegmentIds.includes(seg.id);
           const isActivePlanningSegment = activePlanningSegment === seg.id;
           const isHover = hoverSegment === seg.id;
+          const extent = isSelected ? getLesionExtent(seg.id, lesions[seg.id]) : null;
+          const extentDescription = isSelected ? lesionExtentDescription(seg.id, lesions[seg.id]) : '';
           const shapes = seg.paths || seg.polygons || [];
           return (
             <g
               key={seg.id}
               id={seg.id}
               data-name={seg.name}
+              data-lesion-fraction={extent?.fraction ?? undefined}
+              aria-description={extentDescription || undefined}
               role="button"
               tabIndex={(routeEditMode && !isTargetEndpointCandidate) || (planningMode && !isPlanningSegment) ? -1 : 0}
               aria-label={routeEditMode ? `Set target route to ${seg.name}` : planningMode ? `Plan devices for ${seg.name}` : seg.name}
               aria-pressed={routeEditMode ? isTargeted : planningMode ? isActivePlanningSegment : isSelected}
               aria-disabled={(routeEditMode && !isTargetEndpointCandidate) || (planningMode && !isPlanningSegment)}
               data-route-endpoint={isTargetEndpointCandidate ? 'true' : undefined}
-              onMouseEnter={handleEnter(seg.id, seg.name)}
+              onMouseEnter={handleEnter(seg.id, `${seg.name}${extentDescription ? ` — ${extentDescription}` : ''}`)}
               onMouseLeave={handleLeave(seg.id)}
-              onFocus={handleEnter(seg.id, seg.name)}
+              onFocus={handleEnter(seg.id, `${seg.name}${extentDescription ? ` — ${extentDescription}` : ''}`)}
               onBlur={handleLeave(seg.id)}
               onClick={handleClick(seg.id)}
               onKeyDown={handleKeyDown(seg.id)}
             >
               {shapes.map((p, i) => {
                 const attrs = p.attrs ? { ...p.attrs } : p.d ? { d: p.d } : { points: p.points };
-                const tag = p.name || (p.points ? 'polygon' : 'path');
                 const classes = [
                   attrs.class,
                   'vessel-segment',
@@ -155,12 +188,7 @@ export default function VesselMap({
                 ]
                   .filter(Boolean)
                   .join(' ');
-                delete attrs.class;
-                return React.createElement(tag, {
-                  key: i,
-                  ...attrs,
-                  className: classes,
-                });
+                return <VesselShape key={i} shape={p} classes={classes} selected={isSelected} targeted={isTargeted} extent={extent} />;
               })}
             </g>
           );

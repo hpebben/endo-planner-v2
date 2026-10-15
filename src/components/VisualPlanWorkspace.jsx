@@ -6,7 +6,7 @@ import DeviceGlyph from './UI/DeviceGlyph';
 import SelectedWoundosomeSummary from './SelectedWoundosomeSummary';
 import PlanReviewButton from './PlanReviewButton';
 import { createLesionScope, createTargetPathScope, formatScopeLabel, scopeKey } from '../utils/planScopes';
-import { formatTargetArterialPath, sideFromVesselId } from '../utils/lesions';
+import { formatTargetArterialPath, sideFromVesselId, lesionLengthLabel } from '../utils/lesions';
 import { getVisualPlanItems, rowsForPlanScope } from '../utils/visualPlan';
 
 const scopeDescription = (option, targetPath) => {
@@ -14,7 +14,7 @@ const scopeDescription = (option, targetPath) => {
   if (option.lesion) {
     const findings = [
       option.lesion.findings?.type,
-      option.lesion.findings?.length && `${option.lesion.findings.length} cm`,
+      lesionLengthLabel(option.lesion.findings),
       option.lesion.findings?.calcium && `${option.lesion.findings.calcium} calcium`,
     ].filter(Boolean);
     return findings.join(' • ') || option.lesion.name;
@@ -83,6 +83,7 @@ export default function VisualPlanWorkspace({
           <h3>{__('Disease anatomy', 'endoplanner')}</h3>
           <VesselMap
             selectedSegments={lesionOptions.map((lesion) => lesion.value)}
+            lesions={Object.fromEntries(lesionOptions.map((lesion) => [lesion.value, lesion.findings]))}
             targetSegments={targetPath}
             planningMode
             planningSegmentIds={lesionOptions.map((lesion) => lesion.value)}
@@ -91,23 +92,16 @@ export default function VisualPlanWorkspace({
           />
           <div className="visual-plan-map-legend" aria-label={__('Anatomy legend', 'endoplanner')}>
             <span><i className="visual-plan-legend-line visual-plan-legend-line--path" aria-hidden="true" />{__('Target path', 'endoplanner')}</span>
-            <span><i className="visual-plan-legend-line visual-plan-legend-line--lesion" aria-hidden="true" />{__('Lesion', 'endoplanner')}</span>
+            <span><i className="visual-plan-legend-line visual-plan-legend-line--lesion" aria-hidden="true" />{__('Lesion outline / extent', 'endoplanner')}</span>
           </div>
-          <p className="visual-plan-map-note">{__('Select a red lesion to plan it', 'endoplanner')}</p>
+          <p className="visual-plan-map-note">{__('Red outline = affected artery; solid red = estimated lesion length. Select an artery to plan it.', 'endoplanner')}</p>
         </div>
         <div className="visual-plan-foot-context">
-          <SelectedWoundosomeSummary selectedIds={selectedWounds} />
+          <SelectedWoundosomeSummary selectedIds={selectedWounds} targetPath={targetPath} />
           <section className="visual-plan-target" aria-label={__('Target arterial path information', 'endoplanner')}>
             <h3>{[sideFromVesselId(targetPath[0]), __('Target arterial path', 'endoplanner')].filter(Boolean).join(' · ')}</h3>
             <p>{targetPath.length ? formatTargetArterialPath(targetPath) : __('No target arterial path selected.', 'endoplanner')}</p>
-            {(targetPath.length > 0 || sharedNavigationRows.length > 0) && (
-              <details className="visual-plan-support" data-testid="shared-route-support">
-                <summary>{__('Shared route support', 'endoplanner')}{sharedNavigationRows.length ? ` (${sharedNavigationRows.length})` : ''}</summary>
-                <p>{__('Optional support/exchange wires or catheters used across the target route.', 'endoplanner')}</p>
-                {renderNavigationRows(sharedNavigationRows)}
-                {targetPath.length > 0 && <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(pathScope)}>+ {__('Add support device', 'endoplanner')}</button>}
-              </details>
-            )}
+
           </section>
         </div>
       </div>
@@ -153,6 +147,14 @@ export default function VisualPlanWorkspace({
               </button>
             );
           })}
+            {(targetPath.length > 0 || sharedNavigationRows.length > 0) && (
+              <details className="visual-plan-support" data-testid="shared-route-support">
+                <summary><span>{__('Shared route support', 'endoplanner')}{sharedNavigationRows.length ? ` (${sharedNavigationRows.length})` : ''}</span><span className="shared-support-device-summary">{getVisualPlanItems(sharedNavigationRows, []).map((item, index) => <span className="visual-device-chip" key={index}><DeviceGlyph type={item.type} /><span>{item.label}</span></span>)}</span></summary>
+                <p>{__('Optional support/exchange wires or catheters used across the target route.', 'endoplanner')}</p>
+                {renderNavigationRows(sharedNavigationRows)}
+                {targetPath.length > 0 && <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(pathScope)}>+ {__('Add support device', 'endoplanner')}</button>}
+              </details>
+            )}
         </div>
 
       {activeOption ? <div className="visual-plan-composer" data-testid={`plan-scope-group-${activeOption.code}`}>
