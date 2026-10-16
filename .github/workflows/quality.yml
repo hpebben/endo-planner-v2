@@ -22,6 +22,11 @@ jobs:
         run: npm ci --legacy-peer-deps
       - name: Unit tests
         run: npm run test:unit
+      - name: WordPress embed checks
+        run: |
+          php -l endo-planner.php
+          php -l includes/page-embeds.php
+          php tests/wordpress-embeds.php e2e
       - name: Production build
         run: npm run build
       - name: Install Chromium

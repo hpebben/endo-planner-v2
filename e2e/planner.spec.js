@@ -1075,3 +1075,37 @@ test('paginates long PDF plans without dropping the final device or recommendati
   expect(pdf).toContain('RECOMMENDATIONS & CONSIDERATIONS');
   expect((pdf.match(/\/Type \/Page\b/g) || []).length).toBeGreaterThan(1);
 });
+
+test('labels calcification explicitly and appends a grouped materials preparation checklist', async ({ page }, testInfo) => {
+  const data = completeCase();
+  data.navRows[0].balloon = { ...data.therapyRows[0].balloon };
+  data.planDeviceSuggestions = { navigation: [{ wire: { product: 'UNUSED_PREFERRED_WIRE' } }] };
+  await seed(page, data, 3);
+  await page.goto('./');
+  await expect(page.locator('.case-summary__anatomy')).toContainText('heavy calcification');
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const file = testInfo.outputPath('preparation-checklist.pdf');
+  await (await downloaded).saveAs(file);
+  const pdf = readFileSync(file, 'latin1');
+  expect(pdf).toContain('heavy calcification');
+  for (const text of ['MATERIALS PREPARATION', 'ACCESS & INTRODUCERS', 'GUIDEWIRES', 'CATHETERS & SUPPORT', 'BALLOONS', 'CLOSURE & HAEMOSTASIS', 'QTY', '300 cm', '0.018-inch']) expect(pdf).toContain(text);
+  expect(pdf).toContain('2 selected plan entries');
+  expect(pdf).not.toContain('UNUSED_PREFERRED_WIRE');
+  expect((pdf.match(/\/Type \/Page\b/g) || []).length).toBeGreaterThanOrEqual(3);
+});
+
+test('continues long materials lists without losing the final distinct configuration', async ({ page }, testInfo) => {
+  const data = completeCase();
+  data.navRows = Array.from({ length: 25 }, (_, index) => ({ ...data.navRows[0], id: `material-${index}`, wire: { ...data.navRows[0].wire, product: `PREP_WIRE_${index}_SELECTED` } }));
+  await seed(page, data, 3);
+  await page.goto('./');
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const file = testInfo.outputPath('long-preparation-list.pdf');
+  await (await downloaded).saveAs(file);
+  const pdf = readFileSync(file, 'latin1');
+  expect((pdf.match(/PREP_WIRE_24_SELECTED/g) || []).length).toBeGreaterThanOrEqual(2);
+  expect(pdf).toContain('Materials preparation - continued');
+  expect(pdf).toContain('CLOSURE & HAEMOSTASIS');
+});

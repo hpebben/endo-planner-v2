@@ -5,3 +5,6 @@
 node_modules/
 playwright-report/
 test-results/
+# Generated WordPress shortcode browser fixtures
+/e2e/*-qa.html
+/e2e/workspace-markup.html
