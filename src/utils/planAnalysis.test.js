@@ -143,3 +143,16 @@ describe('compatibility and anatomy recommendations', () => {
     expect(recommendation.summary).toMatch(/long, heavily calcified lesion/i);
   });
 });
+
+
+test('validates crossing balloons with scoped wires, sheath size and exchange length', () => {
+  const data = { ...baseCase, therapyRows: [], navRows: [{ ...baseCase.navRows[0], balloon: { ...baseCase.therapyRows[0].balloon } }] };
+  expect(getBlockingPlanFindings(data).map((item) => item.title)).toEqual(expect.arrayContaining(['Balloon platform has no matching scoped wire', 'Balloon requires a larger sheath']));
+  data.navRows[0].wire = { platform: '0.035', length: '300 cm' };
+  data.accessRows = [{ side: 'Left', sheaths: [{ frSize: '6 Fr' }] }];
+  expect(getBlockingPlanFindings(data)).toEqual([]);
+  data.navRows[0].wire.length = '180 cm';
+  expect(getBlockingPlanFindings(data).map((item) => item.title)).toContain('Balloon and wire working lengths are incompatible');
+  data.navRows[0].scope = createTargetPathScope();
+  expect(getBlockingPlanFindings(data).map((item) => item.title)).toContain('Crossing balloon needs a lesion-specific scope');
+});

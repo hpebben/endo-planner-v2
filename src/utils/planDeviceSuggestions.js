@@ -30,7 +30,7 @@ export const separatePlanDeviceSuggestions = (data = {}) => {
 export const getSuggestedDeviceProfiles = (suggestions = {}, type) => {
   const rows = type === 'wire' || type === 'catheter'
     ? suggestions.navigation || []
-    : type === 'specialDevice'
+    : type === 'specialDevice' || type === 'balloon'
       ? [...(suggestions.navigation || []), ...(suggestions.therapy || [])]
       : suggestions.therapy || [];
   const field = type === 'specialDevice' ? 'device' : type;

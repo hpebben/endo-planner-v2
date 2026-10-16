@@ -1,5 +1,5 @@
 import { FOOT_ARTERIES, FOOT_NODES, arteryRoutePath } from './footArterialModel';
-import { buildPedalRoute, defaultPedalTarget, footArteryIdForVessel, getPedalRouteHighlights, getPedalTargetOptions, pedalVesselId } from './pedalRoutes';
+import { buildPedalRoute, defaultPedalTarget, footArteryIdForVessel, getPedalRouteHighlights, getPedalTargetOptions, getSimplePedalTargetOptions, pedalVesselId } from './pedalRoutes';
 import { buildTargetArterialPath, inferTargetPathKey, upgradeLegacyTargetPath, validateTargetArterialPath } from '../utils/lesions';
 
 describe('continuous tibial-to-pedal routes', () => {
@@ -68,4 +68,13 @@ describe('continuous tibial-to-pedal routes', () => {
     expect(validateTargetArterialPath([...path, pedalVesselId('Right', 'dorsal-metatarsal-1')]).isValid).toBe(false);
     expect(validateTargetArterialPath([...path, path[path.length - 1]]).isValid).toBe(false);
   });
+});
+
+
+test('simplifies general pedal targets while retaining wound branches and saved detailed endpoints', () => {
+  const simple = getSimplePedalTargetOptions('anterior', ['dorsum']);
+  expect(simple.filter((item) => !item.suggested).length).toBeLessThanOrEqual(7);
+  expect(simple.some((item) => item.value === 'dorsal-digital-4-medial')).toBe(false);
+  expect(getSimplePedalTargetOptions('anterior', ['hallux-first-ray']).some((item) => item.value === 'dorsal-digital-1-medial' && item.suggested)).toBe(true);
+  expect(getSimplePedalTargetOptions('anterior', [], 'dorsal-digital-4-medial')).toContainEqual(expect.objectContaining({ value: 'dorsal-digital-4-medial', group: 'Saved target' }));
 });

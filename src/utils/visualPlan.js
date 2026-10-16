@@ -1,4 +1,5 @@
 import { getPlanScope, scopeKey } from './planScopes';
+import { fullDeviceLabel } from './deviceLabel';
 
 const hasValue = (value) => {
   if (value === null || value === undefined || value === '') return false;
@@ -37,10 +38,11 @@ export const getVisualPlanItems = (navigationRows = [], therapyRows = []) => {
     [
       ['wire', row.wire],
       ['catheter', row.catheter],
+      ['balloon', row.balloon],
       ['special', row.device],
     ].forEach(([type, value]) => {
       const label = compactDeviceLabel(type, value);
-      if (label) items.push({ type, label });
+      if (label) items.push({ type, label, details: fullDeviceLabel(value) });
     });
   });
   (therapyRows || []).forEach((row) => {
@@ -50,7 +52,7 @@ export const getVisualPlanItems = (navigationRows = [], therapyRows = []) => {
       ['special', row.device],
     ].forEach(([type, value]) => {
       const label = compactDeviceLabel(type, value);
-      if (label) items.push({ type, label });
+      if (label) items.push({ type, label, details: fullDeviceLabel(value) });
     });
   });
   return items;

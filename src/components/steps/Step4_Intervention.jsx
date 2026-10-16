@@ -1,3 +1,4 @@
+import { SHEATH_LENGTHS, SHEATH_GUIDE_URL } from '../../data/sheathLengths';
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { SelectControl } from '@wordpress/components';
@@ -5,6 +6,8 @@ import SegmentedControl from '../UI/SegmentedControl';
 import InlineDeviceSelect from '../UI/InlineDeviceSelect';
 import InlineModal from '../UI/InlineModal';
 import DeviceGlyph from '../UI/DeviceGlyph';
+import DeviceTooltip from '../UI/DeviceTooltip';
+import { fullDeviceLabel } from '../../utils/deviceLabel';
 import StarredDeviceChoices from '../UI/StarredDeviceChoices';
 import {
   FilterChips,
@@ -77,7 +80,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.178';
+const APPLICATION_VERSION = '1.6.179';
 
 const preferenceTypes = [
   { key: 'needle', legacyId: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg, modal: 'needle' },
@@ -137,24 +140,29 @@ SimpleModal.propTypes = {
 };
 
 // Generic card-like button used for selecting a device.
-function DeviceButton({ label, subtitle, img, glyphType, onClick, className, isSelected }) {
+function DeviceButton({ label, subtitle, details, ariaLabel, img, glyphType, onClick, className, isSelected }) {
   return (
+    <DeviceTooltip text={details || [label, subtitle].filter(Boolean).join(' · ')}>
     <button
       type="button"
       className={`device-button${className ? ` ${className}` : ''}`}
       onClick={onClick}
       aria-pressed={isSelected}
+      aria-label={ariaLabel}
     >
       {glyphType ? <DeviceGlyph type={glyphType} /> : <img src={img} alt="" />}
       <span className="device-button-label">{label}</span>
       {subtitle ? <span className="device-button-subtitle">{subtitle}</span> : null}
     </button>
+    </DeviceTooltip>
   );
 }
 
 DeviceButton.propTypes = {
   label: PropTypes.string.isRequired,
   subtitle: PropTypes.string,
+  details: PropTypes.string,
+  ariaLabel: PropTypes.string,
   img: PropTypes.string,
   glyphType: PropTypes.oneOf(['wire', 'catheter', 'balloon', 'stent', 'special']),
   onClick: PropTypes.func.isRequired,
@@ -385,7 +393,7 @@ function SheathModal({ isOpen, anchor, onRequestClose, values, onSave, preferred
   const [length, setLength] = useState(values.length || '');
   useEffect(() => { setFrSize(values.frSize || ''); setLength(values.length || ''); }, [values]);
   const sizes = ['4 Fr','5 Fr','6 Fr','7 Fr','8 Fr','9 Fr'];
-  const lengths = ['10 cm','12 cm','25 cm'];
+  const lengths = [...new Set([...SHEATH_LENGTHS, values.length].filter(Boolean))];
   const handleChange = (field, val) => {
     const newVals = { frSize, length, [field]: val };
     if (field === 'frSize') setFrSize(val); else setLength(val);
@@ -408,6 +416,7 @@ function SheathModal({ isOpen, anchor, onRequestClose, values, onSave, preferred
         options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
         onChange={(val) => handleChange('length', val)}
       />
+      <p className="device-catalog-source">Generic planning lengths; availability depends on the selected product. <a href={SHEATH_GUIDE_URL} target="_blank" rel="noreferrer">EVT Today sheath guide</a></p>
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
       </div>
@@ -998,6 +1007,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove, prefe
               <div key={`n${i}`} className="device-wrapper">
                 <DeviceButton
                   label={shortLabel('needle', n) || __('Needle', 'endoplanner')}
+          details={fullDeviceLabel(n)}
                   img={needleImg}
                   onClick={(e) => {
                     console.log('Open needle modal', index, i);
@@ -1024,6 +1034,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove, prefe
               <div key={`s${i}`} className="device-wrapper">
                 <DeviceButton
                   label={shortLabel('sheath', s) || __('Sheath', 'endoplanner')}
+          details={fullDeviceLabel(s)}
                   img={sheathImg}
                   onClick={(e) => {
                     console.log('Open sheath modal', index, i);
@@ -1050,6 +1061,7 @@ function AccessRow({ index, values, onChange, onAdd, onRemove, showRemove, prefe
               <div key={`c${i}`} className="device-wrapper">
                 <DeviceButton
                   label={shortLabel('catheter', c) || __('Catheter', 'endoplanner')}
+          details={fullDeviceLabel(c)}
                   img={catheterImg}
                   onClick={(e) => {
                     console.log('Open catheter modal', index, i);
@@ -1194,7 +1206,9 @@ ScopeChip.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredWireProfiles, preferredCatheterProfiles, preferredSpecialProfiles, scopeOptions }) {
+function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredWireProfiles, preferredCatheterProfiles, preferredBalloonProfiles, preferredSpecialProfiles, scopeOptions }) {
+  const [ballOpen, setBallOpen] = useState(false);
+  const [ballAnchor, setBallAnchor] = useState(null);
   const [wireOpen, setWireOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const [specialOpen, setSpecialOpen] = useState(false);
@@ -1218,6 +1232,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
         <div className="device-row">
         <DeviceButton
           label={wireLabel}
+          details={fullDeviceLabel(data.wire)}
           glyphType="wire"
           onClick={(e) => {
             console.log('Open wire modal', index);
@@ -1227,6 +1242,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
         />
         <DeviceButton
           label={catheterLabel}
+          details={fullDeviceLabel(data.catheter)}
           glyphType="catheter"
           onClick={(e) => {
             console.log('Open catheter modal', index);
@@ -1234,8 +1250,16 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
             setCatOpen(true);
           }}
         />
+        {getPlanScope(data)?.type !== 'targetPath' && <DeviceButton
+          label={shortLabel('balloon', data.balloon) || __('Balloon', 'endoplanner')}
+          ariaLabel={[__('Crossing balloon', 'endoplanner'), shortLabel('balloon', data.balloon)].filter(Boolean).join(': ')}
+          details={fullDeviceLabel(data.balloon)}
+          glyphType="balloon"
+          onClick={(event) => { setBallAnchor(event.currentTarget.getBoundingClientRect()); setBallOpen(true); }}
+        />}
         <DeviceButton
           label={devLabel || __('Special', 'endoplanner')}
+          details={fullDeviceLabel(data.device)}
           glyphType="special"
           onClick={(event) => {
             setSpecialAnchor(event.currentTarget.getBoundingClientRect());
@@ -1244,6 +1268,8 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
         />
       </div>
       <RowControls onAdd={onAdd} onRemove={onRemove} showRemove={showRemove} showAdd={false} />
+      <BalloonModal isOpen={ballOpen} anchor={ballAnchor} onRequestClose={() => { setBallOpen(false); setBallAnchor(null); }}
+        values={data.balloon || {}} onSave={(balloon) => onChange({ ...data, balloon })} preferredProfiles={preferredBalloonProfiles} />
       <WireModal
         isOpen={wireOpen}
         anchor={wireAnchor}
@@ -1284,7 +1310,7 @@ function NavRow({ index, values, onChange, onAdd, onRemove, showRemove, preferre
   );
 }
 
-NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredWireProfiles: PropTypes.arrayOf(PropTypes.object), preferredCatheterProfiles: PropTypes.arrayOf(PropTypes.object), preferredSpecialProfiles: PropTypes.array, scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
+NavRow.propTypes = { index: PropTypes.number.isRequired, values: PropTypes.object, onChange: PropTypes.func.isRequired, onAdd: PropTypes.func.isRequired, onRemove: PropTypes.func.isRequired, showRemove: PropTypes.bool, preferredWireProfiles: PropTypes.arrayOf(PropTypes.object), preferredCatheterProfiles: PropTypes.arrayOf(PropTypes.object), preferredBalloonProfiles: PropTypes.arrayOf(PropTypes.object), preferredSpecialProfiles: PropTypes.array, scopeOptions: PropTypes.arrayOf(PropTypes.object).isRequired };
 
 function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, preferredBalloonProfiles, preferredStentProfiles, preferredSpecialProfiles, scopeOptions }) {
   const [ballOpen, setBallOpen] = useState(false);
@@ -1310,6 +1336,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, pref
         <div className="device-row">
         <DeviceButton
           label={balloonLabel}
+          details={fullDeviceLabel(data.balloon)}
           glyphType="balloon"
           onClick={(e) => {
             console.log('Open balloon modal', index);
@@ -1319,6 +1346,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, pref
         />
         <DeviceButton
           label={stentLabel}
+          details={fullDeviceLabel(data.stent)}
           glyphType="stent"
           onClick={(e) => {
             console.log('Open stent modal', index);
@@ -1328,6 +1356,7 @@ function TherapyRow({ index, values, onChange, onAdd, onRemove, showRemove, pref
         />
         <DeviceButton
           label={devLabel || __('Special', 'endoplanner')}
+          details={fullDeviceLabel(data.device)}
           glyphType="special"
           onClick={(event) => {
             setSpecialAnchor(event.currentTarget.getBoundingClientRect());
@@ -1613,6 +1642,7 @@ export default function Step4({ data, setData }) {
       onAdd={() => {}}
       onRemove={() => setNavRows((previous) => previous.filter((item) => item.id !== row.id))}
       showRemove
+      preferredBalloonProfiles={preferredBalloonProfiles}
       preferredWireProfiles={preferredWireProfiles}
       preferredCatheterProfiles={preferredCatheterProfiles}
       preferredSpecialProfiles={preferredSpecialProfiles}
@@ -1697,6 +1727,7 @@ export default function Step4({ data, setData }) {
                         )}
                         <DeviceButton
                           label={device.label}
+                          details={fullDeviceLabel(slot.value) || device.label}
                           subtitle=""
                           img={device.img}
                           onClick={(event) => openPreferencePicker(device.key, slot.id, event)}

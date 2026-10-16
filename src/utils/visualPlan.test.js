@@ -25,7 +25,7 @@ describe('visual intervention plan', () => {
       ],
       [{ balloon: { diameter: '5', length: '120' }, stent: {} }]
     );
-    expect(items).toEqual([
+    expect(items.map(({ type, label }) => ({ type, label }))).toEqual([
       { type: 'wire', label: 'CTO crossing' },
       { type: 'special', label: 'Re-entry device' },
       { type: 'balloon', label: '5 × 120 mm' },

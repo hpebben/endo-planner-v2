@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import VesselMap from './VesselMap';
 import DeviceGlyph from './UI/DeviceGlyph';
+import DeviceTooltip from './UI/DeviceTooltip';
 import SelectedWoundosomeSummary from './SelectedWoundosomeSummary';
 import PlanReviewButton from './PlanReviewButton';
 import { createLesionScope, createTargetPathScope, formatScopeLabel, scopeKey } from '../utils/planScopes';
@@ -133,10 +134,10 @@ export default function VisualPlanWorkspace({
                   {items.length ? (
                     <span className="visual-device-sequence">
                       {items.slice(0, 4).map((item, index) => (
-                        <span className="visual-device-chip" key={`${item.type}-${item.label}-${index}`} title={item.label}>
+                        <DeviceTooltip key={`${item.type}-${item.label}-${index}`} text={item.details}><span className="visual-device-chip">
                           <DeviceGlyph type={item.type} />
                           <span>{item.label}</span>
-                        </span>
+                        </span></DeviceTooltip>
                       ))}
                       {items.length > 4 && <span className="visual-device-more">+{items.length - 4}</span>}
                     </span>
@@ -149,7 +150,7 @@ export default function VisualPlanWorkspace({
           })}
             {(targetPath.length > 0 || sharedNavigationRows.length > 0) && (
               <details className="visual-plan-support" data-testid="shared-route-support">
-                <summary><span>{__('Shared route support', 'endoplanner')}{sharedNavigationRows.length ? ` (${sharedNavigationRows.length})` : ''}</span><span className="shared-support-device-summary">{getVisualPlanItems(sharedNavigationRows, []).map((item, index) => <span className="visual-device-chip" key={index}><DeviceGlyph type={item.type} /><span>{item.label}</span></span>)}</span></summary>
+                <summary><span>{__('Shared route support', 'endoplanner')}{sharedNavigationRows.length ? ` (${sharedNavigationRows.length})` : ''}</span><span className="shared-support-device-summary">{getVisualPlanItems(sharedNavigationRows, []).map((item, index) => <DeviceTooltip key={index} text={item.details}><span className="visual-device-chip"><DeviceGlyph type={item.type} /><span>{item.label}</span></span></DeviceTooltip>)}</span></summary>
                 <p>{__('Optional support/exchange wires or catheters used across the target route.', 'endoplanner')}</p>
                 {renderNavigationRows(sharedNavigationRows)}
                 {targetPath.length > 0 && <button type="button" className="planner-nav-btn scoped-add-btn" onClick={() => addNavigationRow(pathScope)}>+ {__('Add support device', 'endoplanner')}</button>}
@@ -173,7 +174,7 @@ export default function VisualPlanWorkspace({
                 <span>1</span>
                 <div>
                   <h4>{__('Cross', 'endoplanner')}</h4>
-                  <p>{__('Wire, support catheter and optional crossing device', 'endoplanner')}</p>
+                  <p>{__('Wire, support catheter, crossing balloon or special device', 'endoplanner')}</p>
                 </div>
               </div>
               {activeNavigationRows.length ? (

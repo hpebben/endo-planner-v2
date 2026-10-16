@@ -4,6 +4,8 @@ import { __ } from '@wordpress/i18n';
 import computePrognosis from '../../utils/prognosis';
 import computeGlass from '../../utils/glass';
 import InlineModal from '../UI/InlineModal';
+import SelectedWoundosomeSummary from '../SelectedWoundosomeSummary';
+import DiseaseAnatomySummary from '../DiseaseAnatomySummary';
 import RecommendationsPanel from '../PlanRecommendations';
 import { analyzePlan } from '../../utils/planAnalysis';
 import { getWoundosomeAdvice, WOUNDOSOME_REFERENCE } from '../../data/woundosome';
@@ -154,6 +156,7 @@ export default function StepSummary({ data, setStep }) {
   const navigationItems = (rows) => rows.flatMap((row) => [
     { label: 'WIRE', value: summarize(row.wire) },
     { label: 'CATHETER', value: summarize(row.catheter) },
+    { label: 'CROSSING BALLOON', value: formatTherapy(row.balloon) },
     { label: 'SPECIAL', value: summarize(row.device) },
   ]);
 
@@ -188,7 +191,10 @@ export default function StepSummary({ data, setStep }) {
         <h2 className="case-summary__title">{__('Case Summary', 'endoplanner')}</h2>
 
         <div className="summary-card case-summary__indication">
-          <div className="card-title">{__('Clinical indication', 'endoplanner')}</div>
+          <header className="summary-card-heading"><div className="card-title">{__('Clinical indication', 'endoplanner')}</div><button type="button" className="summary-edit-button" aria-label="Edit clinical assessment" onClick={() => setStep?.(0)}>EDIT</button></header>
+          <div className={`summary-media-layout${woundAdvice.zones.length ? '' : ' summary-media-layout--text-only'}`}>
+            {woundAdvice.zones.length > 0 && <SelectedWoundosomeSummary selectedIds={getActiveWoundLocations(data)} targetPath={data.targetArterialPath || []} imagesOnly />}
+            <div className="summary-media-text">
           <div>
             {__('Fontaine stage', 'endoplanner')}: <b>{formatStage(stage)}</b>
           </div>
@@ -223,13 +229,15 @@ export default function StepSummary({ data, setStep }) {
               {__('Complete wound, ischemia and foot-infection grading before interpreting WIfI.', 'endoplanner')}
             </div>
           ))}
-          <button type="button" className="stage-btn" onClick={() => setStep?.(0)}>
-            {__('Edit clinical assessment', 'endoplanner')}
-          </button>
+            </div>
+          </div>
         </div>
 
-        <div className="summary-card">
-          <div className="card-title">{__('Disease anatomy', 'endoplanner')}</div>
+        <div className="summary-card case-summary__anatomy">
+          <header className="summary-card-heading"><div className="card-title">{__('Disease anatomy', 'endoplanner')}</div><button type="button" className="summary-edit-button" aria-label="Edit anatomy" onClick={() => setStep?.(1)}>EDIT</button></header>
+          <div className={`summary-media-layout${Object.keys(patencySegments).length || data.targetArterialPath?.length ? '' : ' summary-media-layout--text-only'}`}>
+            <DiseaseAnatomySummary data={data} />
+            <div className="summary-media-text">
           {Object.keys(patencySegments).length ? (
             <ul className="vessel-summary">
               {Object.entries(patencySegments).map(([id, values]) => (
@@ -274,13 +282,12 @@ export default function StepSummary({ data, setStep }) {
           ) : (
             <div className="row-add-label glass-prediction">{glass.reason}</div>
           )}
-          <button type="button" className="stage-btn" onClick={() => setStep?.(1)}>
-            {__('Edit anatomy', 'endoplanner')}
-          </button>
+            </div>
+          </div>
         </div>
 
         <div className="summary-card intervention-plan">
-          <div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div>
+          <header className="summary-card-heading"><div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div><button type="button" className="summary-edit-button" aria-label="Edit intervention plan" onClick={() => setStep?.(2)}>EDIT</button></header>
           <PlanSection title={__('ACCESS', 'endoplanner')} rows={accessItems} />
           {activeScopeOptions.map((option) => {
             const linkedNavigation = activeNavRows.filter((row) => scopeKey(row) === option.value);
@@ -305,9 +312,7 @@ export default function StepSummary({ data, setStep }) {
             </div>
           )}
           <PlanSection title={__('CLOSURE', 'endoplanner')} rows={closureItems} />
-          <button type="button" className="stage-btn" onClick={() => setStep?.(2)}>
-            {__('Edit intervention plan', 'endoplanner')}
-          </button>
+
         </div>
 
         <RecommendationsPanel findings={planFindings} />

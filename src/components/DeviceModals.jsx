@@ -1,3 +1,4 @@
+import { SHEATH_LENGTHS } from '../data/sheathLengths';
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { SelectControl } from '@wordpress/components';
@@ -55,7 +56,7 @@ export function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) 
   const [length, setLength] = useState(values.length || '');
   useEffect(() => { setFrSize(values.frSize || ''); setLength(values.length || ''); }, [values]);
   const sizes = ['4 Fr','5 Fr','6 Fr','7 Fr','8 Fr','9 Fr'];
-  const lengths = ['10 cm','12 cm','25 cm'];
+  const lengths = [...new Set([...SHEATH_LENGTHS, values.length].filter(Boolean))];
   const handleChange = (field, val) => {
     const newVals = { frSize, length, [field]: val };
     if (field === 'frSize') setFrSize(val); else setLength(val);
