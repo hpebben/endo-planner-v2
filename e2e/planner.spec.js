@@ -832,7 +832,7 @@ test('extends the saved target route into metatarsal and digital arteries and ex
 
 test('routes plantar and heel wounds through the correct named branches', async ({ page }) => {
   const data = completeCase();
-  data.clinical.woundLocations = ['lateral-plantar', 'lateral-heel'];
+  data.clinical.woundLocations = ['lateral-plantar', 'lateral-heel', 'plantar-toes'];
   await seed(page, data, 1);
   await page.goto('./');
   const inflow = page.getByRole('radiogroup', { name: 'Distal target artery', exact: true });
@@ -916,7 +916,7 @@ test('keeps pedal route controls and measured lesion fields usable on a phone', 
   await page.setViewportSize({ width: 390, height: 844 });
   await seed(page, completeCase(), 1);
   await page.goto('./');
-  await page.getByRole('combobox', { name: 'Pedal outflow target', exact: true }).selectOption('dorsal-metatarsal-2');
+  await page.getByRole('combobox', { name: 'Pedal outflow target', exact: true }).selectOption('arcuate');
   await page.locator('.segment-edit-trigger').first().click();
   const editor = page.locator('.param-box');
   await editor.getByText('Lesion extent on map (optional)', { exact: true }).click();
@@ -929,4 +929,149 @@ test('keeps pedal route controls and measured lesion fields usable on a phone', 
     offenders: [...document.querySelectorAll('body *')].filter((element) => element.getBoundingClientRect().right > innerWidth + 1 && element.getClientRects().length).slice(0, 12).map((element) => ({ tag: element.tagName, className: element.getAttribute('class'), right: element.getBoundingClientRect().right })),
   }));
   expect(metrics.width, JSON.stringify(metrics.offenders)).toBeLessThanOrEqual(metrics.viewport);
+});
+
+for (const width of [1280, 390]) {
+  test(`anchors stage changes to the numbered title at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await seed(page, completeCase(), 0);
+    await page.goto('./');
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    const label = page.locator('.wizard-step-label');
+    await expect(label).toHaveText('2 / 4 — Disease anatomy');
+    await expect(label).toBeFocused();
+    await expect.poll(() => label.evaluate((node) => node.getBoundingClientRect().top)).toBeLessThan(25);
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(label).toHaveText('1 / 4 — Clinical indication');
+    await expect(label).toBeFocused();
+    await expect.poll(() => label.evaluate((node) => node.getBoundingClientRect().top)).toBeLessThan(25);
+  });
+}
+
+test('shows blocking step advice in a red Critical panel', async ({ page }) => {
+  const data = baseCase(); data.clinical.wound = null;
+  await seed(page, data, 0);
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  const alert = page.locator('.wizard-validation');
+  await expect(alert).toHaveAttribute('role', 'alert');
+  await expect(alert).toContainText('Critical | complete this step before continuing:');
+  await expect(alert).toContainText('Assess all three WIfI components.');
+  await expect(alert).toHaveCSS('background-color', 'rgb(255, 242, 243)');
+  await expect(page.locator('.wizard-step-label')).toContainText('1 / 4');
+});
+
+test('keeps wound targets and a compact set of main pedal outflow choices', async ({ page }) => {
+  await seed(page, completeCase(), 1);
+  await page.goto('./');
+  const select = page.getByRole('combobox', { name: 'Pedal outflow target', exact: true });
+  const groups = await select.locator('optgroup').evaluateAll((nodes) => nodes.map((node) => ({ name: node.label, count: node.children.length })));
+  expect(groups.map((group) => group.name)).toEqual(['Woundosome targets to assess', 'Main pedal outflow']);
+  expect(groups.find((group) => group.name === 'Main pedal outflow').count).toBeLessThanOrEqual(7);
+  await expect(select.locator('option[value="dorsal-digital-4-medial"]')).toHaveCount(0);
+  await select.selectOption('plantar-arch');
+  await expect(page.getByLabel('Selected target route', { exact: true })).toContainText('deep plantar arch');
+});
+
+test('offers long access sheaths and restores the chosen length', async ({ page }) => {
+  await seed(page, completeCase(), 2);
+  await page.goto('./');
+  await page.getByRole('button', { name: '6 Fr', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  const length = dialog.getByRole('combobox', { name: 'Length', exact: true });
+  for (const value of ['10 cm', '25 cm', '45 cm', '55 cm', '65 cm', '70 cm', '90 cm', '110 cm']) {
+    await expect(length.locator('option').filter({ hasText: new RegExp(`^${value}$`) })).toHaveCount(1);
+  }
+  await length.selectOption('90 cm');
+  await expect(dialog).toHaveCount(0);
+  await page.reload();
+  await page.getByRole('button', { name: '6 Fr', exact: true }).click();
+  await expect(page.getByRole('dialog').getByRole('combobox', { name: 'Length', exact: true })).toHaveValue('90 cm');
+});
+
+test('selects a crossing balloon and carries it through saved plan, summary and PDF', async ({ page }, testInfo) => {
+  await seed(page, completeCase(), 2, profile);
+  await page.goto('./');
+  const composer = page.getByTestId('plan-scope-group-L1');
+  await composer.getByRole('button', { name: 'Crossing balloon', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: /Choose starred device:.*5/ }).click();
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key))?.data.navRows[0]?.balloon?.diameter, STATE_KEY)).toBe('5');
+  await page.reload();
+  await expect(composer.getByRole('button', { name: /Crossing balloon:/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.locator('.intervention-plan')).toContainText('CROSSING BALLOON');
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const file = testInfo.outputPath('crossing-balloon.pdf');
+  await (await downloaded).saveAs(file);
+  expect(readFileSync(file, 'latin1')).toContain('crossing balloon');
+});
+
+test('reveals the full device specification in a dark blue tooltip on hover and focus', async ({ page }) => {
+  await seed(page, completeCase(), 2);
+  await page.goto('./');
+  const wire = page.getByTestId('plan-scope-group-L1').getByRole('button', { name: 'ASAHI Gladius MG 18 PV ES', exact: true });
+  await wire.hover();
+  const tooltip = page.getByRole('tooltip');
+  await expect(tooltip).toContainText('ASAHI Gladius MG 18 PV ES');
+  await expect(tooltip).toContainText('300 cm');
+  await expect(tooltip).toHaveCSS('background-color', 'rgb(17, 46, 114)');
+  await page.keyboard.press('Escape');
+  await expect(tooltip).toHaveCount(0);
+  await wire.focus();
+  await expect(tooltip).toBeVisible();
+  await expect(wire).toHaveAttribute('aria-describedby', await tooltip.getAttribute('id'));
+  const box = await tooltip.boundingBox();
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(1280);
+});
+
+test('includes selected diagrams alongside summary text and embeds them in the PDF', async ({ page }, testInfo) => {
+  const data = completeCase(); data.patencySegments[lesionId].measuredLengthCm = '5';
+  await seed(page, data, 3);
+  await page.goto('./');
+  const indication = page.locator('.case-summary__indication');
+  const anatomy = page.locator('.case-summary__anatomy');
+  await expect(indication.locator('.selected-woundosome-views svg')).toHaveCount(2);
+  await expect(anatomy.getByTestId('summary-disease-visual')).toBeVisible();
+  await expect(anatomy.locator('svg [role="button"]')).toHaveCount(0);
+  for (const label of ['Edit clinical assessment', 'Edit anatomy', 'Edit intervention plan']) {
+    await expect(page.getByRole('button', { name: label, exact: true })).toHaveText('EDIT');
+    await expect(page.getByRole('button', { name: label, exact: true })).toHaveCSS('background-color', 'rgb(17, 49, 149)');
+  }
+  const imageBox = await indication.locator('.selected-woundosome-views').boundingBox();
+  const textBox = await indication.locator('.summary-media-text').boundingBox();
+  expect(imageBox.x + imageBox.width).toBeLessThan(textBox.x);
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const file = testInfo.outputPath('visual-case-summary.pdf');
+  await (await downloaded).saveAs(file);
+  const pdf = readFileSync(file, 'latin1');
+  expect((pdf.match(/\/Subtype \/Image/g) || []).length).toBeGreaterThanOrEqual(3);
+  expect(pdf).toContain('5 cm');
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await page.getByRole('button', { name: 'Edit anatomy', exact: true }).click();
+  await expect(page.locator('.wizard-step-label')).toBeFocused();
+  await expect(page.locator('.wizard-step-label')).toContainText('2 / 4');
+});
+
+test('paginates long PDF plans without dropping the final device or recommendations', async ({ page }, testInfo) => {
+  const data = completeCase();
+  data.navRows = Array.from({ length: 24 }, (_, index) => ({
+    ...data.navRows[0], id: `long-nav-${index}`,
+    wire: { ...data.navRows[0].wire, product: `RECORDED_WIRE_${index}_END` },
+  }));
+  await seed(page, data, 3);
+  await page.goto('./');
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const file = testInfo.outputPath('long-plan.pdf');
+  await (await downloaded).saveAs(file);
+  const pdf = readFileSync(file, 'latin1');
+  expect(pdf).toContain('RECORDED_WIRE_23_END');
+  expect(pdf).toContain('RECOMMENDATIONS & CONSIDERATIONS');
+  expect((pdf.match(/\/Type \/Page\b/g) || []).length).toBeGreaterThan(1);
 });

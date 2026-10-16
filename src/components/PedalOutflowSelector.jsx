@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
-import { footArteryIdForVessel, getPedalTargetOptions } from '../data/pedalRoutes';
+import { footArteryIdForVessel, getSimplePedalTargetOptions } from '../data/pedalRoutes';
 
 export default function PedalOutflowSelector({ targetKey, targetPath, selectedWounds, onChange }) {
-  const options = getPedalTargetOptions(targetKey, selectedWounds);
-  if (!options.length) return null;
   const selected = footArteryIdForVessel(targetPath[targetPath.length - 1]);
+  const options = getSimplePedalTargetOptions(targetKey, selectedWounds, selected);
+  if (!options.length) return null;
   const groups = [...new Set(options.map((option) => option.group))].sort((a, b) => Number(b === 'Woundosome targets to assess') - Number(a === 'Woundosome targets to assess'));
   return (
     <div className="pedal-outflow-selector" data-testid="pedal-outflow-selector">
@@ -17,7 +17,7 @@ export default function PedalOutflowSelector({ targetKey, targetPath, selectedWo
           {groups.map((group) => <optgroup key={group} label={group}>{options.filter((option) => option.group === group).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</optgroup>)}
         </select>
       </label>
-      <p>{__('Choose the intended pedal, metatarsal, digital or heel branch. Woundosome suggestions identify routes to assess; confirm continuity and wound-bed filling on angiography.', 'endoplanner')}</p>
+      <p>{__('Choose a wound-related branch or a main pedal vessel. Confirm continuity and wound-bed filling on angiography.', 'endoplanner')}</p>
     </div>
   );
 }

@@ -202,6 +202,11 @@ export const analyzePlan = (data = {}) => {
         'Move the dedicated CTO wire from PATH to the occlusion or combined crossing zone. PATH is intended for support/exchange wires and route-level catheters.',
       ));
     }
+    if (hasValue(row.balloon)) {
+      findings.push(finding(`path-balloon-${row.id || index}`, 'error', 'compatibility',
+        'Crossing balloon needs a lesion-specific scope',
+        'Move the crossing balloon to its lesion or combined crossing zone.'));
+    }
   });
 
   therapyRows.forEach((row, index) => {
@@ -215,7 +220,7 @@ export const analyzePlan = (data = {}) => {
     ));
   });
 
-  therapyRows.forEach((row, rowIndex) => {
+  [...therapyRows, ...navRows.filter((row) => hasValue(row.balloon))].forEach((row, rowIndex) => {
     const scopedLesionIds = getScopeLesionIds(row);
     if (!scopedLesionIds.length) return;
     const scopeLabel = formatScopeLabel(row, lesions);

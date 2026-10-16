@@ -6,13 +6,13 @@ import { WOUND_PROJECTIONS } from '../data/woundosomeProjections';
 import { getWoundZones, WOUND_ZONES } from '../data/woundosome';
 import { getPedalRouteHighlights } from '../data/pedalRoutes';
 
-export default function SelectedWoundosomeSummary({ selectedIds, targetPath = [] }) {
+export default function SelectedWoundosomeSummary({ selectedIds, targetPath = [], imagesOnly = false }) {
   const zones = getWoundZones(selectedIds);
   const right = /^Right_/.test(targetPath[0] || '');
   if (!zones.length) return null;
   return (
     <section className="selected-woundosomes" data-testid="selected-woundosomes" aria-label={__('Selected woundosomes', 'endoplanner')}>
-      <h3>{__('Selected woundosomes', 'endoplanner')}</h3>
+      {!imagesOnly && <h3>{__('Selected woundosomes', 'endoplanner')}</h3>}
       <div className="selected-woundosome-views">
         {WOUND_PROJECTIONS.map((projection) => (
           <figure key={projection.id}>
@@ -39,15 +39,15 @@ export default function SelectedWoundosomeSummary({ selectedIds, targetPath = []
           </figure>
         ))}
       </div>
-      <ul className="selected-woundosome-key">
+      {!imagesOnly && <ul className="selected-woundosome-key">
         {zones.map((zone) => (
           <li key={zone.id} style={{ '--zone-color': zone.color }}>
             <span className="wound-zone-dot" aria-hidden="true">{WOUND_ZONES.indexOf(zone) + 1}</span>
             <span>{zone.label}</span>
           </li>
         ))}
-      </ul>
-      <p className="selected-woundosome-caption">{__('Patent reference anatomy; colors mark wound locations. Blue follows the planned pedal route. Confirm the route and wound filling on the patient’s angiography.', 'endoplanner')}</p>
+      </ul>}
+      {!imagesOnly && <p className="selected-woundosome-caption">{__('Patent reference anatomy; colors mark wound locations. Blue follows the planned pedal route. Confirm the route and wound filling on the patient’s angiography.', 'endoplanner')}</p>}
     </section>
   );
 }
@@ -55,4 +55,5 @@ export default function SelectedWoundosomeSummary({ selectedIds, targetPath = []
 SelectedWoundosomeSummary.propTypes = {
   selectedIds: PropTypes.arrayOf(PropTypes.string).isRequired,
   targetPath: PropTypes.arrayOf(PropTypes.string),
+  imagesOnly: PropTypes.bool,
 };

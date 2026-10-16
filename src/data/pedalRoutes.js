@@ -94,6 +94,15 @@ export const getPedalTargetOptions = (targetKey, selectedWounds = []) => {
     }));
 };
 
+// Keep wound-specific branches, but replace the exhaustive distal tree with
+// a small set of main outflow choices. Saved detailed endpoints stay editable.
+export const getSimplePedalTargetOptions = (targetKey, selectedWounds = [], selected = '') => {
+  const mainTargets = new Set(['arcuate', 'plantar-arch', 'medial-plantar', 'lateral-plantar', 'medial-calcaneal', 'lateral-calcaneal', 'anterior-perforating']);
+  return getPedalTargetOptions(targetKey, selectedWounds)
+    .filter((option) => option.suggested || mainTargets.has(option.value) || option.value === selected)
+    .map((option) => ({ ...option, group: option.suggested ? 'Woundosome targets to assess' : mainTargets.has(option.value) ? 'Main pedal outflow' : 'Saved target' }));
+};
+
 export const defaultPedalTarget = (targetKey, selectedWounds = []) => {
   const options = getPedalTargetOptions(targetKey, selectedWounds);
   const sameInflow = targetKey === 'posterior' ? 'posterior' : targetKey === 'peroneal' ? 'peroneal' : 'anterior';

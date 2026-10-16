@@ -93,6 +93,7 @@ export default function VesselMap({
   planningMode = false,
   planningSegmentIds = [],
   activePlanningSegment = '',
+  readOnly = false,
   toggleSegment = () => {},
   setTooltip,
 }) {
@@ -159,11 +160,11 @@ export default function VesselMap({
               data-name={seg.name}
               data-lesion-fraction={extent?.fraction ?? undefined}
               aria-description={extentDescription || undefined}
-              role="button"
-              tabIndex={(routeEditMode && !isTargetEndpointCandidate) || (planningMode && !isPlanningSegment) ? -1 : 0}
+              role={readOnly ? undefined : 'button'}
+              tabIndex={readOnly ? undefined : (routeEditMode && !isTargetEndpointCandidate) || (planningMode && !isPlanningSegment) ? -1 : 0}
               aria-label={routeEditMode ? `Set target route to ${seg.name}` : planningMode ? `Plan devices for ${seg.name}` : seg.name}
-              aria-pressed={routeEditMode ? isTargeted : planningMode ? isActivePlanningSegment : isSelected}
-              aria-disabled={(routeEditMode && !isTargetEndpointCandidate) || (planningMode && !isPlanningSegment)}
+              aria-pressed={readOnly ? undefined : routeEditMode ? isTargeted : planningMode ? isActivePlanningSegment : isSelected}
+              aria-disabled={readOnly ? undefined : (routeEditMode && !isTargetEndpointCandidate) || (planningMode && !isPlanningSegment)}
               data-route-endpoint={isTargetEndpointCandidate ? 'true' : undefined}
               onMouseEnter={handleEnter(seg.id, `${seg.name}${extentDescription ? ` — ${extentDescription}` : ''}`)}
               onMouseLeave={handleLeave(seg.id)}

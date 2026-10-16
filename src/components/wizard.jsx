@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import DEFAULTS from './Defaults';
 import exportCaseSummaryToPDF from '../utils/exportCaseSummaryToPDF';
 import { __ } from '@wordpress/i18n';
@@ -28,6 +28,9 @@ export default function Wizard() {
   const [current, setCurrent] = useState(0);
   const [data, setData] = useState(DEFAULTS);
   const [validationErrors, setValidationErrors] = useState([]);
+  const [exporting, setExporting] = useState(false);
+  const stepLabelRef = useRef(null);
+  const lastStep = useRef(0);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -100,19 +103,14 @@ export default function Wizard() {
     setValidationErrors([]);
   }, [current, data]);
 
-  useEffect(() => {
-    if (typeof document === 'undefined' || current !== steps.length - 1) return undefined;
-
-    let rafId;
-    const focusCaseSummary = () => {
-      const title = document.querySelector('.case-summary__title');
-      if (!title) return;
-      title.setAttribute('tabindex', '-1');
-      title.focus({ preventScroll: true });
-      title.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-    rafId = requestAnimationFrame(focusCaseSummary);
-    return () => cancelAnimationFrame(rafId);
+  useLayoutEffect(() => {
+    if (lastStep.current === current) return undefined;
+    lastStep.current = current;
+    const frame = requestAnimationFrame(() => {
+      stepLabelRef.current?.focus({ preventScroll: true });
+      stepLabelRef.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    });
+    return () => cancelAnimationFrame(frame);
   }, [current]);
 
   const StepComponent = steps[current].component;
@@ -135,7 +133,7 @@ export default function Wizard() {
 
   return (
     <div className="endo-wizard">
-      <div className="wizard-step-label" aria-live="polite">
+      <div className="wizard-step-label" ref={stepLabelRef} tabIndex={-1} aria-live="polite">
         {`${current + 1} / ${steps.length} — ${steps[current].title}`}
       </div>
       <ProgressBar value={(current + 1) / steps.length} />
@@ -146,7 +144,7 @@ export default function Wizard() {
 
       {validationErrors.length > 0 && (
         <div className="wizard-validation" role="alert">
-          <strong>{__('Complete this step before continuing:', 'endoplanner')}</strong>
+          <strong>{__('Critical | complete this step before continuing:', 'endoplanner')}</strong>
           <ul>
             {validationErrors.map((error) => <li key={error}>{error}</li>)}
           </ul>
@@ -176,7 +174,14 @@ export default function Wizard() {
             type="button"
             id="export-pdf-btn"
             className="stage-btn planner-nav-btn wizard-finish"
-            onClick={() => exportCaseSummaryToPDF(data)}
+            disabled={exporting}
+            aria-busy={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try { await exportCaseSummaryToPDF(data); }
+              catch (error) { setValidationErrors([__('PDF export failed. Please try again.', 'endoplanner')]); }
+              finally { setExporting(false); }
+            }}
           >
             {__('Export PDF', 'endoplanner')}
           </button>
