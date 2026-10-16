@@ -1,0 +1,22 @@
+.endoplanner-teaser,.endoplanner-workspace{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.endoplanner-teaser *,.endoplanner-workspace *{box-sizing:border-box}
+.endoplanner-teaser{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,56px);max-width:1200px;margin:24px auto;padding:clamp(24px,4vw,48px);border:1px solid #d7e3f6;border-radius:22px;background:linear-gradient(125deg,#eff5ff,#fff 70%);box-shadow:0 12px 38px #17356d0b;color:#263b5b;text-align:left}
+.endoplanner-page-eyebrow{display:inline-block;color:#16409c;font-size:12px;font-weight:800;letter-spacing:.16em}
+.endoplanner-teaser-intro h2{max-width:450px;margin:14px 0;color:#102c68;font-size:clamp(27px,3.1vw,40px);line-height:1.16;letter-spacing:-.025em;font-weight:750}
+.endoplanner-teaser-intro>p{max-width:410px;font-size:15px;line-height:1.7;color:#586b88}
+.endoplanner-teaser a.endoplanner-teaser-start{display:inline-flex;align-items:center;justify-content:space-between;gap:32px;min-height:48px;margin-top:14px;padding:12px 22px;border:1px solid #113195;border-radius:9px;background:#113195;color:#fff;font-size:15px;font-weight:700;line-height:1.5;text-decoration:none;box-shadow:0 4px 12px #11319522}
+.endoplanner-teaser a.endoplanner-teaser-start:hover{background:#082468;color:#fff;transform:translateY(-1px)}
+.endoplanner-teaser a.endoplanner-teaser-start:focus-visible,.endoplanner-workspace a:focus-visible{outline:3px solid #87b1ff;outline-offset:4px}
+.endoplanner-teaser-intro>p.endoplanner-teaser-save{margin-top:16px;font-size:11px;color:#6a7c98}
+.endoplanner-teaser-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-content:center}
+.endoplanner-teaser-feature{display:flex;gap:10px;min-width:0;padding:16px 12px;border:1px solid #e0e8f6;border-radius:12px;background:#ffffffd9}
+.endoplanner-feature-number{display:flex;align-items:center;justify-content:center;flex:0 0 27px;width:27px;height:27px;border-radius:8px;background:#e8f0ff;color:#16409c;font-size:10px;font-weight:800}
+.endoplanner-teaser-feature h3{margin:1px 0 7px;color:#163a7f;font-size:13px;font-weight:750;line-height:1.4}
+.endoplanner-teaser-feature p{margin:0;color:#64738c;font-size:11px;line-height:1.6}
+.endoplanner-workspace{width:100%;max-width:1440px;min-height:100svh;margin:0 auto;padding:16px clamp(12px,2vw,32px) 32px;background:#f7f9fd;color:#263b5b}
+.endoplanner-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 20px;padding:4px 0 16px;border-bottom:1px solid #dce5f4;font-size:12px}
+.endoplanner-workspace-header a{color:#153985;text-decoration:none;font-weight:700}
+.endoplanner-workspace-header span{color:#6b7d98}
+.endoplanner-workspace .endoplanner-root,.endoplanner-workspace .endo-wizard{width:100%;max-width:none;margin:0;min-width:0}
+@media(max-width:850px){.endoplanner-teaser{grid-template-columns:minmax(0,1fr)}.endoplanner-teaser-intro h2{max-width:600px}.endoplanner-teaser-intro>p{max-width:600px}}
+@media(max-width:480px){.endoplanner-teaser{margin:12px auto;padding:22px 16px;border-radius:15px}.endoplanner-teaser-features{grid-template-columns:minmax(0,1fr)}.endoplanner-teaser-feature{padding:13px}.endoplanner-teaser-feature p{font-size:12px}.endoplanner-workspace-header{font-size:11px}}

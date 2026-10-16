@@ -2,43 +2,21 @@ import computePrognosis from './prognosis';
 import computeGlass from './glass';
 import { WIFI_STAGE_INFO, getWifiAction } from './guidelineRecommendations';
 import { analyzePlan } from './planAnalysis';
-import { formatTargetArterialPath, getLesionOptions, sideFromVesselId, vesselName, lesionLengthLabel } from './lesions';
+import { formatTargetArterialPath, getLesionOptions, sideFromVesselId, vesselName, lesionLengthLabel, calcificationLabel } from './lesions';
 import { formatScopeLabel, getScopeLesionIds } from './planScopes';
 import { getWoundosomeAdvice } from '../data/woundosome';
 import { getPatSummaryLines } from '../data/pedalAccelerationTime';
 import { getActiveWoundLocations } from './clinicalStage';
-
-const clean = (value) => String(value ?? '')
-  .replace(/[–—]/g, '-')
-  .replace(/→/g, '->')
-  .replace(/×/g, 'x')
-  .replace(/≥/g, '>=')
-  .replace(/≤/g, '<=');
+import createPdfReportLayout from './pdfReportLayout';
+import appendMaterialsPages from './pdfMaterialsPage';
+import { fullDeviceLabel } from './deviceLabel';
 
 const valuesOnly = (value) => {
   if (!value) return '';
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return value.map(valuesOnly).filter(Boolean).join('; ');
   if (typeof value === 'object') {
-    if (value.product) {
-      const dimensions = value.diameter && value.length
-        ? `${value.diameter} x ${value.length} mm`
-        : value.length;
-      const product = value.product === 'Product not specified' ? '' : value.product;
-      return [
-        product,
-        value.platform,
-        value.functionalRole || value.role,
-        dimensions,
-        value.shaft,
-        value.type,
-        value.material,
-        value.technique || value.deliveryMode,
-        value.ctoProfile,
-        value.minimumSheathFr ? `minimum sheath ${value.minimumSheathFr}` : '',
-      ]
-        .filter(Boolean).join(' | ');
-    }
+    if (value.product || value.specific || value.platform || value.frSize || value.diameter) return fullDeviceLabel(value);
     return Object.entries(value)
       .filter(([key, nested]) => key !== 'id' && nested)
       .map(([, nested]) => valuesOnly(nested))
@@ -99,85 +77,6 @@ const planLines = (data) => {
   return lines;
 };
 
-// Text remains selectable and paginates; diagrams share the screen's SVG model.
-const reportLayout = (doc, pageWidth) => {
-  let y = 72;
-  const bottom = 780;
-  const header = () => {
-    doc.setFillColor(17, 49, 149);
-    doc.rect(0, 0, pageWidth, 54, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(19);
-    doc.text('EndoPlanner - Case summary', 28, 34);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-    doc.text(new Date().toLocaleDateString(), pageWidth - 28, 33, { align: 'right' });
-  };
-  const newPage = () => { doc.addPage(); y = 72; header(); };
-  const card = (title, lines, images = [], caption = '') => {
-    let remaining = [...lines], first = true;
-    do {
-      const hasImages = first && images.length > 0;
-      const imageWidth = hasImages ? 224 : 0;
-      const textX = 40 + (hasImages ? imageWidth + 16 : 0);
-      const textWidth = pageWidth - 40 - textX;
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-      const paragraphs = remaining.map((line) => ({
-        heading: line.startsWith('::'),
-        lines: doc.splitTextToSize(clean(line.replace(/^::/, '')), textWidth),
-      }));
-      const imageHeight = hasImages ? Math.min(238, Math.max(...images.map((img) => (imageWidth / images.length - 6) / img.ratio)) + 40) : 0;
-      const textHeight = paragraphs.reduce((n, p) => n + p.lines.length * 12 + (p.heading ? 8 : 5), 0);
-      const desired = 48 + Math.max(imageHeight, textHeight);
-      if (y > 72 && desired > bottom - y) newPage();
-      const available = bottom - y - 48;
-      const chunk = [];
-      let used = 0;
-      while (paragraphs.length) {
-        const paragraph = paragraphs[0];
-        const height = paragraph.lines.length * 12 + (paragraph.heading ? 8 : 5);
-        if (used + height > available && chunk.length) break;
-        if (height > available) {
-          const count = Math.max(1, Math.floor((available - used - 8) / 12));
-          chunk.push({ ...paragraph, lines: paragraph.lines.slice(0, count) });
-          remaining[0] = paragraph.lines.slice(count).join(' ');
-          used += count * 12 + 5;
-          break;
-        }
-        chunk.push(paragraph); used += height; paragraphs.shift(); remaining.shift();
-      }
-      const height = 48 + Math.max(imageHeight, used);
-      doc.setDrawColor(218, 226, 241); doc.setFillColor(249, 251, 255);
-      doc.roundedRect(28, y, pageWidth - 56, height, 8, 8, 'FD');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(17, 49, 149);
-      doc.text(clean(title + (first ? '' : ' (continued)')), 40, y + 22);
-      if (hasImages) {
-        images.forEach((img, index) => {
-          const cellWidth = imageWidth / images.length;
-          const h = Math.min(imageHeight - 40, (cellWidth - 8) / img.ratio);
-          const w = h * img.ratio;
-          const x = 40 + index * cellWidth + (cellWidth - w) / 2;
-          doc.addImage(img.data, 'PNG', x, y + 38, w, h, undefined, 'FAST');
-          doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(75, 90, 115);
-          doc.text(clean(img.label), 40 + index * cellWidth + cellWidth / 2, y + 38 + h + 10, { align: 'center' });
-        });
-        if (caption) { doc.setFontSize(6.5); doc.text(doc.splitTextToSize(clean(caption), imageWidth), 40, y + imageHeight + 26); }
-      }
-      let textY = y + 40;
-      chunk.forEach((p) => {
-        doc.setFont('helvetica', p.heading ? 'bold' : 'normal'); doc.setFontSize(9);
-        doc.setTextColor(...(p.heading ? [17, 49, 149] : [38, 48, 66]));
-        if (p.heading) textY += 3;
-        doc.text(p.lines, textX, textY);
-        textY += p.lines.length * 12 + (p.heading ? 5 : 5);
-      });
-      y += height + 14; first = false;
-      if (remaining.length) newPage();
-    } while (remaining.length);
-  };
-  header();
-  return { card };
-};
-
 export default async function exportCaseSummaryToPDF(data = {}) {
   const [{ default: jsPDF }] = await Promise.all([import('jspdf')]);
   const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
@@ -188,7 +87,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
 
   const { default: renderSummaryImages } = await import('./summaryImages');
   const images = await renderSummaryImages(data);
-  const layout = reportLayout(doc, pageWidth);
+  const layout = createPdfReportLayout(doc);
 
   const clinicalLines = [
     `Fontaine stage: ${formatStage(data.stage)}`,
@@ -210,7 +109,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
   }
 
   const anatomyLines = Object.entries(data.patencySegments || {}).map(([id, values]) => (
-    `${vesselName(id)}: ${[values.type, lesionLengthLabel(values), values.calcium ? `${values.calcium} calcium` : ''].filter(Boolean).join(', ')}`
+    `${vesselName(id)}: ${[values.type, lesionLengthLabel(values), calcificationLabel(values.calcium)].filter(Boolean).join(', ')}`
   ));
   if (!anatomyLines.length) anatomyLines.push('No vessel data entered.');
   anatomyLines.push(data.targetArterialPath?.length
@@ -235,14 +134,18 @@ export default async function exportCaseSummaryToPDF(data = {}) {
   layout.card('DISEASE ANATOMY', anatomyLines, images.disease,
     'Red: lesion outline / estimated extent. Blue: target path. Schematic position.');
   layout.card('INTERVENTION PLAN', ['::ACCESS', ...planLines(data)]);
-  layout.card('RECOMMENDATIONS & CONSIDERATIONS', recommendationLines.slice(1));
+  layout.card('RECOMMENDATIONS & CONSIDERATIONS', findings.length
+    ? findings.map((item) => ({ label: `${item.level === 'error' ? 'Critical' : item.level === 'warning' ? 'Warning' : 'Recommendation'} | ${item.title}`, text: item.summary, level: item.level }))
+    : recommendationLines.slice(1));
+  const materialsStartPage = doc.getNumberOfPages() + 1;
+  appendMaterialsPages(doc, data, findings);
 
   const pageCount = doc.getNumberOfPages();
   for (let page = 1; page <= pageCount; page += 1) {
     doc.setPage(page);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(100, 105, 115);
-    doc.text('Reference anatomy and clinical estimates: confirm against source imaging and guidelines.', 28, 805);
-    doc.text(`EndoPlanner v1.6.179 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
+    doc.text(page >= materialsStartPage ? 'Selected case materials: confirm quantities and missing specifications before opening.' : 'Reference anatomy and clinical estimates: confirm against source imaging and guidelines.', 28, 805);
+    doc.text(`EndoPlanner v1.6.180 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
   }
 
   doc.save(reportFilename(data));

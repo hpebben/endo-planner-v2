@@ -2,10 +2,12 @@
 /**
  * Plugin Name:     Endo Planner v2
  * Description:     EndoPlanner Wizard block + Intervention Planning frontend
- * Version:         1.6.179
+ * Version:         1.6.180
  * Author:          hpebben
  * Text Domain:     endoplanner
  */
+
+require_once __DIR__ . '/includes/page-embeds.php';
 
 function endoplanner_v2_render_block( $attributes, $content, $block ) {
     $wrapper_attributes = get_block_wrapper_attributes();
@@ -66,8 +68,9 @@ function endoplanner_v2_page_has_planner() {
     }
 
     $has_block = function_exists( 'has_block' ) && has_block( 'endoplanner/v2-wizard', $post );
-    $has_shortcode = function_exists( 'has_shortcode' ) && has_shortcode( $post->post_content, 'endoplanner' );
-    $has_marker = str_contains( $post->post_content, 'endoplanner-root' );
+    $markup = endoplanner_v2_page_markup( $post );
+    $has_shortcode = function_exists( 'has_shortcode' ) && has_shortcode( $markup, 'endoplanner' );
+    $has_marker = str_contains( $markup, 'endoplanner-root' );
 
     $has_planner = $has_block || $has_shortcode || $has_marker;
 
@@ -75,7 +78,7 @@ function endoplanner_v2_page_has_planner() {
 }
 
 function endoplanner_v2_label_planner_script_tag( $tag, $handle, $src ) {
-    if ( 'endoplanner-v2-wizard-script' !== $handle ) {
+    if ( ! in_array( $handle, array( 'endoplanner-v2-wizard-script', 'endoplanner-v2-wizard-view-script' ), true ) ) {
         return $tag;
     }
 
@@ -195,6 +198,12 @@ add_action( 'wp_enqueue_scripts', function() {
 
     if ( ! endoplanner_v2_page_has_planner() ) {
         return;
+    }
+
+    endoplanner_v2_enqueue_wizard_assets();
+    $post = get_post();
+    if ( $post && has_shortcode( endoplanner_v2_page_markup( $post ), 'endoplanner' ) ) {
+        return; // The React workspace does not use the legacy Elementor UI.
     }
 
     endoplanner_v2_enqueue_intervention_assets();

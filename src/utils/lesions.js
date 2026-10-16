@@ -56,6 +56,7 @@ const lengthLabel = ( value ) =>
 	'length not entered' );
 
 export const lesionLengthLabel = (values = {}) => positiveLength(values.measuredLengthCm) ? `${positiveLength(values.measuredLengthCm)} cm` : lengthLabel(values.length);
+export const calcificationLabel = (value) => !value ? '' : value === 'none' ? 'no calcification' : `${value} calcification`;
 
 export const lesionLabel = ( id, values = {} ) => {
 	const findings = [

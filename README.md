@@ -4,6 +4,13 @@ This project contains the source for the Endoplanner WordPress plugin. The code
 uses the `@wordpress/scripts` toolchain, so Node.js is required to build the
 assets.
 
+## Recommended WordPress page setup
+
+Use `[endoplanner_teaser url="/case/"]` on the main page and
+`[endoplanner layout="workspace"]` on a dedicated full-width Case page.
+See [the complete setup guide](docs/wordpress-workspace.md) for Elementor,
+navigation, asset loading and preservation of browser-local case data.
+
 ## Requirements
 
 - **Node.js**: The build tools support Node.js versions between **14** and
@@ -56,3 +63,19 @@ Elementor HTML widgets should contain **markup only** (no inline `<script>` tags
 logic now lives in `assets/js/device-ui.js`, so Elementor should not bind events or define helper
 functions. If a bridge is absolutely required for legacy layouts, keep it to a no-op placeholder
 that does not attach behavior. The plugin provides shims for any legacy global functions.
+
+## Verification
+
+The embed checks use PHP 8+ with small WordPress API doubles. They also generate
+HTML fixtures for the teaser/workspace browser checks:
+
+```bash
+php -l endo-planner.php
+php -l includes/page-embeds.php
+php tests/wordpress-embeds.php e2e
+npm run test:unit
+npm run test:e2e
+```
+
+The generated `e2e/*-qa.html` / `workspace-markup.html` files are temporary QA
+fixtures and are not plugin assets. GitHub CI runs these checks before release.
