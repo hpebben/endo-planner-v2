@@ -150,7 +150,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     doc.setPage(page);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(100, 105, 115);
     doc.text(page >= materialsStartPage ? 'Selected case materials: confirm quantities and missing specifications before opening.' : 'Reference anatomy and clinical estimates: confirm against source imaging and guidelines.', 28, 805);
-    doc.text(`EndoPlanner v1.6.185 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
+    doc.text(`EndoPlanner v1.6.186 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
   }
 
   doc.save(reportFilename(data));
