@@ -26,9 +26,56 @@ function endoplanner_v2_enqueue_wizard_assets() {
     wp_enqueue_style( 'wp-components' );
 }
 
+function endoplanner_v2_is_workspace_page( $page ) {
+    if ( ! $page || 'page' !== $page->post_type || 'publish' !== $page->post_status || ! empty( $page->post_password ) ) {
+        return false;
+    }
+    $markup = endoplanner_v2_page_markup( $page );
+    return ! has_shortcode( $markup, 'endoplanner_teaser' ) && ( has_shortcode( $markup, 'endoplanner' ) || has_block( 'endoplanner/v2-wizard', $page ) );
+}
+
+function endoplanner_v2_find_workspace( $attributes ) {
+    if ( ! empty( $attributes['page_id'] ) ) {
+        $page = get_post( absint( $attributes['page_id'] ) );
+        return endoplanner_v2_is_workspace_page( $page ) ? $page : null;
+    }
+    if ( ! empty( $attributes['url'] ) ) {
+        $url = str_starts_with( $attributes['url'], '/' ) && ! str_starts_with( $attributes['url'], '//' ) ? home_url( $attributes['url'] ) : $attributes['url'];
+        $id = url_to_postid( $url );
+        if ( $id ) {
+            $page = get_post( $id );
+            if ( endoplanner_v2_is_workspace_page( $page ) ) {
+                return $page;
+            }
+        }
+        // Honour intentional custom destinations, but repair the old default
+        // /case/ link when the published workspace has another actual slug.
+        if ( rtrim( $url, '/' ) !== rtrim( home_url( '/case/' ), '/' ) ) {
+            return null;
+        }
+    }
+    $query = array( 'post_type' => 'page', 'post_status' => 'publish', 'numberposts' => 100, 'orderby' => 'ID', 'order' => 'ASC', 'suppress_filters' => false );
+    $pages = array_merge(
+        get_posts( array_merge( $query, array( 's' => 'endoplanner' ) ) ),
+        get_posts( array_merge( $query, array( 'meta_key' => '_elementor_data', 'meta_value' => 'endoplanner', 'meta_compare' => 'LIKE' ) ) )
+    );
+    $candidates = array();
+    foreach ( $pages as $page ) {
+        if ( endoplanner_v2_is_workspace_page( $page ) && (int) $page->ID !== (int) get_option( 'page_on_front' ) ) {
+            $candidates[$page->ID] = $page;
+        }
+    }
+    return 1 === count( $candidates ) ? reset( $candidates ) : null;
+}
+
 function endoplanner_v2_case_url( $attributes ) {
     $default = home_url( '/case/' );
-    $url = ! empty( $attributes['page_id'] ) ? get_permalink( absint( $attributes['page_id'] ) ) : ( $attributes['url'] ?? $default );
+    $page = endoplanner_v2_find_workspace( $attributes );
+    if ( $page ) {
+        $url = 'permalink' === ( $attributes['link_mode'] ?? 'direct' ) ? get_permalink( $page->ID ) : add_query_arg( array( 'page_id' => $page->ID, 'endoplanner_case' => $page->ID ), home_url( '/' ) );
+    } else {
+        $url = $attributes['url'] ?? $default;
+    }
     // Keep browser-local case state on the same origin. This is a navigation
     // link, not a new-case reset or a client-side redirect.
     if ( ! $url || str_starts_with( $url, '#' ) ) {
@@ -44,15 +91,16 @@ function endoplanner_v2_case_url( $attributes ) {
 }
 
 function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
-    $attributes = shortcode_atts( array( 'url' => home_url( '/case/' ), 'page_id' => '', 'title' => 'Plan the intervention. Prepare the procedure.' ), $attributes, 'endoplanner_teaser' );
+    $attributes = shortcode_atts( array( 'url' => '', 'page_id' => '', 'link_mode' => 'direct', 'title' => 'Plan the intervention. Prepare the procedure.' ), $attributes, 'endoplanner_teaser' );
     endoplanner_v2_enqueue_page_styles();
+    $plugin = dirname( __DIR__ ) . '/endo-planner.php';
+    wp_enqueue_script( 'endoplanner-teaser-showcase', plugins_url( 'assets/js/teaser-showcase.js', $plugin ), array(), endoplanner_v2_get_version(), true );
+    $instance = wp_unique_id( 'endoplanner-showcase-' );
     $features = array(
         array( '01', 'Clinical indication', 'Fontaine, WIfI and optional pedal acceleration time.' ),
-        array( '02', 'Disease anatomy', 'Lesion extent, GLASS stage and target arterial path.' ),
-        array( '03', 'Wound-guided planning', 'Selected woundosomes with AP and lateral pedal anatomy.' ),
-        array( '04', 'Visual device plan', 'Access, crossing, treatment and shared route support.' ),
-        array( '05', 'Compatibility review', 'Wire platforms, introducer profiles and working lengths.' ),
-        array( '06', 'Summary & preparation', 'Illustrated PDF and an assistant-ready materials checklist.' ),
+        array( '02', 'Disease anatomy', 'Lesion extent, GLASS, target routes and woundosome-guided pedal anatomy.' ),
+        array( '03', 'Intervention plan', 'Visual crossing and treatment devices, access, closure and compatibility review.' ),
+        array( '04', 'Case summary', 'Selected anatomy, illustrated PDF and a grouped materials preparation checklist.' ),
     );
     ob_start(); ?>
     <section class="endoplanner-teaser" aria-label="EndoPlanner overview">
@@ -63,10 +111,20 @@ function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
             <a class="endoplanner-teaser-start" href="<?php echo esc_url( endoplanner_v2_case_url( $attributes ) ); ?>">Start case <span aria-hidden="true">&rarr;</span></a>
             <p class="endoplanner-teaser-save">Local device preferences &middot; Automatic browser save</p>
         </div>
-        <div class="endoplanner-teaser-features">
-            <?php foreach ( $features as $feature ) : ?>
-                <div class="endoplanner-teaser-feature"><span class="endoplanner-feature-number" aria-hidden="true"><?php echo esc_html( $feature[0] ); ?></span><div><h3><?php echo esc_html( $feature[1] ); ?></h3><p><?php echo esc_html( $feature[2] ); ?></p></div></div>
+        <div class="endoplanner-teaser-features" role="tablist" aria-label="Explore the four planning stages">
+            <?php foreach ( $features as $index => $feature ) : ?>
+                <button type="button" class="endoplanner-teaser-feature<?php echo 0 === $index ? ' is-active' : ''; ?>" role="tab" id="<?php echo esc_attr( $instance . '-tab-' . $index ); ?>" aria-controls="<?php echo esc_attr( $instance . '-slide-' . $index ); ?>" aria-selected="<?php echo 0 === $index ? 'true' : 'false'; ?>" tabindex="<?php echo 0 === $index ? '0' : '-1'; ?>" data-stage="<?php echo esc_attr( $index ); ?>"><span class="endoplanner-feature-number" aria-hidden="true"><?php echo esc_html( $feature[0] ); ?></span><span><span class="endoplanner-feature-title"><?php echo esc_html( $feature[1] ); ?></span><span class="endoplanner-feature-description"><?php echo esc_html( $feature[2] ); ?></span></span></button>
             <?php endforeach; ?>
+        </div>
+        <div class="endoplanner-showcase" aria-label="Application stage preview">
+            <div class="endoplanner-showcase-heading"><span>Inside EndoPlanner</span><span class="endoplanner-showcase-example">Example case</span></div>
+            <?php foreach ( $features as $index => $feature ) : ?>
+                <figure class="endoplanner-showcase-slide" role="tabpanel" id="<?php echo esc_attr( $instance . '-slide-' . $index ); ?>" aria-labelledby="<?php echo esc_attr( $instance . '-tab-' . $index ); ?>" <?php echo 0 === $index ? '' : 'hidden'; ?> data-slide="<?php echo esc_attr( $index ); ?>">
+                    <img src="<?php echo esc_url( plugins_url( 'assets/showcase/stage-' . ( $index + 1 ) . '.webp', $plugin ) ); ?>" width="1280" height="800" alt="<?php echo esc_attr( $feature[1] . ' - example of the actual EndoPlanner application' ); ?>" loading="<?php echo 0 === $index ? 'eager' : 'lazy'; ?>" decoding="async" />
+                    <figcaption><strong><?php echo esc_html( $feature[0] . ' / ' . $feature[1] ); ?></strong><span><?php echo esc_html( $feature[2] ); ?></span></figcaption>
+                </figure>
+            <?php endforeach; ?>
+            <div class="endoplanner-showcase-controls"><div class="endoplanner-showcase-dots" aria-label="Choose a stage preview"><?php foreach ( $features as $index => $feature ) : ?><button type="button" class="endoplanner-showcase-dot<?php echo 0 === $index ? ' is-active' : ''; ?>" data-dot="<?php echo esc_attr( $index ); ?>" aria-label="<?php echo esc_attr( 'Show ' . $feature[1] ); ?>" aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>"></button><?php endforeach; ?></div><button type="button" class="endoplanner-showcase-play" aria-label="Pause slideshow" aria-pressed="false">Pause</button></div>
         </div>
     </section>
     <?php return ob_get_clean();
@@ -101,3 +159,13 @@ add_action( 'wp_enqueue_scripts', function() {
         endoplanner_v2_enqueue_page_styles();
     }
 }, 15 );
+
+// Preserve the explicit page-ID route only for a real published workspace.
+// This avoids a canonical redirect back to a broken/stale pretty permalink.
+add_filter( 'redirect_canonical', function( $redirect ) {
+    $id = isset( $_GET['endoplanner_case'] ) && is_scalar( $_GET['endoplanner_case'] ) ? absint( $_GET['endoplanner_case'] ) : 0;
+    if ( $id && $id === get_queried_object_id() && endoplanner_v2_is_workspace_page( get_post( $id ) ) ) {
+        return false;
+    }
+    return $redirect;
+} );
