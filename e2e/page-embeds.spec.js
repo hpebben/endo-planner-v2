@@ -8,9 +8,32 @@ for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('./teaser-qa.html');
     await expect(page.getByRole('heading', { name: 'Plan the intervention. Prepare the procedure.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Endoplanner At a Glance', exact: true })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Endoplanner', exact: true })).toBeVisible();
+    expect(await page.locator('.endoplanner-teaser-logo').evaluate((node) => node.complete && node.naturalWidth === 2000)).toBe(true);
+    await expect(page.getByText('Local device preferences · Automatic browser save', { exact: true })).toHaveCount(0);
     await expect(page.locator('.endoplanner-teaser-feature')).toHaveCount(4);
     await expect(page.locator('.endoplanner-showcase-slide')).toHaveCount(4);
     await expect(page.getByRole('tabpanel')).toHaveCount(1);
+    await expect(page.getByRole('tabpanel').getByText('Woundosome selection', { exact: true })).toBeVisible();
+    const layout = await page.evaluate(() => {
+      const box = (node) => { const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, bottom: r.bottom }; };
+      return {
+        heading: box(document.querySelector('.endoplanner-showcase-heading')),
+        tabs: [...document.querySelectorAll('[data-stage]')].map(box),
+        dots: box(document.querySelector('.endoplanner-showcase-controls')),
+        caption: box(document.querySelector('[data-slide="0"] figcaption')),
+        image: box(document.querySelector('[data-slide="0"] img')),
+      };
+    });
+    expect(layout.tabs.every((tab) => tab.y === layout.tabs[0].y)).toBe(true);
+    expect(layout.tabs.every((tab, index) => index === 0 || tab.x > layout.tabs[index - 1].x)).toBe(true);
+    expect(layout.tabs[0].y).toBeGreaterThanOrEqual(layout.heading.bottom);
+    expect(layout.dots.y).toBeGreaterThanOrEqual(layout.tabs[0].bottom);
+    expect(layout.caption.y).toBeGreaterThanOrEqual(layout.dots.bottom);
+    expect(layout.image.y).toBeGreaterThanOrEqual(layout.caption.bottom);
+    await expect(page.locator('.endoplanner-showcase-slide:not([hidden]) figcaption')).toHaveCSS('text-align', 'center');
+    await expect(page.locator('.endoplanner-teaser-intro h2')).toHaveCSS('font-family', /kobenhavn-cs/);
     expect(await page.getByRole('tabpanel').locator('img').evaluate((node) => node.complete && node.naturalWidth === 1280)).toBe(true);
     await expect(page.locator('.endoplanner-root')).toHaveCount(0);
     // Vite may inject its development client; the teaser has no app bundle.
@@ -19,6 +42,8 @@ for (const width of [1280, 390]) {
     await page.getByRole('link', { name: 'Start case' }).click();
     await expect(page).toHaveURL(/workspace-qa\.html$/);
     await expect(page.getByRole('heading', { name: 'Clinical indication', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Clinical indication', exact: true })).toHaveCSS('font-family', /kobenhavn-cs/);
+    await expect(page.getByRole('heading', { name: 'Fontaine stage', exact: true })).toHaveCSS('font-family', /kobenhavn-cs/);
     await expect(page.locator('.endoplanner-workspace .endo-wizard')).toHaveCount(1);
     await expect(page.getByRole('link', { name: 'Back to EndoPlanner' })).toBeVisible();
     const appWidth = await page.locator('.endo-wizard').evaluate((node) => node.getBoundingClientRect().width);

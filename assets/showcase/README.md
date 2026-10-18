@@ -1,7 +1,8 @@
 # Teaser stage screenshots
 
 These four 1280 × 800 WebP images show actual EndoPlanner interface panels,
-captured in Chromium from the v1.6.180 application. Panels are arranged to fit
+captured in Chromium from the v1.6.182 application with the licensed Kobenhavn CS
+heading font loaded. Panels are arranged to fit
 the teaser preview; the running application's layout is responsive.
 
 The fictional example uses Fontaine IV, WIfI W2 I2 fI1, a hallux/first-ray wound,
