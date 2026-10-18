@@ -6,6 +6,7 @@ $filters = array();
 $shortcodes = array();
 $scripts = array();
 $styles = array();
+$style_registrations = array();
 $post = (object) array( 'ID' => 12, 'post_type' => 'page', 'post_status' => 'publish', 'post_password' => '', 'post_content' => '' );
 $pages = array( 12 => $post, 123 => (object) array( 'ID' => 123, 'post_type' => 'page', 'post_status' => 'publish', 'post_password' => '', 'post_content' => '[endoplanner layout="workspace"]' ) );
 $page_meta = array();
@@ -42,7 +43,7 @@ function plugins_url( $path, $file = '' ) { return '/wp-content/plugins/endo-pla
 function plugin_dir_url( $path ) { return '/wp-content/plugins/endo-planner-v2/'; }
 function plugin_dir_path( $path ) { return dirname( $path ) . '/'; }
 function get_file_data( $file, $headers ) { preg_match( '/Version:\s*([^\s]+)/', file_get_contents( $file ), $match ); return array( 'version' => $match[1] ); }
-function wp_enqueue_style( $handle, ...$args ) { $GLOBALS['styles'][] = $handle; }
+function wp_enqueue_style( $handle, ...$args ) { $GLOBALS['styles'][] = $handle; $GLOBALS['style_registrations'][$handle] = $args; }
 function wp_enqueue_script( $handle, ...$args ) { $GLOBALS['scripts'][] = $handle; }
 function wp_add_inline_script( ...$args ) {}
 function wp_json_encode( $value ) { return json_encode( $value ); }
@@ -81,6 +82,11 @@ run_actions( 'wp_enqueue_scripts' );
 $teaser = endoplanner_v2_teaser_shortcode( array( 'url' => '/case/', 'title' => '<script>unsafe</script>' ) );
 check( array( 'endoplanner-teaser-showcase' ) === $scripts, 'Teaser pages load only the small showcase controller, without wizard or legacy JavaScript.' );
 check( in_array( 'endoplanner-pages', $styles, true ), 'Teaser style must load.' );
+check( 'https://use.typekit.net/dvh7rnb.css' === $style_registrations['endoplanner-adobe-fonts'][0], 'Use the licensed Adobe web project stylesheet.' );
+check( in_array( 'endoplanner-typography', $styles, true ), 'The teaser must load scoped heading typography.' );
+check( str_contains( $teaser, 'assets/images/endoplanner-logo.png' ) && ! str_contains( $teaser, 'endoplanner-page-eyebrow' ), 'Use the supplied logo instead of the text wordmark.' );
+check( ! str_contains( $teaser, 'Automatic browser save' ), 'Remove the small save/preferences line.' );
+check( str_contains( $teaser, 'Endoplanner <em>At a Glance</em>' ) && str_contains( $teaser, 'Woundosome selection' ), 'The showcase needs its updated heading and explicit woundosome highlight.' );
 check( str_contains( $teaser, 'href="https://example.org/?page_id=123&amp;endoplanner_case=123"' ), 'An old /case/ link must resolve the actual workspace by ID.' );
 check( 4 === substr_count( $teaser, 'role="tab"' ) && 4 === substr_count( $teaser, 'role="tabpanel"' ), 'Every wizard stage needs a matching control and screenshot.' );
 check( str_contains( $teaser, '&lt;script&gt;unsafe&lt;/script&gt;' ), 'Custom heading must be escaped.' );
@@ -130,6 +136,7 @@ $elementor_data = '[{"widgetType":"shortcode","settings":{"shortcode":"[endoplan
 run_actions( 'wp_enqueue_scripts' );
 $workspace = endoplanner_v2_workspace_shortcode();
 check( in_array( 'endoplanner-v2-wizard-view-script', $scripts, true ), 'Elementor shortcode must load the registered view script.' );
+check( in_array( 'endoplanner-adobe-fonts', $styles, true ) && in_array( 'endoplanner-typography', $styles, true ), 'Workspace pages must load the same Adobe font and scoped typography.' );
 check( in_array( 'endoplanner-v2-wizard-style', $styles, true ) && in_array( 'wp-components', $styles, true ), 'Workspace must load wizard and WordPress control styles.' );
 check( ! in_array( 'endoplanner-intervention', $scripts, true ), 'Native workspace should not load legacy Elementor scripts.' );
 check( 1 === substr_count( $workspace, 'class="endoplanner-root"' ), 'Workspace must contain exactly one application root.' );
@@ -142,7 +149,7 @@ check( in_array( 'endoplanner-v2-wizard-view-script', $scripts, true ), 'Existin
 check( in_array( 'endoplanner-intervention', $scripts, true ), 'Legacy embeds retain their scripts.' );
 
 if ( ! empty( $argv[1] ) ) {
-    $head = '<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/assets/css/page-embeds.css"><style>body{margin:0;background:#fafbfe}</style></head><body>';
+    $head = '<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/assets/css/page-embeds.css"><link rel="stylesheet" href="/assets/css/brand-typography.css"><style>body{margin:0;background:#fafbfe}</style></head><body>';
     $teaser = str_replace( '/wp-content/plugins/endo-planner-v2/assets/', '/assets/', endoplanner_v2_teaser_shortcode( array( 'url' => '/e2e/workspace-qa.html' ) ) );
     file_put_contents( $argv[1] . '/teaser-qa.html', $head . $teaser . '<script src="/assets/js/teaser-showcase.js"></script></body></html>' );
     file_put_contents( $argv[1] . '/workspace-markup.html', endoplanner_v2_workspace_shortcode() );

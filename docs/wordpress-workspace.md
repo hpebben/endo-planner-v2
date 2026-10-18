@@ -73,15 +73,26 @@ A custom teaser heading is optional:
 The teaser displays clinical assessment, PAT, WIfI, GLASS, pedal/woundosome
 anatomy, target routes, lesion/device planning, compatibility checks, local
 preferences, automatic browser saving, illustrated PDF and preparation list.
-Below the four numbered stages, a visual showcase uses actual application
-screenshots from a fictional example case. It advances every five seconds and
-highlights the current stage in dark blue. Hover or click a stage number, or use
+The supplied Endoplanner logo appears above the introduction. The
+**Endoplanner At a Glance** showcase has four horizontal numbered tabs directly
+below its title, with centered navigation dots and the active stage's highlights
+above its screenshot. The clinical highlights explicitly include woundosome
+selection. Screenshots use a fictional example case. The showcase advances every
+five seconds and highlights the current stage in dark blue. Hover or click a stage number, or use
 the navigation dots, to choose a slide. Arrow keys, Home and End also work when
 a stage has keyboard focus. Rotation pauses while hovering over the teaser,
 while a control has keyboard focus, and when the browser tab is hidden. A
 Pause/Play button is provided; reduced-motion preferences start it paused.
-The teaser loads only a small controller and scoped stylesheet, without the
-application bundle. The compressed screenshots are included with the plugin.
+The teaser loads only a small controller and scoped styles, without the
+application bundle. The compressed screenshots and original logo are included
+with the plugin.
+
+The teaser and all planner section/dialog titles use Kobenhavn CS from the
+provided Adobe web project (`https://use.typekit.net/dvh7rnb.css`). Body copy
+retains the system font. WordPress enqueues the kit and the scoped
+`assets/css/brand-typography.css` on teaser/workspace pages and existing planner
+embeds. No Adobe account details or font binaries are stored in the plugin;
+the font is served through the licensed Adobe stylesheet.
 
 By default Start case uses the same-site direct page-ID link, for example
 `/?page_id=123&endoplanner_case=123`. The marker keeps WordPress's canonical
@@ -119,8 +130,9 @@ workspace shortcode explicitly enqueues its registered script and styles;
 raw existing `.endoplanner-root` embeds remain detected. Elementor shortcode
 widgets are also detected in `_elementor_data` so styles load before rendering.
 The native workspace does not load the older Elementor intervention scripts.
-The teaser shortcode only enqueues `assets/css/page-embeds.css` and
-`assets/js/teaser-showcase.js`. Screenshot WebP assets are in `assets/showcase/`.
+The teaser shortcode enqueues `assets/css/page-embeds.css`, the Adobe kit and
+scoped typography, and `assets/js/teaser-showcase.js`. Screenshot WebP assets are
+in `assets/showcase/`; the supplied logo is in `assets/images/`.
 
 ## If the address changes but the landing page remains visible
 

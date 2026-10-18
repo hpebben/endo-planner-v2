@@ -7,9 +7,16 @@ function endoplanner_v2_page_markup( $post ) {
     return $post->post_content . ( is_string( $elementor ) ? $elementor : '' );
 }
 
+function endoplanner_v2_enqueue_typography() {
+    $plugin = dirname( __DIR__ ) . '/endo-planner.php';
+    wp_enqueue_style( 'endoplanner-adobe-fonts', 'https://use.typekit.net/dvh7rnb.css', array(), null );
+    wp_enqueue_style( 'endoplanner-typography', plugins_url( 'assets/css/brand-typography.css', $plugin ), array( 'endoplanner-adobe-fonts' ), endoplanner_v2_get_version() );
+}
+
 function endoplanner_v2_enqueue_page_styles() {
     $plugin = dirname( __DIR__ ) . '/endo-planner.php';
-    wp_enqueue_style( 'endoplanner-pages', plugins_url( 'assets/css/page-embeds.css', $plugin ), array(), endoplanner_v2_get_version() );
+    endoplanner_v2_enqueue_typography();
+    wp_enqueue_style( 'endoplanner-pages', plugins_url( 'assets/css/page-embeds.css', $plugin ), array( 'endoplanner-typography' ), endoplanner_v2_get_version() );
 }
 
 function endoplanner_v2_enqueue_wizard_assets() {
@@ -24,6 +31,7 @@ function endoplanner_v2_enqueue_wizard_assets() {
         wp_enqueue_style( $handle );
     }
     wp_enqueue_style( 'wp-components' );
+    endoplanner_v2_enqueue_typography();
 }
 
 function endoplanner_v2_is_workspace_page( $page ) {
@@ -97,34 +105,33 @@ function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
     wp_enqueue_script( 'endoplanner-teaser-showcase', plugins_url( 'assets/js/teaser-showcase.js', $plugin ), array(), endoplanner_v2_get_version(), true );
     $instance = wp_unique_id( 'endoplanner-showcase-' );
     $features = array(
-        array( '01', 'Clinical indication', 'Fontaine, WIfI and optional pedal acceleration time.' ),
-        array( '02', 'Disease anatomy', 'Lesion extent, GLASS, target routes and woundosome-guided pedal anatomy.' ),
-        array( '03', 'Intervention plan', 'Visual crossing and treatment devices, access, closure and compatibility review.' ),
-        array( '04', 'Case summary', 'Selected anatomy, illustrated PDF and a grouped materials preparation checklist.' ),
+        array( '1', 'Clinical indication', array( 'Fontaine stage', 'WIfI assessment', 'Woundosome selection', 'Optional pedal acceleration time' ) ),
+        array( '2', 'Disease anatomy', array( 'Lesion extent', 'GLASS stage', 'Pedal target routes', 'Woundosome-guided anatomy' ) ),
+        array( '3', 'Intervention plan', array( 'Access planning', 'Crossing and treatment devices', 'Closure', 'Compatibility review' ) ),
+        array( '4', 'Case summary', array( 'Selected anatomy', 'Illustrated case PDF', 'Materials preparation checklist' ) ),
     );
     ob_start(); ?>
     <section class="endoplanner-teaser" aria-label="EndoPlanner overview">
         <div class="endoplanner-teaser-intro">
-            <span class="endoplanner-page-eyebrow">ENDOPLANNER</span>
+            <img class="endoplanner-teaser-logo" src="<?php echo esc_url( plugins_url( 'assets/images/endoplanner-logo.png', $plugin ) ); ?>" width="2000" height="500" alt="Endoplanner" decoding="async" />
             <h2><?php echo esc_html( $attributes['title'] ); ?></h2>
             <p>Clinical assessment, arterial anatomy and devices in one guided workflow.</p>
             <a class="endoplanner-teaser-start" href="<?php echo esc_url( endoplanner_v2_case_url( $attributes ) ); ?>">Start case <span aria-hidden="true">&rarr;</span></a>
-            <p class="endoplanner-teaser-save">Local device preferences &middot; Automatic browser save</p>
-        </div>
-        <div class="endoplanner-teaser-features" role="tablist" aria-label="Explore the four planning stages">
-            <?php foreach ( $features as $index => $feature ) : ?>
-                <button type="button" class="endoplanner-teaser-feature<?php echo 0 === $index ? ' is-active' : ''; ?>" role="tab" id="<?php echo esc_attr( $instance . '-tab-' . $index ); ?>" aria-controls="<?php echo esc_attr( $instance . '-slide-' . $index ); ?>" aria-selected="<?php echo 0 === $index ? 'true' : 'false'; ?>" tabindex="<?php echo 0 === $index ? '0' : '-1'; ?>" data-stage="<?php echo esc_attr( $index ); ?>"><span class="endoplanner-feature-number" aria-hidden="true"><?php echo esc_html( $feature[0] ); ?></span><span><span class="endoplanner-feature-title"><?php echo esc_html( $feature[1] ); ?></span><span class="endoplanner-feature-description"><?php echo esc_html( $feature[2] ); ?></span></span></button>
-            <?php endforeach; ?>
         </div>
         <div class="endoplanner-showcase" aria-label="Application stage preview">
-            <div class="endoplanner-showcase-heading"><span>Inside EndoPlanner</span><span class="endoplanner-showcase-example">Example case</span></div>
+            <div class="endoplanner-showcase-heading"><h3>Endoplanner <em>At a Glance</em></h3><span class="endoplanner-showcase-example">Example case</span></div>
+            <div class="endoplanner-teaser-features" role="tablist" aria-label="Explore the four planning stages">
+            <?php foreach ( $features as $index => $feature ) : ?>
+                <button type="button" class="endoplanner-teaser-feature<?php echo 0 === $index ? ' is-active' : ''; ?>" role="tab" id="<?php echo esc_attr( $instance . '-tab-' . $index ); ?>" aria-controls="<?php echo esc_attr( $instance . '-slide-' . $index ); ?>" aria-selected="<?php echo 0 === $index ? 'true' : 'false'; ?>" tabindex="<?php echo 0 === $index ? '0' : '-1'; ?>" data-stage="<?php echo esc_attr( $index ); ?>"><span class="endoplanner-feature-number" aria-hidden="true"><?php echo esc_html( $feature[0] ); ?></span><span class="endoplanner-feature-title"><?php echo esc_html( $feature[1] ); ?></span></button>
+            <?php endforeach; ?>
+            </div>
+            <div class="endoplanner-showcase-controls"><div class="endoplanner-showcase-dots" aria-label="Choose a stage preview"><?php foreach ( $features as $index => $feature ) : ?><button type="button" class="endoplanner-showcase-dot<?php echo 0 === $index ? ' is-active' : ''; ?>" data-dot="<?php echo esc_attr( $index ); ?>" aria-label="<?php echo esc_attr( 'Show ' . $feature[1] ); ?>" aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>"></button><?php endforeach; ?></div><button type="button" class="endoplanner-showcase-play" aria-label="Pause slideshow" aria-pressed="false">Pause</button></div>
             <?php foreach ( $features as $index => $feature ) : ?>
                 <figure class="endoplanner-showcase-slide" role="tabpanel" id="<?php echo esc_attr( $instance . '-slide-' . $index ); ?>" aria-labelledby="<?php echo esc_attr( $instance . '-tab-' . $index ); ?>" <?php echo 0 === $index ? '' : 'hidden'; ?> data-slide="<?php echo esc_attr( $index ); ?>">
+                    <figcaption><strong><?php echo esc_html( $feature[1] ); ?></strong><ul class="endoplanner-showcase-highlights"><?php foreach ( $feature[2] as $highlight ) : ?><li><?php echo esc_html( $highlight ); ?></li><?php endforeach; ?></ul></figcaption>
                     <img src="<?php echo esc_url( plugins_url( 'assets/showcase/stage-' . ( $index + 1 ) . '.webp', $plugin ) ); ?>" width="1280" height="800" alt="<?php echo esc_attr( $feature[1] . ' - example of the actual EndoPlanner application' ); ?>" loading="<?php echo 0 === $index ? 'eager' : 'lazy'; ?>" decoding="async" />
-                    <figcaption><strong><?php echo esc_html( $feature[0] . ' / ' . $feature[1] ); ?></strong><span><?php echo esc_html( $feature[2] ); ?></span></figcaption>
                 </figure>
             <?php endforeach; ?>
-            <div class="endoplanner-showcase-controls"><div class="endoplanner-showcase-dots" aria-label="Choose a stage preview"><?php foreach ( $features as $index => $feature ) : ?><button type="button" class="endoplanner-showcase-dot<?php echo 0 === $index ? ' is-active' : ''; ?>" data-dot="<?php echo esc_attr( $index ); ?>" aria-label="<?php echo esc_attr( 'Show ' . $feature[1] ); ?>" aria-pressed="<?php echo 0 === $index ? 'true' : 'false'; ?>"></button><?php endforeach; ?></div><button type="button" class="endoplanner-showcase-play" aria-label="Pause slideshow" aria-pressed="false">Pause</button></div>
         </div>
     </section>
     <?php return ob_get_clean();
