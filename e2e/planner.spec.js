@@ -151,9 +151,10 @@ test('offers local preferences as starred choices without adding unused devices'
   await expect(composer.getByRole('button', { name: 'ASAHI Gladius MG 18 PV ES', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Sheath', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: /Choose starred device: 6 Fr · 25 cm/ }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Done', exact: true }).click();
   await page.getByRole('radio', { name: 'Closure device', exact: true }).click();
   await expect(page.getByRole('radio', { name: '★ 6F AngioSeal', exact: true })).toHaveAttribute('aria-checked', 'false');
-  await page.getByRole('button', { name: /Set local preferences/ }).click();
+  await page.getByRole('button', { name: /Select locally available devices/ }).click();
   await expect(page.getByText('Profile v1 · revision 2')).toBeVisible();
   await page.getByRole('button', { name: 'Save setup', exact: true }).click();
   await expect.poll(() => page.evaluate((key) => {
@@ -166,7 +167,7 @@ test('opens WIfI and GLASS guideline dialogs from the case summary', async ({ pa
   await seed(page, completeCase(), 3);
   await page.goto('./');
 
-  await page.getByRole('button', { name: /recommendations for this WIfI stage/i }).click();
+  await page.getByRole('button', { name: /CTLI guideline prognosis and recommendations/i }).click();
   await expect(page.getByRole('dialog').locator('.modal-header')).toHaveText(/WIfI clinical stage/);
   await expect(page.getByRole('dialog').getByText('Guideline recommendations')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -372,7 +373,7 @@ test('starts device selection with preferred products and faceted specification 
   await dialog.getByTestId('filter-shaft').getByRole('button', { name: '80 cm' }).click();
   await dialog.getByRole('button', { name: 'Done' }).click();
 
-  await page.getByRole('button', { name: /Set local preferences/ }).click();
+  await page.getByRole('button', { name: /Select locally available devices/ }).click();
   await page.getByRole('button', { name: 'Save setup', exact: true }).click();
   await expect
     .poll(() =>
@@ -975,21 +976,95 @@ test('keeps wound targets and a compact set of main pedal outflow choices', asyn
   await expect(page.getByLabel('Selected target route', { exact: true })).toContainText('deep plantar arch');
 });
 
-test('offers long access sheaths and restores the chosen length', async ({ page }) => {
+test('selects a named sheath with product-specific options and restores its configuration', async ({ page }) => {
   await seed(page, completeCase(), 2);
   await page.goto('./');
   await page.getByRole('button', { name: '6 Fr', exact: true }).click();
   const dialog = page.getByRole('dialog');
-  const length = dialog.getByRole('combobox', { name: 'Length', exact: true });
-  for (const value of ['10 cm', '25 cm', '45 cm', '55 cm', '65 cm', '70 cm', '90 cm', '110 cm']) {
-    await expect(length.locator('option').filter({ hasText: new RegExp(`^${value}$`) })).toHaveCount(1);
-  }
-  await length.selectOption('90 cm');
-  await expect(dialog).toHaveCount(0);
+  await dialog.getByRole('button', { name: 'Clear filters', exact: true }).click();
+  const product = dialog.getByRole('combobox', { name: /^Product/ });
+  await product.selectOption('BD Interventional — Halo One Thin-Walled Guiding Sheath');
+  await dialog.getByTestId('filter-sheath-size').getByRole('button', { name: '6 Fr', exact: true }).click();
+  await expect(dialog.getByTestId('filter-length').getByRole('button', { name: '90 cm', exact: true })).toBeVisible();
+  await expect(dialog.getByTestId('filter-length').getByRole('button', { name: '110 cm', exact: true })).toHaveCount(0);
+  await dialog.getByTestId('filter-length').getByRole('button', { name: '90 cm', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
   await page.reload();
   await page.getByRole('button', { name: '6 Fr', exact: true }).click();
-  await expect(page.getByRole('dialog').getByRole('combobox', { name: 'Length', exact: true })).toHaveValue('90 cm');
+  await expect(page.getByRole('dialog').getByRole('combobox', { name: /^Product/ })).toHaveValue('BD Interventional — Halo One Thin-Walled Guiding Sheath');
+  await expect(page.getByRole('dialog').getByTestId('filter-length').getByRole('button', { name: '90 cm', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });
+
+test('retains manually entered sheath range values and blocks an unlisted configuration', async ({ page }) => {
+  await seed(page, completeCase(), 2);
+  await page.goto('./');
+  await page.getByRole('button', { name: '6 Fr', exact: true }).click();
+  let dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: 'Clear filters', exact: true }).click();
+  await dialog.getByRole('combobox', { name: /^Product/ }).selectOption('Cook Medical — Flexor: Balkin');
+  await expect(dialog.getByText('Published range: 5.5–8 Fr')).toBeVisible();
+  await dialog.getByTestId('filter-sheath-size-manual').getByRole('spinbutton').fill('7');
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+  await page.reload();
+  await page.getByRole('button', { name: '7 Fr', exact: true }).click();
+  dialog = page.getByRole('dialog');
+  await expect(dialog.getByTestId('filter-sheath-size-manual').getByRole('spinbutton')).toHaveValue('7');
+  await dialog.getByTestId('filter-sheath-size-manual').getByRole('spinbutton').fill('9');
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('outside its published options');
+});
+
+test('selects Abbott Command variants with the manufacturer lengths and preferred-device labels', async ({ page }) => {
+  await seed(page, completeCase(), 2, profile);
+  await page.goto('./');
+  const scope = page.getByTestId('plan-scope-group-Lesion-1');
+  await scope.getByRole('button', { name: 'ASAHI Gladius MG 18 PV ES', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('Prefered devices', { exact: true })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Clear filters', exact: true }).click();
+  const product = dialog.getByRole('combobox', { name: /^Product/ });
+  for (const name of ['Hi-Torque Command 14 ST', 'Hi-Torque Command 14 MT', 'Hi-Torque Command 18 ST', 'Hi-Torque Command 18 LT', 'Hi-Torque Command ES']) {
+    await expect(product.locator(`option[value="Abbott — ${name}"]`)).toHaveCount(1);
+  }
+  await product.selectOption('Abbott — Hi-Torque Command 18 LT');
+  await dialog.getByTestId('filter-length').getByRole('button', { name: '210 cm', exact: true }).click();
+  await expect(dialog.getByTestId('filter-length').getByRole('button', { name: '180 cm', exact: true })).toHaveCount(0);
+  await expect(dialog.getByTestId('filter-tip-shape').getByRole('button', { name: 'Straight', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await dialog.getByRole('button', { name: 'Done', exact: true }).click();
+  await page.reload();
+  await expect(scope.getByRole('button', { name: 'Abbott — Hi-Torque Command 18 LT', exact: true })).toBeVisible();
+});
+
+for (const width of [1280, 390]) {
+  test(`saves an optional anonymous patient code and moves WIfI prognosis into its popup at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await seed(page, completeCase(), 0);
+    await page.goto('./');
+    await page.getByLabel('Patient ID code (anonymous)', { exact: true }).fill('ANON-A024');
+    await page.reload();
+    await expect(page.getByLabel('Patient ID code (anonymous)', { exact: true })).toHaveValue('ANON-A024');
+    for (let stage = 0; stage < 3; stage += 1) await page.getByRole('button', { name: 'Next', exact: true }).click();
+    const summary = page.locator('#case-summary');
+    await expect(summary.getByRole('heading', { name: 'Case summary', exact: true })).toBeVisible();
+    await expect(page.locator('.case-summary-patient-id')).toHaveText('Patient IDANON-A024');
+    await expect(summary).not.toContainText('pooled estimated');
+    await page.getByRole('button', { name: 'See CTLI guideline prognosis and recommendations', exact: true }).click();
+    await expect(page.getByRole('dialog')).toContainText('pooled estimated 1-year risk of major amputation');
+    await page.keyboard.press('Escape');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    if (width === 1280) {
+      const downloadPromise = page.waitForEvent('download');
+      await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+      const download = await downloadPromise, file = testInfo.outputPath('patient-code-summary.pdf');
+      await download.saveAs(file);
+      const pdf = readFileSync(file, 'latin1');
+      expect(pdf.match(/ANON-A024/g).length).toBeGreaterThanOrEqual(2);
+      expect(pdf).toContain('/Width 2000');
+      expect(pdf).toContain('MATERIALS PREPARATION');
+    }
+  });
+}
 
 test('selects a crossing balloon and carries it through saved plan, summary and PDF', async ({ page }, testInfo) => {
   await seed(page, completeCase(), 2, profile);
@@ -1019,7 +1094,7 @@ test('reveals the full device specification in a dark blue tooltip on hover and 
   const tooltip = page.getByRole('tooltip');
   await expect(tooltip).toContainText('ASAHI Gladius MG 18 PV ES');
   await expect(tooltip).toContainText('300 cm');
-  await expect(tooltip).toHaveCSS('background-color', 'rgb(17, 46, 114)');
+  await expect(tooltip).toHaveCSS('background-color', 'rgb(16, 44, 104)');
   await page.keyboard.press('Escape');
   await expect(tooltip).toHaveCount(0);
   await wire.focus();
@@ -1041,7 +1116,7 @@ test('includes selected diagrams alongside summary text and embeds them in the P
   await expect(anatomy.locator('svg [role="button"]')).toHaveCount(0);
   for (const label of ['Edit clinical assessment', 'Edit anatomy', 'Edit intervention plan']) {
     await expect(page.getByRole('button', { name: label, exact: true })).toHaveText('EDIT');
-    await expect(page.getByRole('button', { name: label, exact: true })).toHaveCSS('background-color', 'rgb(17, 49, 149)');
+    await expect(page.getByRole('button', { name: label, exact: true })).toHaveCSS('background-color', 'rgb(16, 44, 104)');
   }
   const imageBox = await indication.locator('.selected-woundosome-views').boundingBox();
   const textBox = await indication.locator('.summary-media-text').boundingBox();
@@ -1136,7 +1211,7 @@ test('keeps woundosome explanations behind accessible blue info buttons', async 
   await expect(selector.getByText(/Original angiographic-style reference model/)).toHaveCount(0);
   await expect(selector.getByText(/Confirm the true feeding artery/)).toHaveCount(0);
   await expect(selector.getByRole('link')).toHaveCount(0);
-  await expect(selector.getByTestId('foot-artery-label-toggle')).toHaveCSS('background-color', 'rgb(17, 49, 149)');
+  await expect(selector.getByTestId('foot-artery-label-toggle')).toHaveCSS('background-color', 'rgb(16, 44, 104)');
   const anatomyInfo = selector.getByRole('button', { name: 'Woundosome anatomy information', exact: true });
   await anatomyInfo.click();
   await expect(page.getByRole('dialog')).toContainText('Original angiographic-style reference model');

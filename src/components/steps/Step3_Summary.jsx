@@ -189,7 +189,10 @@ export default function StepSummary({ data, setStep }) {
   return (
     <div id="case-summary" className="summary-card-wrapper case-summary">
       <div className="case-summary-container">
-        <h2 className="case-summary__title">{__('Case Summary', 'endoplanner')}</h2>
+        <header className="case-summary-header">
+          <h2 className="case-summary__title">{__('Case summary', 'endoplanner')}</h2>
+          {data.patientId?.trim() && <div className="case-summary-patient-id"><span>{__('Patient ID', 'endoplanner')}</span><strong>{data.patientId.trim()}</strong></div>}
+        </header>
 
         <div className="summary-card case-summary__indication">
           <header className="summary-card-heading"><div className="card-title">{__('Clinical indication', 'endoplanner')}</div><button type="button" className="summary-edit-button" aria-label="Edit clinical assessment" onClick={() => setStep?.(0)}>EDIT</button></header>
@@ -218,11 +221,8 @@ export default function StepSummary({ data, setStep }) {
           )}
           {wifi.isApplicable && (wifi.isComplete ? (
             <div className="clinical-guidance wifi-prediction">
-              <p>
-                {`Clinical stage ${wifi.wifiStage}, approximately ${wifiInfo.riskPercent}% pooled estimated 1-year risk of major amputation. ${getWifiAction(wifi.wifiStage, wifi.ischemia)}`}
-              </p>
               <button type="button" className="guideline-link" onClick={() => setWifiGuidelineOpen(true)}>
-                {__('See other CLTI guideline recommendations for this WIfI stage', 'endoplanner')}
+                {__('See CTLI guideline prognosis and recommendations', 'endoplanner')}
               </button>
             </div>
           ) : (
@@ -324,11 +324,11 @@ export default function StepSummary({ data, setStep }) {
           title={`WIfI clinical stage ${wifi.wifiStage}`}
           isOpen={wifiGuidelineOpen}
           onRequestClose={() => setWifiGuidelineOpen(false)}
-          recommendations={getWifiRecommendations(wifi.wifiStage, wifi.ischemia)}
+          recommendations={getWifiRecommendations(wifi.wifiStage, wifi.ischemia).slice(1)}
           details={(
             <div className="guideline-stage-details">
-              <b>{wifiInfo.riskCategory} limb-threat category.</b>
-              <span>{` Pooled observational estimate: ${wifiInfo.riskPercent}% 1-year major amputation risk.`}</span>
+              <p>{`Clinical stage ${wifi.wifiStage}, approximately ${wifiInfo.riskPercent}% pooled estimated 1-year risk of major amputation. ${getWifiAction(wifi.wifiStage, wifi.ischemia)}`}</p>
+              <p><b>{wifiInfo.riskCategory} limb-threat category.</b></p>
             </div>
           )}
         />

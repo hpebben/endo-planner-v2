@@ -1,19 +1,19 @@
 import { buildMaterialsList } from './materials';
 import { cleanPdfText, drawReportHeader, findingColor, PDF_COLORS } from './pdfReportLayout';
 
-export default function appendMaterialsPages(doc, data, findings = []) {
+export default function appendMaterialsPages(doc, data, findings = [], branding = {}) {
   const groups = buildMaterialsList(data);
   const width = doc.internal.pageSize.getWidth();
   const bodyWidth = width - 100;
   let y;
   const page = (continued = false) => {
-    doc.addPage(); drawReportHeader(doc, `Materials preparation${continued ? ' - continued' : ''}`);
+    doc.addPage(); drawReportHeader(doc, `Materials preparation${continued ? ' - continued' : ''}`, branding);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(...PDF_COLORS.blue);
-    doc.text('MATERIALS PREPARATION', 30, 84);
+    doc.text('MATERIALS PREPARATION', 30, 104);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...PDF_COLORS.muted);
-    doc.text('Tick when prepared. Enter quantity in QTY. Repeated plan entries may use the same device.', 30, 102);
-    doc.text('Confirm quantities and reuse before opening; only selected case materials are listed.', 30, 114);
-    y = 132;
+    doc.text('Tick when prepared. Enter quantity in QTY. Repeated plan entries may use the same device.', 30, 122);
+    doc.text('Confirm quantities and reuse before opening; only selected case materials are listed.', 30, 134);
+    y = 152;
   };
   page();
   const critical = findings.filter((item) => item.level === 'error').length;

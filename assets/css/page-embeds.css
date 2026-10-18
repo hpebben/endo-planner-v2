@@ -6,7 +6,7 @@
 .endoplanner-teaser .endoplanner-teaser-logo{position:absolute;z-index:1;top:0;right:clamp(14px,4vw,48px);display:block;width:var(--endoplanner-logo-size);max-width:none;height:var(--endoplanner-logo-size);margin:0;border:0;border-radius:0;aspect-ratio:1;object-fit:contain;transform:translateY(-42%);pointer-events:none}
 .endoplanner-teaser-intro h2{grid-column:1;max-width:900px;margin:0 0 12px;color:#102c68;font-size:clamp(28px,3.4vw,44px);line-height:1.15;letter-spacing:-.015em}
 .endoplanner-teaser-intro>p{grid-column:1;max-width:680px;margin:0;font-size:15px;line-height:1.7;color:#586b88}
-.endoplanner-teaser a.endoplanner-teaser-start{display:inline-flex;grid-column:1;justify-self:start;align-items:center;justify-content:space-between;gap:32px;min-height:48px;margin-top:22px;padding:12px 22px;border:1px solid #113195;border-radius:9px;background:#113195;color:#fff;font-size:15px;font-weight:700;line-height:1.5;text-decoration:none;box-shadow:0 4px 12px #11319522;white-space:nowrap}
+.endoplanner-teaser a.endoplanner-teaser-start{display:inline-flex;grid-column:1;justify-self:start;align-items:center;justify-content:space-between;gap:32px;min-height:48px;margin-top:22px;padding:12px 22px;border:1px solid #102c68;border-radius:9px;background:#102c68;color:#fff;font-size:15px;font-weight:700;line-height:1.5;text-decoration:none;box-shadow:0 4px 12px #102c6822;white-space:nowrap}
 .endoplanner-teaser a.endoplanner-teaser-start:hover{background:#082468;color:#fff;transform:translateY(-1px)}
 .endoplanner-teaser a.endoplanner-teaser-start:focus-visible,.endoplanner-workspace a:focus-visible{outline:3px solid #87b1ff;outline-offset:4px}
 .endoplanner-showcase{min-width:0;overflow:hidden;border:1px solid #d4e0f5;border-radius:14px;background:#fff;box-shadow:0 5px 20px #1438870b}
@@ -18,15 +18,15 @@
 .endoplanner-teaser button.endoplanner-teaser-feature{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-width:0;min-height:68px;margin:0;padding:12px 8px;border:1px solid #dce5f6;border-radius:10px;background:#f7faff;appearance:none;color:#163a7f;font-family:inherit;text-align:center;cursor:pointer;box-shadow:none;line-height:1.4;transition:background-color .15s,border-color .15s}
 .endoplanner-feature-number{display:flex;align-items:center;justify-content:center;flex:0 0 27px;width:27px;height:27px;border-radius:8px;background:#e8f0ff;color:#16409c;font-size:12px;font-weight:800}
 .endoplanner-feature-title{display:block;min-width:0;color:#163a7f;font-size:16px;line-height:1.25;overflow-wrap:normal}
-.endoplanner-teaser button.endoplanner-teaser-feature.is-active{border-color:#113195;background:#113195;color:#fff}
+.endoplanner-teaser button.endoplanner-teaser-feature.is-active{border-color:#102c68;background:#102c68;color:#fff}
 .endoplanner-teaser-feature.is-active .endoplanner-feature-title{color:#fff}
-.endoplanner-teaser-feature.is-active .endoplanner-feature-number{background:#fff;color:#113195}
+.endoplanner-teaser-feature.is-active .endoplanner-feature-number{background:#fff;color:#102c68}
 .endoplanner-teaser-feature:focus-visible{outline:3px solid #87b1ff;outline-offset:3px}
 .endoplanner-showcase-controls{position:relative;display:flex;align-items:center;justify-content:center;min-height:52px;padding:8px 88px}
 .endoplanner-showcase-dots{display:flex;align-items:center;justify-content:center;gap:3px}
 .endoplanner-teaser .endoplanner-showcase-dot{display:grid;place-items:center;width:28px;height:28px;min-width:28px;padding:0;border:0;border-radius:50%;background:transparent;box-shadow:none;cursor:pointer}
 .endoplanner-showcase-dot:before{content:"";width:8px;height:8px;border-radius:50%;background:#bac9e4;transition:background .15s,transform .15s}
-.endoplanner-showcase-dot.is-active:before{background:#113195;transform:scale(1.35)}
+.endoplanner-showcase-dot.is-active:before{background:#102c68;transform:scale(1.35)}
 .endoplanner-teaser .endoplanner-showcase-play{position:absolute;right:18px;padding:6px 12px;border:1px solid #c8d6ee;border-radius:7px;background:#f7faff;color:#163a7f;font:600 11px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;box-shadow:none}
 .endoplanner-showcase-controls button:focus-visible{outline:3px solid #87b1ff;outline-offset:2px}
 .endoplanner-showcase-slide{margin:0}

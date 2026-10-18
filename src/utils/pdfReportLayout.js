@@ -1,14 +1,23 @@
 export const cleanPdfText = (value) => String(value ?? '').replace(/[–—]/g, '-').replace(/→/g, '->').replace(/×/g, 'x').replace(/≥/g, '>=').replace(/≤/g, '<=');
-export const PDF_COLORS = { blue: [17, 49, 149], ink: [34, 47, 70], muted: [91, 108, 135], border: [216, 226, 242], pale: [244, 248, 255] };
+export const PDF_COLORS = { blue: [16, 44, 104], ink: [34, 47, 70], muted: [91, 108, 135], border: [216, 226, 242], pale: [244, 248, 255] };
 export const findingColor = (level) => level === 'error' ? [173, 37, 60] : level === 'warning' ? [165, 91, 10] : PDF_COLORS.blue;
 
-export const drawReportHeader = (doc, title = 'Case summary') => {
+export const drawReportHeader = (doc, title = 'Case summary', { logoData, patientId = '' } = {}) => {
   const width = doc.internal.pageSize.getWidth();
-  doc.setFillColor(...PDF_COLORS.blue); doc.rect(0, 0, width, 57, 'F');
-  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(19);
-  doc.text('EndoPlanner', 30, 27);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text(title, 31, 43);
-  doc.setFontSize(8); doc.text(new Date().toLocaleDateString(), width - 30, 29, { align: 'right' });
+  doc.setFillColor(...PDF_COLORS.blue); doc.rect(0, 0, width, 76, 'F');
+  if (logoData) {
+    doc.setFillColor(255, 255, 255); doc.roundedRect(25, 8, 210, 44, 5, 5, 'F');
+    doc.addImage(logoData, 'PNG', 25, 3.5, 210, 52.5, 'endoplanner-brand', 'FAST');
+  }
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text(title, 31, 65);
+  doc.setFontSize(8); doc.text(new Date().toLocaleDateString(), width - 30, 21, { align: 'right' });
+  if (patientId.trim()) {
+    doc.setFontSize(8); doc.text('Patient ID', width - 30, 38, { align: 'right' });
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    const lines = doc.splitTextToSize(cleanPdfText(patientId.trim()), width - 295);
+    doc.text(lines, width - 30, 53, { align: 'right', lineHeightFactor: 1.1 });
+  }
 };
 
 const asParagraph = (value) => {
@@ -21,11 +30,11 @@ const asParagraph = (value) => {
 
 // Labels and values are drawn separately, so bold / blue accents do not
 // depend on HTML screenshots or compromise selectable, paginated text.
-export default function createPdfReportLayout(doc) {
+export default function createPdfReportLayout(doc, branding = {}) {
   const pageWidth = doc.internal.pageSize.getWidth();
-  let y = 73;
+  let y = 92;
   const bottom = 780;
-  const newPage = () => { doc.addPage(); y = 73; drawReportHeader(doc); };
+  const newPage = () => { doc.addPage(); y = 92; drawReportHeader(doc, 'Case summary', branding); };
   const measure = (paragraph, width) => {
     const p = asParagraph(paragraph);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(p.heading ? 10 : 8.5);
@@ -45,7 +54,7 @@ export default function createPdfReportLayout(doc) {
       const paragraphs = remaining.map((p) => measure(p, textWidth - 12));
       const imageHeight = hasImages ? Math.min(238, Math.max(...images.map((img) => (imageWidth / images.length - 8) / img.ratio)) + 42) : 0;
       const totalText = paragraphs.reduce((sum, p) => sum + p.height, 0);
-      if (y > 73 && 54 + Math.max(imageHeight, totalText) > bottom - y) newPage();
+      if (y > 92 && 54 + Math.max(imageHeight, totalText) > bottom - y) newPage();
       const available = bottom - y - 54;
       const chunk = [];
       let used = 0;
@@ -98,6 +107,6 @@ export default function createPdfReportLayout(doc) {
       if (remaining.length) newPage();
     } while (remaining.length);
   };
-  drawReportHeader(doc);
+  drawReportHeader(doc, 'Case summary', branding);
   return { card };
 }

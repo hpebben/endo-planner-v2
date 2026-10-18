@@ -41,7 +41,7 @@
 
 .vessel-path.hovered,
 .vessel-path:hover {
-  stroke: #0073e6;
+  stroke: #102c68;
   stroke-width: 3;
 }
 
@@ -58,7 +58,7 @@
 }
 
 .vessel-segment:hover {
-  stroke: #0073e6;
+  stroke: #102c68;
   stroke-width: 3;
 }
 
@@ -123,7 +123,7 @@
 }
 
 .dash-bullet {
-  color: #1e40af;
+  color: #102c68;
   font-weight: bold;
   margin-right: 0.5rem;
 }
@@ -167,7 +167,7 @@
 .segment-delete-btn:hover,
 .segment-delete-btn:focus-visible {
   background: #333;
-  outline: 3px solid rgba(17, 49, 149, 0.25);
+  outline: 3px solid rgba(16, 44, 104, 0.25);
   outline-offset: 2px;
 }
 .segment-summary {
@@ -176,7 +176,7 @@
 }
 .segment-summary:hover {
   text-decoration: underline;
-  color: #0073e6;
+  color: #102c68;
 }
 .selected-segments li::before,
 .arrow-list li::before {
@@ -252,12 +252,12 @@
     flex-direction: column;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif;
-    --planner-nav-bg: #113195;
-    --planner-nav-bg-hover: #0f2c86;
-    --planner-nav-border: #0f2c86;
-    --planner-nav-shadow: 0 6px 12px rgba(17, 49, 149, 0.2);
-    --planner-nav-shadow-hover: 0 8px 16px rgba(17, 49, 149, 0.28);
-    --planner-nav-focus: rgba(17, 49, 149, 0.35);
+    --planner-nav-bg: #102c68;
+    --planner-nav-bg-hover: #102c68;
+    --planner-nav-border: #102c68;
+    --planner-nav-shadow: 0 6px 12px rgba(16, 44, 104, 0.2);
+    --planner-nav-shadow-hover: 0 8px 16px rgba(16, 44, 104, 0.28);
+    --planner-nav-focus: rgba(16, 44, 104, 0.35);
 }
 
 .wizard-content {
@@ -317,7 +317,7 @@
 }
 
 .icon-button.selected {
-    border-color: #007cba;
+    border-color: #102c68;
     background: #e7f5ff;
 }
 
@@ -337,7 +337,7 @@
 }
 
 .stage-btn.active {
-    border-color: #0073e6;
+    border-color: #102c68;
     background: #e6f0ff;
 }
 
@@ -345,7 +345,7 @@
   margin: 0.5em;
   border-color: #ccc;
   &:is(.is-pressed, &:hover) {
-    border-color: #007cba;
+    border-color: #102c68;
   }
 }
 .next-button {
@@ -392,7 +392,7 @@
     cursor: pointer;
 }
 .clinical-options button.selected {
-    border-color: #0073aa;
+    border-color: #102c68;
     background: #eaf5fc;
 }
 .clinical-options button:hover {
@@ -419,7 +419,7 @@
     display: none;
 }
 .wifi-button input:checked + span {
-    border-color: #0073aa;
+    border-color: #102c68;
     background: rgba(0, 115, 170, 0.1);
 }
 
@@ -494,7 +494,7 @@ svg .vessel-path {
     stroke: none;
 }
 svg .vessel-path:hover {
-    stroke: #0073e6;
+    stroke: #102c68;
     stroke-width: 3;
 }
 
@@ -538,7 +538,7 @@ svg .vessel-path:hover {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: #0073e6;
+    background: #102c68;
     cursor: pointer;
     margin-top: -5px;
 }
@@ -589,7 +589,7 @@ svg .vessel-path:hover {
       background: #fff;
       cursor: pointer;
       &:hover { border-color: #888; }
-      &.selected { border-color: #007cba; background: #e6f4ff; }
+      &.selected { border-color: #102c68; background: #e6f4ff; }
     }
   }
   /* Patency map summary panel & hover labels */
@@ -673,7 +673,7 @@ svg .vessel-path:hover {
   padding: 1rem;
   border: 0;
   border-radius: 12px;
-  color: #113195;
+  color: #102c68;
   background: transparent;
   text-align: left;
   cursor: pointer;
@@ -788,7 +788,7 @@ svg .vessel-path:hover {
   padding: 0.45rem 0.7rem;
   border: 1px solid #c6d0e5;
   border-radius: 7px;
-  color: #113195;
+  color: #102c68;
   background: #fff;
   font-size: 0.75rem;
   cursor: pointer;
@@ -799,7 +799,7 @@ svg .vessel-path:hover {
 }
 
 .pat-reference summary { cursor: pointer; }
-.pat-reference a { display: block; color: #1747a6; }
+.pat-reference a { display: block; color: #102c68; }
 .pat-range-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
 .pat-summary { margin: 0.5rem 0; font-size: 0.8rem; }
 
@@ -835,7 +835,7 @@ svg .vessel-path:hover {
 
 .woundosome-heading .section-title {
   margin: 0 0 0.35rem;
-  color: #113195;
+  color: #102c68;
   font-size: 1rem;
 }
 
@@ -884,15 +884,15 @@ svg .vessel-path:hover {
   .woundosome-label-toggle {
     min-height: 44px;
     padding: 0.5rem 0.75rem;
-    border: 1px solid #113195;
+    border: 1px solid #102c68;
     border-radius: 8px;
-    background: #113195;
+    background: #102c68;
     color: #fff;
     font-size: 0.72rem;
     cursor: pointer;
 
     &[aria-pressed='true'], &:hover { background: #082468; border-color: #082468; color: #fff; }
-    &:focus-visible { outline: 2px solid #1747a6; outline-offset: 2px; }
+    &:focus-visible { outline: 2px solid #102c68; outline-offset: 2px; }
   }
 }
 
@@ -905,9 +905,9 @@ svg .vessel-path:hover {
   height: 28px;
   min-height: 28px;
   padding: 0;
-  border: 1px solid #113195;
+  border: 1px solid #102c68;
   border-radius: 50%;
-  background: #113195;
+  background: #102c68;
   color: #fff;
   font: 700 15px/1 Arial, sans-serif;
   text-transform: none;
@@ -1137,7 +1137,7 @@ svg .vessel-path:hover {
 .woundosome-advice {
   margin-top: 1rem;
   padding: 0.8rem;
-  border-left: 4px solid #1747a6;
+  border-left: 4px solid #102c68;
   border-radius: 8px;
   background: #fff;
   color: #29354c;
@@ -1151,7 +1151,7 @@ svg .vessel-path:hover {
 }
 
 .woundosome-advice a {
-  color: #1747a6;
+  color: #102c68;
 }
 
 .woundosome-references {
@@ -1323,9 +1323,9 @@ svg .vessel-path:hover {
   padding: 1.5rem;
   border-radius: 16px;
   background: #f6f8ff;
-  border: 1px solid rgba(17, 49, 149, 0.15);
-  box-shadow: 0 12px 24px rgba(17, 49, 149, 0.12);
-  outline: 1px dashed rgba(17, 49, 149, 0.3);
+  border: 1px solid rgba(16, 44, 104, 0.15);
+  box-shadow: 0 12px 24px rgba(16, 44, 104, 0.12);
+  outline: 1px dashed rgba(16, 44, 104, 0.3);
   outline-offset: 4px;
   width: min(100%, 760px);
   text-align: center;
@@ -1414,7 +1414,7 @@ svg .vessel-path:hover {
 .endo-wizard .step4-intervention .device-button--compact.is-selected {
   background: #fff;
   border: 2px solid var(--planner-nav-border);
-  box-shadow: 0 0 0 3px rgba(17, 49, 149, 0.15);
+  box-shadow: 0 0 0 3px rgba(16, 44, 104, 0.15);
 }
 
 .endo-wizard .step4-intervention .prefs-slot-add,
@@ -1510,7 +1510,7 @@ svg .vessel-path:hover {
 .row-number {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #113195;
+  color: #102c68;
   width: 24px;
   text-align: right;
   padding-top: 0.4rem;
@@ -1521,7 +1521,7 @@ svg .vessel-path:hover {
   font-size: 0.95rem;
 }
 .section-heading {
-  color: #113195;
+  color: #102c68;
   text-transform: uppercase;
   font-weight: 700;
   font-size: 1.05rem;
@@ -1536,7 +1536,7 @@ svg .vessel-path:hover {
   right: 0;
   top: 100%;
   height: 3px;
-  background: #113195;
+  background: #102c68;
 }
 .selector-row {
   width: 100%;
@@ -1584,7 +1584,7 @@ svg .vessel-path:hover {
   transition: background 0.2s, color 0.2s;
 }
 .segmented-control button.active {
-  background: #06379B;
+  background: #102c68;
   color: #fff;
   font-weight: 700;
 }
@@ -1628,7 +1628,7 @@ svg .vessel-path:hover {
   width: 22px; /* smaller than main selector */
   height: 22px;
   border-radius: 50%;
-  background: #113195;
+  background: #102c68;
   color: #fff;
   border: none;
   display: flex;
@@ -1673,12 +1673,12 @@ svg .vessel-path:hover {
 }
 .device-button span {
   font-size: 0.75rem;
-  color: #113195;
+  color: #102c68;
 }
 
 .device-button-label {
   font-size: 0.75rem;
-  color: #113195;
+  color: #102c68;
   text-align: center;
 }
 
@@ -1790,7 +1790,7 @@ svg .vessel-path:hover {
 .inline-modal input:focus,
 .inline-modal select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #113195;
+  box-shadow: 0 0 0 2px #102c68;
 }
 .custom-device-input {
   width: 100%;
@@ -1802,7 +1802,7 @@ svg .vessel-path:hover {
 .modal-header {
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #113195;
+  color: #102c68;
 }
 
 .popup-close-row {
@@ -1811,7 +1811,7 @@ svg .vessel-path:hover {
   margin-top: 1rem;
 }
 .close-modal-btn {
-  background: #113195;
+  background: #102c68;
   color: #fff;
 }
 
@@ -1819,6 +1819,17 @@ svg .vessel-path:hover {
   padding: 0.45rem 1.25rem !important;
   border-radius: 999px !important;
 }
+.inline-modal .planner-nav-btn {
+  border: 1px solid #102c68;
+  border-radius: 7px !important;
+  background: #102c68;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.inline-modal .planner-nav-btn:hover { background: #082468; }
+.inline-modal .planner-nav-btn:focus-visible { outline: 3px solid #87b1ff; outline-offset: 3px; }
 
 .wire-catalog-note,
 .wire-catalog-empty {
@@ -1865,7 +1876,7 @@ svg .vessel-path:hover {
   font-size: 0.8rem;
 }
 .reference-links a {
-  color: #113195;
+  color: #102c68;
   text-decoration: none;
 }
 .reference-links a:hover {
@@ -1886,7 +1897,7 @@ svg .vessel-path:hover {
 
 .vessel-svg g[role='button']:focus-visible .vessel-segment {
   outline: none;
-  stroke: #0f2c86;
+  stroke: #102c68;
   stroke-width: 7;
 }
 
@@ -1911,7 +1922,7 @@ svg .vessel-path:hover {
 
 .target-path-heading h4 {
   margin: 0 0 0.25rem;
-  color: #113195;
+  color: #102c68;
 }
 
 .target-path-heading p,
@@ -2009,7 +2020,7 @@ svg .vessel-path:hover {
   padding: 0.65rem 0.75rem;
   border-radius: 8px;
   background: #eaf1ff;
-  color: #183c8f;
+  color: #102c68;
   font-size: 0.75rem;
   line-height: 1.35;
 }
@@ -2019,7 +2030,7 @@ svg .vessel-path:hover {
   height: 5px;
   margin-top: 0.35rem;
   border-radius: 999px;
-  background: #2563eb;
+  background: #102c68;
 }
 
 .target-path-empty {
@@ -2176,10 +2187,10 @@ svg .vessel-path:hover {
 }
 
 .device-choice-chip.is-active {
-  border-color: #1747a6;
-  background: #1747a6;
+  border-color: #102c68;
+  background: #102c68;
   color: #fff;
-  box-shadow: 0 2px 6px rgba(23, 71, 166, 0.2);
+  box-shadow: 0 2px 6px rgba(16, 44, 104, 0.2);
 }
 
 .device-choice-chip:disabled {
@@ -2226,7 +2237,7 @@ svg .vessel-path:hover {
 
 .device-filter-heading button:hover,
 .device-filter-heading button:focus-visible {
-  color: #113195;
+  color: #102c68;
   text-decoration: underline;
   outline: none;
 }
@@ -2269,7 +2280,7 @@ svg .vessel-path:hover {
   padding: 0.7rem 0.8rem;
   border-radius: 8px;
   background: #eef4ff;
-  color: #23458f;
+  color: #102c68;
   font-size: 0.82rem;
 }
 
@@ -2282,7 +2293,7 @@ svg .vessel-path:hover {
 }
 
 #case-summary .lesion-plan-title {
-  color: #183c8f;
+  color: #102c68;
   font-weight: 750;
   text-align: left;
 }
@@ -2357,7 +2368,7 @@ svg .vessel-path:hover {
 }
 
 :is(#case-summary, .plan-review-content) .recommendation-item summary {
-  color: #23458f;
+  color: #102c68;
   cursor: pointer;
   font-weight: 650;
 }
@@ -2373,7 +2384,7 @@ svg .vessel-path:hover {
 }
 
 :is(#case-summary, .plan-review-content) .recommendation-references a {
-  color: #1747a6;
+  color: #102c68;
 }
 
 :is(#case-summary, .plan-review-content) .recommendations-clear {
@@ -2448,13 +2459,13 @@ svg .vessel-path:hover {
 }
 
 .plan-consideration summary {
-  color: #23458f;
+  color: #102c68;
   cursor: pointer;
   font-weight: 650;
 }
 
 .plan-consideration a {
-  color: #1747a6;
+  color: #102c68;
 }
 
 .plan-considerations-clear {
@@ -2481,7 +2492,7 @@ svg .vessel-path:hover {
   transform: translateX(-50%);
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
-  background: #123b93;
+  background: #102c68;
   color: #fff;
   box-shadow: 0 4px 12px rgba(18, 59, 147, 0.25);
   font-size: 0.68rem;
@@ -2517,7 +2528,7 @@ svg .vessel-path:hover {
   border: 0;
   border-radius: 999px;
   padding: 0.28rem 0.7rem;
-  background: #113195;
+  background: #102c68;
   color: #fff;
   cursor: pointer;
   font-size: 0.72rem;
@@ -2543,7 +2554,7 @@ svg .vessel-path:hover {
 }
 
 .target-path-editor > strong {
-  color: #123b93;
+  color: #102c68;
 }
 
 .target-path-editor label,
@@ -2622,7 +2633,7 @@ svg .vessel-path:hover {
   margin-right: 0.4rem;
   padding: 0 0.45rem;
   border-radius: 999px;
-  background: #123b93;
+  background: #102c68;
   color: #fff;
   font-size: 0.62rem;
   font-weight: 800;
@@ -2686,7 +2697,7 @@ svg .vessel-path:hover {
 }
 
 .plan-scope-group-header h3 {
-  color: #193b83;
+  color: #102c68;
   font-size: 0.98rem;
 }
 
@@ -2705,7 +2716,7 @@ svg .vessel-path:hover {
   min-height: 24px;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
-  background: #123b93;
+  background: #102c68;
   color: #fff;
   font-size: 0.65rem;
   font-weight: 850;
@@ -2860,7 +2871,7 @@ svg .vessel-path:hover {
 .selected-woundosomes h3,
 .visual-plan-target h3 {
   margin: 0 0 0.7rem;
-  color: #193b83;
+  color: #102c68;
   font-size: 0.9rem;
   text-align: center;
 }
@@ -2915,7 +2926,7 @@ svg .vessel-path:hover {
   border: 1px solid #d4dff3;
   border-radius: 10px;
   background: #f5f8ff;
-  label { display: grid; gap: 0.45rem; color: #23458f; font-size: 0.78rem; font-weight: 700; }
+  label { display: grid; gap: 0.45rem; color: #102c68; font-size: 0.78rem; font-weight: 700; }
   select { min-width: 0; width: 100%; box-sizing: border-box; padding: 0.55rem; border: 1px solid #acbfe4; border-radius: 7px; background: #fff; color: #354866; font-size: 0.75rem; }
   p { margin: 0.55rem 0 0; color: #67748b; font-size: 0.68rem; line-height: 1.5; }
 }
@@ -2937,7 +2948,7 @@ svg .vessel-path:hover {
   padding-top: 0.85rem;
   border-top: 1px solid #d8dfec;
   font-size: 0.75rem;
-  summary { color: #23458f; cursor: pointer; font-weight: 700; }
+  summary { color: #102c68; cursor: pointer; font-weight: 700; }
   label { display: grid; gap: 0.35rem; margin-top: 0.8rem; text-align: left; }
   input, select { width: 100%; min-width: 0; box-sizing: border-box; padding: 0.45rem; border: 1px solid #b5c3dd; border-radius: 6px; background: #fff; color: #354866; }
   p { color: #6a7284; font-size: 0.7rem; line-height: 1.45; text-align: left; }
@@ -2990,7 +3001,7 @@ svg .vessel-path:hover {
   padding-top: 0.7rem;
   border-top: 1px solid #cddcf6;
 
-  > summary { color: #23458f; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
+  > summary { color: #102c68; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
   > p { color: #66728a; font-size: 0.7rem; }
   .intervention-row { padding: 0.65rem 0; }
 }
@@ -3033,7 +3044,7 @@ svg .vessel-path:hover {
 }
 
 .visual-plan-schematic-heading strong {
-  color: #193b83;
+  color: #102c68;
   font-size: 0.76rem;
 }
 
@@ -3072,7 +3083,7 @@ svg .vessel-path:hover {
 .visual-scope-summary.is-active {
   border-color: #7f9ddd;
   background: #eaf1ff;
-  box-shadow: inset 3px 0 0 #1747a6;
+  box-shadow: inset 3px 0 0 #102c68;
 }
 
 .visual-scope-code {
@@ -3083,7 +3094,7 @@ svg .vessel-path:hover {
   min-height: 24px;
   padding: 0.1rem 0.35rem;
   border-radius: 999px;
-  background: #123b93;
+  background: #102c68;
   color: #fff;
   font-size: 0.58rem;
   font-weight: 850;
@@ -3145,7 +3156,7 @@ svg .vessel-path:hover {
   height: auto;
   overflow: visible;
   fill: none;
-  stroke: #1747a6;
+  stroke: #102c68;
   stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -3208,7 +3219,7 @@ svg .vessel-path:hover {
 .visual-plan-composer-header h3 {
   overflow: hidden;
   margin-top: 0.08rem;
-  color: #193b83;
+  color: #102c68;
   font-size: 0.9rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3245,7 +3256,7 @@ svg .vessel-path:hover {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #123b93;
+  background: #102c68;
   color: #fff;
   font-size: 0.62rem;
   font-weight: 800;
@@ -3316,7 +3327,7 @@ svg .vessel-path:hover {
 .visual-plan-composer .device-button:focus-visible {
   border-color: #8ca7df;
   background: #f2f6ff;
-  box-shadow: 0 4px 10px rgba(17, 49, 149, 0.12);
+  box-shadow: 0 4px 10px rgba(16, 44, 104, 0.12);
   outline: none;
   transform: none;
 }
@@ -3359,7 +3370,7 @@ svg .vessel-path:hover {
   text-align: left;
 
   .summary-card { padding: 0; box-shadow: none; background: transparent; }
-  .card-title { margin-bottom: 0.5rem; color: #193b83; font-size: 1rem; font-weight: 750; }
+  .card-title { margin-bottom: 0.5rem; color: #102c68; font-size: 1rem; font-weight: 750; }
 }
 .plan-review-modal { background: #fff; max-width: calc(100vw - 2rem); box-sizing: border-box; }
 .plan-review-heading { display: flex; align-items: start; justify-content: space-between; gap: 0.75rem; margin: 0.75rem 0 1rem; }
@@ -3370,7 +3381,7 @@ svg .vessel-path:hover {
   border: 1px solid #d9e1f0;
   border-radius: 10px;
   background: #f6f9ff;
-  h3 { margin: 0 0 0.6rem; font-size: 0.85rem; color: #193b83; }
+  h3 { margin: 0 0 0.6rem; font-size: 0.85rem; color: #102c68; }
   ul { display: grid; gap: 0.4rem; list-style: none; margin: 0; padding: 0; }
   li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; }
   .device-glyph { flex: 0 0 44px; width: 44px; height: 22px; }
@@ -3553,7 +3564,7 @@ svg .vessel-path:hover {
 }
 
 .closure-advice a {
-  color: #1747a6;
+  color: #102c68;
 }
 
 /* Case summary layout */
@@ -3566,12 +3577,31 @@ svg .vessel-path:hover {
   padding: 1.5rem;
 }
 .case-summary__title {
-  color: #113195;
+  color: #102c68;
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
   text-align: left;
 }
+
+.patient-code-field { display: grid; grid-column: 1 / -1; gap: 0.6rem; text-align: left; }
+.patient-code-field label { color: #102c68; font-size: 0.9rem; font-weight: 650; }
+.patient-code-field input { box-sizing: border-box; width: 100%; min-width: 0; max-width: 28rem; padding: 0.7rem 0.8rem; border: 1px solid #b8c5df; border-radius: 8px; background: #fff; color: #263b5b; font: inherit; }
+.patient-code-field input:focus-visible { outline: 3px solid #87b1ff; outline-offset: 2px; }
+.case-summary-header { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; padding-bottom: 0.9rem; border-bottom: 2px solid #102c68; }
+.case-summary-patient-id { min-width: 0; max-width: 55%; margin-left: auto; color: #102c68; text-align: right; overflow-wrap: anywhere; }
+.case-summary-patient-id span { display: block; margin-bottom: 0.25rem; color: #586b88; font-size: 0.7rem; }
+.case-summary-patient-id strong { font-size: 0.95rem; }
+.catalog-manual-dimension { display: grid; grid-template-columns: minmax(0,1fr) 9rem; align-items: center; gap: 0.5rem 1rem; margin-top: 0.65rem; color: #354866; font-size: 0.8rem; }
+.catalog-manual-dimension input { min-width: 0; width: 100%; border: 1px solid #b8c5df; border-radius: 6px; padding: 0.5rem; color: #102c68; background: #fff; font: inherit; }
+.catalog-manual-dimension small { grid-column: 1 / -1; color: #61708a; }
+.catalog-published-specs { margin-top: 1rem; padding: 0.65rem; border: 1px solid #dce3f1; border-radius: 8px; font-size: 0.75rem; }
+.catalog-published-specs summary { color: #102c68; cursor: pointer; }
+.catalog-published-specs dl { display: grid; grid-template-columns: minmax(6rem,1fr) minmax(0,2fr); gap: 0.4rem 0.8rem; text-align: left; }
+.catalog-published-specs dt { font-weight: 600; }
+.catalog-published-specs dd { margin: 0; overflow-wrap: anywhere; }
+.catalog-published-specs a { display: inline-block; margin: 0.5rem 1rem 0 0; color: #102c68; }
+.endo-wizard, .inline-modal { --wp-admin-theme-color: #102c68; --wp-components-color-accent: #102c68; }
 
 .clinical-guidance {
   max-width: 38rem;
@@ -3615,7 +3645,7 @@ svg .vessel-path:hover {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #113195;
+  color: #102c68;
   font: inherit;
   font-weight: 650;
   text-decoration: underline;
@@ -3654,7 +3684,7 @@ svg .vessel-path:hover {
 .guideline-modal-subtitle {
   margin: 1rem 0 0.5rem;
   font-size: 1rem;
-  color: #113195;
+  color: #102c68;
 }
 
 .guideline-citation {
@@ -3690,7 +3720,7 @@ svg .vessel-path:hover {
 }
 .approach-chip {
   display: inline-block;
-  background: #2563eb;
+  background: #102c68;
   color: #fff;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -3757,7 +3787,7 @@ svg .vessel-path:hover {
 }
 
 .clickable:hover {
-  color: #1e40af;
+  color: #102c68;
   cursor: pointer;
 }
 .plan-item-subtitle {
@@ -3786,7 +3816,7 @@ svg .vessel-path:hover {
   margin-top: 1rem;
 }
 .export-btn {
-  background: #2563eb;
+  background: #102c68;
   color: #fff;
   padding: 0.5rem 1.5rem;
   border: none;
@@ -3797,13 +3827,13 @@ svg .vessel-path:hover {
   transition: background 0.2s;
 }
 .export-btn:hover {
-  background: #1e40af;
+  background: #102c68;
 }
 
 .ref-link a {
   background: none;
   border: none;
-  color: #113195;
+  color: #102c68;
   cursor: pointer;
   padding: 0 2px;
   font-size: 0.8rem;
@@ -3846,7 +3876,7 @@ svg .vessel-path:hover {
   padding: 0.75rem 0.9rem;
   border: 1px solid #4966aa;
   border-radius: 9px;
-  background: #112e72;
+  background: #102c68;
   color: #fff;
   font: 500 12px/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   text-align: left;
@@ -3863,13 +3893,13 @@ svg .vessel-path:hover {
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1rem;
-  .card-title { margin: 0; color: #113195; }
+  .card-title { margin: 0; color: #102c68; }
 }
 .endo-wizard .summary-edit-button {
   flex: 0 0 auto;
-  border: 1px solid #113195;
+  border: 1px solid #102c68;
   border-radius: 7px;
-  background: #113195;
+  background: #102c68;
   color: #fff;
   padding: 0.5rem 0.95rem;
   font-size: 0.72rem;
@@ -3921,12 +3951,12 @@ svg .vessel-path:hover {
 }
 
 .popliteal-segment-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
-.popliteal-segment-buttons .stage-btn[aria-pressed='true'] { background: #113195; color: #fff; }
+.popliteal-segment-buttons .stage-btn[aria-pressed='true'] { background: #102c68; color: #fff; }
 .popliteal-segment-buttons .stage-btn:focus-visible { outline: 3px solid #87b1ff; outline-offset: 3px; }
 .lesion-position-control { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
 .lesion-position-control>span { text-align: left; }
-.lesion-position-control input[type='range'] { width: 100%; accent-color: #113195; padding: 0; }
+.lesion-position-control input[type='range'] { width: 100%; accent-color: #102c68; padding: 0; }
 .visual-scope-code { min-width: 65px; white-space: nowrap; }
-.woundosome-info-close { border: 1px solid #0f2c86; background: #113195; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+.woundosome-info-close { border: 1px solid #102c68; background: #102c68; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
 .woundosome-info-close:hover { background: #082468; color: #fff; }
 .selected-woundosome-heading h3 { margin: 0; }

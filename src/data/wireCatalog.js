@@ -1,3 +1,8 @@
+import deviceGuide from './deviceGuideProducts.json';
+
+const wireKey = (name) => name.replace(/\([^)]*\)/g, '').toLowerCase().replace(/hi-torque/g, 'ht').replace(/018/g, '18').replace(/^asahi\s+/, '').replace(/[^a-z0-9]/g, '');
+const guideFacts = (name, platform) => deviceGuide.wires.filter((item) => item.key === wireKey(name) && item.platform === platform);
+
 export const WIRE_ROLES = {
   WORKHORSE: 'Workhorse',
   JACKETED: 'Polymer-jacketed / hydrophilic',
@@ -58,12 +63,17 @@ const wire = (
   lengths,
   role,
   options = {},
-) => ({
+) => {
+  const facts = guideFacts(name, platform);
+  const guideLengths = [...new Set(facts.flatMap((item) => item.lengths))].sort((a, b) => a - b);
+  return {
   id: `${manufacturer}-${name}-${platform}`.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
   manufacturer,
   name,
   platform,
-  lengths,
+  lengths: !options.source && guideLengths.length ? guideLengths : lengths,
+  tipShapes: options.tipShapes || [...new Set(facts.flatMap((item) => item.tipShapes))],
+  source: options.source || facts[0]?.source || 'https://evtoday.com/device-guide/european',
   role,
   techniques: options.techniques || BOTH_TECHNIQUES,
   ctoProfile: options.ctoProfile || '',
@@ -71,7 +81,8 @@ const wire = (
   design: options.design || WIRE_ROLE_INFO[role].design,
   caution: options.caution || WIRE_ROLE_INFO[role].caution,
   label: `${manufacturer} — ${name}`,
-});
+  };
+};
 
 const workhorse = (...args) => wire(...args, WIRE_ROLES.WORKHORSE);
 const jacketed = (...args) => wire(...args, WIRE_ROLES.JACKETED);
@@ -89,6 +100,29 @@ const cto = (manufacturer, name, platform, lengths, ctoProfile) => wire(
 // catalogue provides functional filtering; the selected product IFU remains
 // authoritative for tip load, coating, usable length and device compatibility.
 export const WIRE_CATALOG = [
+  ...[
+    ['Hi-Torque Command 14 ST', '0.014', [210, 300], ['Straight', 'Angled'], '6 g tip load; 10 cm nitinol segment.'],
+    ['Hi-Torque Command 14 MT', '0.014', [210, 300], ['Straight', 'Angled'], '4 g tip load; 25 cm nitinol segment.'],
+    ['Hi-Torque Command', '0.014', [190, 250, 300], ['Straight'], '2.8 g tip load; 40 cm nitinol segment.'],
+    ['Hi-Torque Command ES', '0.014', [190, 250, 300], ['Straight'], '3.5 g tip load; 40 cm nitinol segment.'],
+    ['Hi-Torque Command 18 ST', '0.018', [210, 300], ['Straight'], '4 g tip load; 10 cm nitinol segment.'],
+    ['Hi-Torque Command 18 LT', '0.018', [210, 300], ['Straight'], '4 g tip load; 25 cm nitinol segment.'],
+  ].map(([name, platform, lengths, tipShapes, design]) => wire('Abbott', name, platform, lengths, WIRE_ROLES.WORKHORSE, {
+    source: platform === '0.014'
+      ? 'https://www.cardiovascular.abbott/int/en/hcp/products/peripheral-intervention/guide-wires/workhorse/hi-torque-command.html'
+      : 'https://www.cardiovascular.abbott/content/cv/cardiovascular/us/en/hcp/products/peripheral-intervention/guide-wires/workhorse/hi-torque-command-018.html',
+    tipShapes, design,
+  })),
+  workhorse('Abbott', 'Hi-Torque Connect', '0.018', [145, 195, 300]),
+  workhorse('Abbott', 'Hi-Torque Connect Flex', '0.018', [145, 195, 300]),
+  jacketed('Abbott', 'HydroSteer', '0.018', [150, 180]),
+  jacketed('Abbott', 'HydroSteer', '0.035', [150, 180, 260]),
+  jacketed('Abbott', 'HydroSteer', '0.038', [150, 180, 260]),
+  jacketed('Terumo', 'Radifocus Guide Wire M', '0.038', [50, 80, 120, 150, 180, 220, 260, 300]),
+  jacketed('Cook Medical', 'Roadrunner PC', '0.038', [80, 145, 180, 260]),
+  jacketed('Cook Medical', 'Roadrunner UniGlide', '0.038', [80, 150, 180, 260, 320]),
+  jacketed('Cook Medical', 'Approach Hydro ST', '0.014', [135, 190, 300]),
+  support('Cook Medical', 'Roadrunner Extra-Support', '0.014', [180, 270, 300]),
   jacketed('Terumo', 'Radifocus Glidewire Advantage', '0.014', [180, 300]),
   jacketed('Terumo', 'Radifocus Glidewire Advantage Track', '0.014', [180, 300]),
   workhorse('Medtronic', 'Cougar LS', '0.014', [190, 300]),
@@ -175,6 +209,7 @@ const matchesFilters = (item, {
   category = '',
   technique = '',
   ctoProfile = '',
+  tipShape = '',
 } = {}) => {
   const selectedLength = numericLength(length);
   const selectedRole = normalizeWireRole(role || category);
@@ -184,6 +219,7 @@ const matchesFilters = (item, {
     (!selectedLength || item.lengths.includes(selectedLength)) &&
     (!technique || item.techniques.includes(technique)) &&
     (!ctoProfile || item.ctoProfile === ctoProfile)
+    && (!tipShape || item.tipShapes.includes(tipShape))
   );
 };
 
@@ -263,6 +299,7 @@ const wireFilterValues = {
   role: (item) => [item.role],
   technique: (item) => item.techniques,
   ctoProfile: (item) => [item.ctoProfile].filter(Boolean),
+  tipShape: (item) => item.tipShapes,
 };
 
 export const getWireFilterOptions = (form = {}, field) => {
@@ -290,7 +327,7 @@ export const reconcileWireProduct = (form = {}, productLabel) => {
   const next = { ...form, product: productLabel };
   const variants = getWireProductVariants(productLabel);
   if (!variants.length) return next;
-  ['platform', 'length', 'role', 'technique', 'ctoProfile'].forEach((field) => {
+  ['platform', 'length', 'role', 'technique', 'ctoProfile', 'tipShape'].forEach((field) => {
     const available = getWireFilterOptions({ ...next, product: productLabel }, field);
     if (next[field] && !available.includes(next[field])) next[field] = '';
     if (!next[field] && available.length === 1) next[field] = available[0];

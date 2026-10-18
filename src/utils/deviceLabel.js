@@ -7,7 +7,7 @@ export const fullDeviceLabel = (value) => {
     value.platform && `${value.platform}-inch`, value.frSize || value.size,
     dimensions, value.shaft && `shaft ${value.shaft}`,
     value.functionalRole || value.role, value.type, value.material,
-    value.deliveryMode, value.ctoProfile, value.technique,
+    value.deliveryMode, value.ctoProfile, value.technique, value.tipShape, value.shape, value.coating,
     value.minimumSheathFr && `minimum sheath ${value.minimumSheathFr}`,
   ].filter(Boolean))].join(' · ');
 };
