@@ -5,6 +5,7 @@ import {
   catalogItemMatches,
   clearCatalogFilters,
   getCatalogFilterOptions,
+  getCatalogFieldRanges,
   getCatalogProduct,
   getCatalogProductOptions,
   reconcileCatalogProduct,
@@ -71,6 +72,8 @@ export default function CatalogProductPicker({
   const changeFilter = (field, value) => onChange({ ...form, [field]: value });
   const resetFilters = () => onChange(clearCatalogFilters(form, filters.map((filter) => filter.field)));
   const cataloguedProduct = Boolean(getCatalogProduct(extendedCatalog, selectedLabel));
+  const selectedProduct = getCatalogProduct(extendedCatalog, selectedLabel);
+  const dimensionFields = ['size', 'diameter', 'length', 'shaft', 'minimumSheathFr', 'platform'];
 
   return (
     <>
@@ -87,17 +90,41 @@ export default function CatalogProductPicker({
         matchCount={new Set(productOptions.map((option) => option.value)).size}
         onResetFilters={resetFilters}
       >
-        {filters.map((filter) => (
-          <FilterChips
+        {filters.map((filter) => {
+          const options = getCatalogFilterOptions(extendedCatalog, { ...form, product: selectedLabel }, filter.field);
+          const ranges = getCatalogFieldRanges(extendedCatalog, { ...form, product: selectedLabel }, filter.field);
+          const manual = selectedLabel && dimensionFields.includes(filter.field) && (ranges.length || (!options.length && filter.allowManual !== false));
+          const unit = ranges[0]?.unit || ({ size: 'Fr', shaft: 'cm', minimumSheathFr: 'Fr' }[filter.field] || '');
+          const suffix = unit === 'Fr' || unit === 'cm' ? ` ${unit}` : filter.field === 'size' && unit === 'mm' ? ' mm loop' : '';
+          return <React.Fragment key={filter.field}>
+          {options.length > 0 && <FilterChips
             key={filter.field}
             label={filter.label}
             value={form[filter.field] || ''}
-            options={getCatalogFilterOptions(extendedCatalog, { ...form, product: selectedLabel }, filter.field)}
+            options={options}
             onChange={(value) => changeFilter(filter.field, value)}
             testId={filter.testId}
-          />
-        ))}
+          />}
+          {manual && <label className="catalog-manual-dimension" data-testid={`${filter.testId || filter.field}-manual`}>
+            <span>{filter.label}{unit ? ` (${unit})` : ''}</span>
+            <input
+              type="number"
+              step="any"
+              min={0}
+              value={form[filter.field] ? Number.parseFloat(form[filter.field]) || '' : ''}
+              placeholder={ranges.length ? ranges.map(({ min, max }) => `${min}–${max}`).join(' / ') : __('Enter from product IFU', 'endoplanner')}
+              onChange={(event) => changeFilter(filter.field, event.target.value ? `${event.target.value}${suffix}` : '')}
+            />
+            {ranges.length > 0 && <small>{__('Published range:', 'endoplanner')} {[...new Set(ranges.map(({ min, max, unit: rangeUnit }) => `${min}–${max} ${rangeUnit}`))].join('; ')}</small>}
+          </label>}
+          </React.Fragment>;
+        })}
       </ProductFirstLayout>
+      {selectedProduct?.published?.length > 0 && <details className="catalog-published-specs">
+        <summary>{__('Product specifications & source', 'endoplanner')}</summary>
+        {selectedProduct.published.map((listing, index) => <dl key={index}>{Object.entries(listing).map(([label, value]) => <React.Fragment key={label}><dt>{label}</dt><dd>{value}</dd></React.Fragment>)}</dl>)}
+        {(selectedProduct.sources || [selectedProduct.source]).map((source) => <a key={source} href={source} target="_blank" rel="noreferrer">{__('European Device Guide', 'endoplanner')}</a>)}
+      </details>}
       {selectedLabel && !cataloguedProduct && (
         <p className="wire-catalog-note">
           {__('Custom/local product selected. Enter its specifications manually and confirm them against the current IFU.', 'endoplanner')}

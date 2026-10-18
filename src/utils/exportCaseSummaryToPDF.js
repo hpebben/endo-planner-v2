@@ -11,6 +11,7 @@ import { getActiveWoundLocations } from './clinicalStage';
 import createPdfReportLayout from './pdfReportLayout';
 import appendMaterialsPages from './pdfMaterialsPage';
 import { fullDeviceLabel } from './deviceLabel';
+import logoUrl from '../../assets/images/endoplanner-logo.png';
 
 const valuesOnly = (value) => {
   if (!value) return '';
@@ -87,8 +88,10 @@ export default async function exportCaseSummaryToPDF(data = {}) {
   const woundAdvice = getWoundosomeAdvice(getActiveWoundLocations(data));
 
   const { default: renderSummaryImages } = await import('./summaryImages');
-  const images = await renderSummaryImages(data);
-  const layout = createPdfReportLayout(doc);
+  const [images, logoResponse] = await Promise.all([renderSummaryImages(data), fetch(logoUrl)]);
+  if (!logoResponse.ok) throw new Error('The report logo could not be loaded.');
+  const branding = { logoData: new Uint8Array(await logoResponse.arrayBuffer()), patientId: data.patientId || '' };
+  const layout = createPdfReportLayout(doc, branding);
 
   const clinicalLines = [
     `Fontaine stage: ${formatStage(data.stage)}`,
@@ -140,14 +143,14 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     ? findings.map((item) => ({ label: `${item.level === 'error' ? 'Critical' : item.level === 'warning' ? 'Warning' : 'Recommendation'} | ${item.title}`, text: item.summary, level: item.level }))
     : recommendationLines.slice(1));
   const materialsStartPage = doc.getNumberOfPages() + 1;
-  appendMaterialsPages(doc, data, findings);
+  appendMaterialsPages(doc, data, findings, branding);
 
   const pageCount = doc.getNumberOfPages();
   for (let page = 1; page <= pageCount; page += 1) {
     doc.setPage(page);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(100, 105, 115);
     doc.text(page >= materialsStartPage ? 'Selected case materials: confirm quantities and missing specifications before opening.' : 'Reference anatomy and clinical estimates: confirm against source imaging and guidelines.', 28, 805);
-    doc.text(`EndoPlanner v1.6.184 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
+    doc.text(`EndoPlanner v1.6.185 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
   }
 
   doc.save(reportFilename(data));

@@ -2,6 +2,7 @@ import { getBlockingPlanFindings } from './planAnalysis';
 import { territoryFromVesselId, validateTargetArterialPath } from './lesions';
 import { getPatMeasurementError, getPatMeasurements } from '../data/pedalAccelerationTime';
 import { getActiveWoundLocations, isFontaineIV } from './clinicalStage';
+import { catalogItemMatches, getCatalogProduct, SHEATH_CATALOG } from '../data/deviceCatalog';
 
 const metadataKeys = new Set( [ 'id', 'lesionId', 'scope' ] );
 
@@ -23,6 +24,15 @@ export const validateCaseStep = (
 	translate = ( message ) => message
 ) => {
 	const errors = [];
+
+	if (step === 2) {
+		(data.accessRows || []).forEach((row) => (row.sheaths || []).forEach((sheath) => {
+			const product = getCatalogProduct(SHEATH_CATALOG, sheath.product);
+			if (product && !catalogItemMatches(product, { ...sheath, size: sheath.size || sheath.frSize })) {
+				errors.push(translate('The selected sheath specifications are outside its published options. Review its size, length, guidewire and shape before continuing.', 'endoplanner'));
+			}
+		}));
+	}
 
 	if ( step === 0 ) {
 		if ( ! data.stage )

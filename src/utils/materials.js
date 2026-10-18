@@ -30,6 +30,9 @@ export const materialDetails = (kind, input) => {
   const details = [
     value.shaft && `Shaft ${value.shaft}`,
     value.minimumSheathFr && `Minimum sheath ${value.minimumSheathFr}`,
+    value.tipShape && `Tip ${value.tipShape}`,
+    value.shape && `Shape ${value.shape}`,
+    value.coating,
     value.deliveryMode,
     value.material,
     value.type,

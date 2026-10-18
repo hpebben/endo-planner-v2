@@ -2,6 +2,7 @@ import {
   PTA_BALLOON_GUIDE_PRODUCTS,
   PTA_BALLOON_GUIDE_URL,
 } from './ptaBalloonCatalog';
+import deviceGuide from './deviceGuideProducts.json';
 
 export { PTA_BALLOON_GUIDE_URL };
 
@@ -32,13 +33,15 @@ const product = (manufacturer, name, specifications = {}) => ({
   shafts: [],
   deliveryModes: [],
   minimumSheaths: [],
+  shapes: [],
+  coatings: [],
   ...specifications,
 });
 
 // Keep the familiar, deliberately compact catheter list that predates the broad
 // catalogue import. Each entry now exposes only the French sizes and working
 // lengths actually available for that named catheter/shape.
-export const CATHETER_CATALOG = [
+const BASE_CATHETER_CATALOG = [
   product('Merit Medical / Terumo', 'BER2', { label: 'BER2', source: TERUMO_GLIDECATH_URL, categories: ['Selective diagnostic'], platforms: list('0.038'), sizes: fr('4', '5'), lengths: cm('65', '100'), minimumSheaths: fr('4', '5') }),
   product('Cordis', 'BHW', { label: 'BHW', source: CORDIS_CATHETER_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035'), sizes: fr('5'), lengths: cm('100'), minimumSheaths: fr('5') }),
   product('Merit Medical', 'Cobra 1', { label: 'Cobra 1', source: MERIT_ANGIOGRAPHY_CATALOG_URL, categories: ['Selective diagnostic'], platforms: list('0.035', '0.038'), sizes: fr('4', '5'), lengths: cm('65', '100'), minimumSheaths: fr('4', '5') }),
@@ -63,7 +66,7 @@ export const CATHETER_CATALOG = [
 
 const vesselPrep = ['Vessel preparation', 'Definitive angioplasty', 'Post-dilatation'];
 
-export const BALLOON_CATALOG = [
+const BASE_BALLOON_CATALOG = [
   product('BD Interventional', 'Lutonix 018 DCB', { categories: ['Drug-coated'], platforms: list('0.018'), functionalRoles: vesselPrep, diameters: list('4', '5', '6', '7'), lengths: list('40', '60', '80', '100', '120', '150', '220'), shafts: cm('100', '130'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('4', '5') }),
   product('BD Interventional', 'Lutonix 035 DCB', { categories: ['Drug-coated'], platforms: list('0.035'), functionalRoles: vesselPrep, diameters: list('4', '5', '6', '7', '8', '10', '12'), lengths: list('40', '60', '80', '100', '120', '150'), shafts: cm('75', '100', '130'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('5', '7', '8', '10') }),
   product('Medtronic', 'IN.PACT 018 DCB', { categories: ['Drug-coated'], platforms: list('0.018'), functionalRoles: vesselPrep, diameters: list('4', '5', '6', '7'), lengths: list('40', '60', '80', '100', '120', '150'), shafts: cm('80', '130'), deliveryModes: ['Over-the-wire'], minimumSheaths: fr('5', '6') }),
@@ -89,11 +92,11 @@ export const BALLOON_CATALOG = [
   })),
 ];
 
-export const PTA_BALLOON_CATALOG = BALLOON_CATALOG.slice(9);
+export const PTA_BALLOON_CATALOG = BASE_BALLOON_CATALOG.slice(9);
 
 const primaryStentRoles = ['Primary scaffolding', 'Bailout / dissection', 'Relining'];
 
-export const STENT_CATALOG = [
+const BASE_STENT_CATALOG = [
   product('Abbott', 'Absolute Pro Peripheral Stent', { categories: ['Self-expanding bare'], platforms: list('0.035'), functionalRoles: primaryStentRoles, types: ['self expandable'], materials: ['bare metal'], diameters: list('5', '6', '7', '8', '9', '10'), lengths: list('20', '30', '40', '60', '80', '100'), shafts: cm('80', '135'), minimumSheaths: fr('6') }),
   product('Boston Scientific', 'Innova Self-Expanding Stent', { categories: ['Self-expanding bare'], platforms: list('0.035'), functionalRoles: primaryStentRoles, types: ['self expandable'], materials: ['bare metal'], diameters: list('5', '6', '7', '8'), lengths: list('20', '40', '60', '80', '100', '120', '150', '180', '200'), shafts: cm('75', '130'), minimumSheaths: fr('6') }),
   product('Medtronic', 'EverFlex Entrust', { categories: ['Self-expanding bare'], platforms: list('0.035'), functionalRoles: primaryStentRoles, types: ['self expandable'], materials: ['bare metal'], diameters: list('5', '6', '7', '8'), lengths: list('20', '40', '60', '80', '100', '120', '150'), shafts: cm('80', '120', '150'), minimumSheaths: fr('5') }),
@@ -118,7 +121,7 @@ export const STENT_CATALOG = [
   product('BD Interventional', 'LifeStream Covered Stent', { categories: ['Balloon-expandable covered'], platforms: list('0.035'), functionalRoles: primaryStentRoles, types: ['balloon expandable'], materials: ['covered'], diameters: list('5', '6', '7', '8', '9', '10', '12'), lengths: list('16', '26', '37', '38', '58'), shafts: cm('80', '135'), minimumSheaths: fr('6', '7', '8') }),
 ];
 
-export const SPECIAL_DEVICE_CATALOG = [
+const BASE_SPECIAL_DEVICE_CATALOG = [
   product('Shockwave Medical', 'Shockwave E8 Peripheral IVL Catheter', { categories: ['Intravascular lithotripsy'], platforms: list('0.014'), diameters: list('2.5', '3', '3.5', '4', '5', '6'), lengths: list('80'), shafts: cm('150'), minimumSheaths: fr('5', '6') }),
   product('Shockwave Medical', 'Shockwave Javelin Peripheral IVL Catheter', { categories: ['Intravascular lithotripsy', 'CTO / re-entry'], platforms: list('0.014'), sizes: fr('1.5'), shafts: cm('150'), minimumSheaths: fr('5') }),
   product('Shockwave Medical', 'Shockwave L6 Peripheral IVL Catheter', { categories: ['Intravascular lithotripsy'], platforms: list('0.018'), diameters: list('8', '9', '10', '12'), lengths: list('30'), shafts: cm('110'), minimumSheaths: fr('7', '8') }),
@@ -140,6 +143,26 @@ export const SPECIAL_DEVICE_CATALOG = [
   product('Medtronic', 'Viance Crossing Catheter', { categories: ['CTO / re-entry'], platforms: list('0.014'), sizes: fr('5'), shafts: cm('150'), minimumSheaths: fr('5') }),
 ];
 
+const extendCatalog = (base, additions) => {
+  const entries = new Map(base.map((item) => [item.label, item]));
+  additions.forEach((item) => {
+    const previous = entries.get(item.label) || {};
+    const inherited = Object.fromEntries(Object.entries(previous).filter(([, value]) => Array.isArray(value)));
+    entries.set(item.label, product(item.manufacturer, item.name, {
+      ...previous, ...item,
+      variants: item.variants.map((group) => ({ ...inherited, ...group, ranges: group.ranges || {} })),
+    }));
+  });
+  return [...entries.values()];
+};
+
+export const SHEATH_CATALOG = extendCatalog([], deviceGuide.sheaths);
+export const CATHETER_CATALOG = extendCatalog(BASE_CATHETER_CATALOG, deviceGuide.catheters);
+export const BALLOON_CATALOG = extendCatalog(BASE_BALLOON_CATALOG, deviceGuide.balloons);
+export const STENT_CATALOG = extendCatalog(BASE_STENT_CATALOG, deviceGuide.stents);
+export const SPECIAL_DEVICE_CATALOG = extendCatalog(BASE_SPECIAL_DEVICE_CATALOG, deviceGuide.special);
+export const DEVICE_GUIDE_REVIEW = { date: deviceGuide.reviewedAt, sources: deviceGuide.sources };
+
 export const CATALOG_FIELD_MAP = {
   category: 'categories',
   platform: 'platforms',
@@ -152,6 +175,8 @@ export const CATALOG_FIELD_MAP = {
   shaft: 'shafts',
   deliveryMode: 'deliveryModes',
   minimumSheathFr: 'minimumSheaths',
+  shape: 'shapes',
+  coating: 'coatings',
 };
 
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
@@ -159,21 +184,42 @@ const uniqueSorted = (values) => [...new Set(values.filter(Boolean).map(String))
 
 export const getCatalogProduct = (catalog, label) => catalog.find((item) => item.label === label) || null;
 
-export const catalogItemMatches = (item, filters = {}, ignoredField = '') => Object.entries(CATALOG_FIELD_MAP).every(
-  ([field, itemField]) => (
-    field === ignoredField || !filters[field] || (item[itemField] || []).includes(String(filters[field]))
-  ),
+const specificationGroups = (item) => item.variants?.length ? item.variants : [item];
+const matchesField = (item, itemField, value, allowUnknown = false) => {
+  const listed = item[itemField] || [];
+  if (listed.includes(String(value))) return true;
+  const ranges = item.ranges?.[itemField] || [];
+  const numeric = Number.parseFloat(value);
+  if (ranges.some(({ min, max }) => Number.isFinite(numeric) && numeric >= min && numeric <= max)) return true;
+  return allowUnknown && !listed.length && !ranges.length;
+};
+const groupMatches = (group, filters, ignoredField = '', allowUnknown = false) => Object.entries(CATALOG_FIELD_MAP).every(
+  ([field, itemField]) => field === ignoredField || !filters[field] || matchesField(group, itemField, filters[field], allowUnknown),
+);
+export const catalogItemMatches = (item, filters = {}, ignoredField = '') => specificationGroups(item).some(
+  (group) => groupMatches(group, filters, ignoredField, filters.product === item.label),
 );
 
+export const getCatalogFieldRanges = (catalog, form, field) => {
+  const selected = getCatalogProduct(catalog, form.product || form.specific);
+  const itemField = CATALOG_FIELD_MAP[field];
+  if (!selected || !itemField) return [];
+  return specificationGroups(selected)
+    .filter((group) => groupMatches(group, form, field, true))
+    .flatMap((group) => group.ranges?.[itemField] || []);
+};
+
 const compactRange = (values = [], unit = '') => {
-  if (!values.length) return '';
-  if (values.length === 1) return `${values[0]}${unit}`;
-  return `${values[0]}–${values[values.length - 1]}${unit}`;
+  const sorted = uniqueSorted(values);
+  if (!sorted.length) return '';
+  if (sorted.length === 1) return `${sorted[0]}${unit}`;
+  return `${sorted[0]}–${sorted[sorted.length - 1]}${unit}`;
 };
 
 export const formatCatalogSpecs = (item) => [
   item.platforms.length ? item.platforms.join('/') : '',
-  item.sizes.length ? compactRange(item.sizes.map((value) => value.replace(' Fr', '')), 'F') : '',
+  item.sizes.length ? (item.sizes.every((value) => value.endsWith(' Fr')) ? compactRange(item.sizes.map((value) => value.replace(' Fr', '')), 'F') : item.sizes.join('/')) : '',
+  item.ranges?.sizes?.length ? item.ranges.sizes.map(({ min, max, unit }) => `${min}–${max} ${unit}`).join('/') : '',
   item.diameters.length ? `Ø ${compactRange(item.diameters, ' mm')}` : '',
   item.lengths.length
     ? `L ${item.lengths.some((value) => value.endsWith(' cm'))
@@ -181,6 +227,7 @@ export const formatCatalogSpecs = (item) => [
       : compactRange(item.lengths, ' mm')}`
     : '',
   item.shafts.length ? `shaft ${compactRange(item.shafts.map((value) => value.replace(' cm', '')), ' cm')}` : '',
+  item.ranges?.lengths?.length ? item.ranges.lengths.map(({ min, max, unit }) => `L ${min}–${max} ${unit}`).join('/') : '',
   item.minimumSheaths.length ? `sheath ${item.minimumSheaths.join('/')}` : '',
 ].filter(Boolean).join(' | ');
 
@@ -206,8 +253,8 @@ export const getCatalogFilterOptions = (catalog, form = {}, field) => {
   if (!itemField) return [];
   const selectedProduct = getCatalogProduct(catalog, form.product || form.specific);
   const candidates = selectedProduct
-    ? [selectedProduct]
-    : catalog.filter((item) => catalogItemMatches(item, form, field));
+    ? specificationGroups(selectedProduct).filter((group) => groupMatches(group, form, field, true))
+    : catalog.flatMap((item) => specificationGroups(item).filter((group) => groupMatches(group, form, field)));
   return uniqueSorted(candidates.flatMap((item) => item[itemField] || []));
 };
 
@@ -218,9 +265,10 @@ export const reconcileCatalogProduct = (catalog, form = {}, selectedLabel, optio
   if (!selectedProduct) return next;
 
   Object.entries(CATALOG_FIELD_MAP).forEach(([field, itemField]) => {
-    const available = uniqueSorted(selectedProduct[itemField] || []);
-    if (next[field] && !available.includes(String(next[field]))) next[field] = '';
-    if (!next[field] && available.length === 1) next[field] = available[0];
+    const groups = specificationGroups(selectedProduct);
+    const available = uniqueSorted(groups.flatMap((group) => group[itemField] || []));
+    if (next[field] && !groups.some((group) => matchesField(group, itemField, next[field], true))) next[field] = '';
+    if (!next[field] && available.length === 1 && !selectedProduct.ranges?.[itemField]?.length) next[field] = available[0];
   });
   return next;
 };

@@ -87,7 +87,7 @@ test('rotates real stage screenshots every five seconds and wraps to the first s
   for (const stage of [1, 2, 3, 0]) {
     await page.clock.runFor(stage === 1 ? 1 : 5000);
     await expect(tabs.nth(stage)).toHaveAttribute('aria-selected', 'true');
-    await expect(tabs.nth(stage)).toHaveCSS('background-color', 'rgb(17, 49, 149)');
+    await expect(tabs.nth(stage)).toHaveCSS('background-color', 'rgb(16, 44, 104)');
     await expect(page.getByRole('tabpanel')).toHaveAttribute('data-slide', String(stage));
     await expect(page.locator(`[data-dot="${stage}"]`)).toHaveAttribute('aria-pressed', 'true');
     await expect.poll(() => page.getByRole('tabpanel').locator('img').evaluate((node) => node.complete && node.naturalWidth === 1280)).toBe(true);

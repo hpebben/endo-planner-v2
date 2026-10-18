@@ -1,4 +1,4 @@
-import { SHEATH_LENGTHS, SHEATH_GUIDE_URL } from '../../data/sheathLengths';
+import SheathModal from '../SheathModal';
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { SelectControl } from '@wordpress/components';
@@ -80,7 +80,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.184';
+const APPLICATION_VERSION = '1.6.185';
 
 const preferenceTypes = [
   { key: 'needle', legacyId: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg, modal: 'needle' },
@@ -257,7 +257,7 @@ const getPreferenceLabel = (type, value) => {
     case 'needle':
       return joinPreferenceParts([value.size, value.length]);
     case 'sheath':
-      return joinPreferenceParts([value.frSize, value.length]);
+      return joinPreferenceParts([value.product, value.frSize, value.length]);
     case 'catheter':
       return joinPreferenceParts([value.specific, value.frSize, value.length]);
     case 'wire':
@@ -388,51 +388,6 @@ NeedleModal.propTypes = {
   preferredProfiles: PropTypes.arrayOf(PropTypes.object),
 };
 
-function SheathModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
-  const [frSize, setFrSize] = useState(values.frSize || '');
-  const [length, setLength] = useState(values.length || '');
-  useEffect(() => { setFrSize(values.frSize || ''); setLength(values.length || ''); }, [values]);
-  const sizes = ['4 Fr','5 Fr','6 Fr','7 Fr','8 Fr','9 Fr'];
-  const lengths = [...new Set([...SHEATH_LENGTHS, values.length].filter(Boolean))];
-  const handleChange = (field, val) => {
-    const newVals = { frSize, length, [field]: val };
-    if (field === 'frSize') setFrSize(val); else setLength(val);
-    console.log('[Popup] Updated: ', newVals);
-    onSave(newVals);
-    if (newVals.frSize && newVals.length) onRequestClose();
-  };
-  return (
-    <SimpleModal title={__('Sheath', 'endoplanner')} isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <StarredDeviceChoices profiles={preferredProfiles} onSelect={(profile) => { setFrSize(profile.frSize || ''); setLength(profile.length || ''); onSave(profile); onRequestClose(); }} />
-      <SelectControl
-        label={__('French size', 'endoplanner')}
-        value={frSize}
-        options={[{ label: __('Choose size', 'endoplanner'), value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('frSize', val)}
-      />
-      <SelectControl
-        label={__('Length', 'endoplanner')}
-        value={length}
-        options={[{ label: __('Choose length', 'endoplanner'), value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
-      <p className="device-catalog-source">Generic planning lengths; availability depends on the selected product. <a href={SHEATH_GUIDE_URL} target="_blank" rel="noreferrer">EVT Today sheath guide</a></p>
-      <div className="popup-close-row">
-        <button type="button" className="circle-btn close-modal-btn" onClick={() => { console.log('[Popup] X closed'); onRequestClose(); }}>&times;</button>
-      </div>
-    </SimpleModal>
-  );
-}
-
-SheathModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  anchor: PropTypes.object,
-  onRequestClose: PropTypes.func.isRequired,
-  values: PropTypes.object,
-  onSave: PropTypes.func.isRequired,
-  preferredProfiles: PropTypes.arrayOf(PropTypes.object),
-};
-
 function CatheterModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
   const normalize = (input = {}) => ({
     ...input,
@@ -498,6 +453,7 @@ const normalizeWireForm = (values = {}) => ({
   ctoProfile: values.ctoProfile || '',
   technique: values.technique || '',
   product: values.product || '',
+  tipShape: values.tipShape || '',
 });
 
 const wireProfileMatchesFilters = (profile = {}, filters = {}) => (
@@ -506,6 +462,7 @@ const wireProfileMatchesFilters = (profile = {}, filters = {}) => (
   (!filters.role || normalizeWireRole(profile.role || profile.type) === filters.role) &&
   (!filters.technique || profile.technique === filters.technique) &&
   (!filters.ctoProfile || profile.ctoProfile === filters.ctoProfile)
+  && (!filters.tipShape || profile.tipShape === filters.tipShape)
 );
 
 function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredProfiles = [] }) {
@@ -593,6 +550,7 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
     role: '',
     ctoProfile: '',
     technique: '',
+    tipShape: '',
   });
 
   return (
@@ -628,6 +586,13 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
           onChange={(value) => changeFilter('role', value)}
           testId="filter-functional-role"
         />
+        {getWireFilterOptions(form, 'tipShape').length > 0 && <FilterChips
+          label={__('Tip shape', 'endoplanner')}
+          value={form.tipShape || ''}
+          options={getWireFilterOptions(form, 'tipShape')}
+          onChange={(value) => changeFilter('tipShape', value)}
+          testId="filter-tip-shape"
+        />}
         <FilterChips
           label={__('Technique', 'endoplanner')}
           value={form.technique}
@@ -661,7 +626,9 @@ function WireModal({ isOpen, anchor, onRequestClose, values, onSave, preferredPr
         <div className="wire-product-profile">
           <div><b>{__('Role', 'endoplanner')}:</b> {selectedProduct.role}{selectedProduct.ctoProfile ? ` — ${selectedProduct.ctoProfile}` : ''}</div>
           <div><b>{__('Use', 'endoplanner')}:</b> {selectedProduct.purpose}</div>
+          <div><b>{__('Design', 'endoplanner')}:</b> {selectedProduct.design}</div>
           <div><b>{__('Caution', 'endoplanner')}:</b> {selectedProduct.caution}</div>
+          <a href={selectedProduct.source} target="_blank" rel="noreferrer">{__('Product specifications', 'endoplanner')}</a>
         </div>
       )}
       {catalogOptions.length === 0 && preferredOptions.length === 0 && (
@@ -858,10 +825,10 @@ function SpecialDeviceModal({ isOpen, anchor, onRequestClose, values, onSave, pr
         filters={[
           { field: 'category', label: __('Category', 'endoplanner'), testId: 'filter-special-category' },
           { field: 'platform', label: __('Platform', 'endoplanner'), testId: 'filter-platform' },
-          { field: 'size', label: __('Device size', 'endoplanner'), testId: 'filter-device-size' },
-          { field: 'diameter', label: __('Diameter (mm)', 'endoplanner'), testId: 'filter-diameter' },
-          { field: 'length', label: __('Treatment length (mm)', 'endoplanner'), testId: 'filter-length' },
-          { field: 'shaft', label: __('Working/shaft length', 'endoplanner'), testId: 'filter-shaft' },
+          { field: 'size', label: form.category === 'Snare / retrieval' ? __('Snare loop size', 'endoplanner') : __('Device size', 'endoplanner'), testId: 'filter-device-size', allowManual: false },
+          { field: 'diameter', label: __('Device diameter (mm)', 'endoplanner'), testId: 'filter-diameter', allowManual: false },
+          { field: 'length', label: __('Treatment length (mm)', 'endoplanner'), testId: 'filter-length', allowManual: false },
+          { field: 'shaft', label: form.category === 'Snare / retrieval' ? __('Snare wire length', 'endoplanner') : __('Working/shaft length', 'endoplanner'), testId: 'filter-shaft' },
           { field: 'minimumSheathFr', label: __('Minimum sheath', 'endoplanner'), testId: 'filter-minimum-sheath' },
         ]}
       />
@@ -1683,7 +1650,7 @@ export default function Step4({ data, setData }) {
             aria-expanded={prefsOpen}
           >
             <span className="prefs-toggle-icon" aria-hidden="true">★</span>
-            {__('Set local preferences', 'endoplanner')}
+            {__('Select locally available devices', 'endoplanner')}
           </button>
         </div>
         {prefsOpen && (
@@ -1697,7 +1664,7 @@ export default function Step4({ data, setData }) {
               &times;
             </button>
             <div className="prefs-panel-title">
-              {__('Select preferred devices', 'endoplanner')}
+              {__('Select locally available devices', 'endoplanner')}
               {preferenceProfile && (
                 <span className="prefs-profile-version">
                   {`Profile v${preferenceProfile.schemaVersion} · revision ${preferenceProfile.revision}`}

@@ -89,6 +89,18 @@ export default function Step1({ data, setData }) {
 
   return (
     <div className="clinical-center">
+      <section className="clinical-block patient-code-field">
+        <label htmlFor="endoplanner-patient-code">{__('Patient ID code (anonymous)', 'endoplanner')}</label>
+        <input
+          id="endoplanner-patient-code"
+          type="text"
+          autoComplete="off"
+          maxLength={48}
+          value={data.patientId || ''}
+          placeholder={__('Optional case code', 'endoplanner')}
+          onChange={(event) => setData((previous) => ({ ...previous, patientId: event.target.value }))}
+        />
+      </section>
       <section className="clinical-block fontaine-assessment" aria-label={__('Fontaine stage', 'endoplanner')}>
         <h2 className="section-title">{__('Fontaine stage', 'endoplanner')}</h2>
         <p className="section-subtitle">

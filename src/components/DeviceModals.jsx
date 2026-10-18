@@ -1,4 +1,4 @@
-import { SHEATH_LENGTHS } from '../data/sheathLengths';
+export { default as SheathModal } from './SheathModal';
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { SelectControl } from '@wordpress/components';
@@ -44,46 +44,6 @@ export function NeedleModal({ isOpen, anchor, onRequestClose, values, onSave }) 
   );
 }
 NeedleModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  anchor: PropTypes.object,
-  onRequestClose: PropTypes.func.isRequired,
-  values: PropTypes.object,
-  onSave: PropTypes.func.isRequired,
-};
-
-export function SheathModal({ isOpen, anchor, onRequestClose, values, onSave }) {
-  const [frSize, setFrSize] = useState(values.frSize || '');
-  const [length, setLength] = useState(values.length || '');
-  useEffect(() => { setFrSize(values.frSize || ''); setLength(values.length || ''); }, [values]);
-  const sizes = ['4 Fr','5 Fr','6 Fr','7 Fr','8 Fr','9 Fr'];
-  const lengths = [...new Set([...SHEATH_LENGTHS, values.length].filter(Boolean))];
-  const handleChange = (field, val) => {
-    const newVals = { frSize, length, [field]: val };
-    if (field === 'frSize') setFrSize(val); else setLength(val);
-    onSave(newVals);
-    if (newVals.frSize && newVals.length) onRequestClose();
-  };
-  return (
-    <SimpleModal title="Sheath" isOpen={isOpen} anchor={anchor} onRequestClose={onRequestClose}>
-      <SelectControl
-        label="French size"
-        value={frSize}
-        options={[{ label: 'Choose size', value: '', disabled: true }, ...sizes.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('frSize', val)}
-      />
-      <SelectControl
-        label="Length"
-        value={length}
-        options={[{ label: 'Choose length', value: '', disabled: true }, ...lengths.map(v => ({ label: v, value: v }))]}
-        onChange={(val) => handleChange('length', val)}
-      />
-      <div className="popup-close-row">
-        <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>&times;</button>
-      </div>
-    </SimpleModal>
-  );
-}
-SheathModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   anchor: PropTypes.object,
   onRequestClose: PropTypes.func.isRequired,

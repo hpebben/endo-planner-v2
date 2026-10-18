@@ -90,7 +90,7 @@ export function ProductSelect( {
 					</option>
 					{ preferred.length > 0 && (
 						<optgroup
-							label={ __( 'Preferred devices', 'endoplanner' ) }
+							label={ __( 'Prefered devices', 'endoplanner' ) }
 						>
 							{ preferred.map( ( option ) => (
 								<option

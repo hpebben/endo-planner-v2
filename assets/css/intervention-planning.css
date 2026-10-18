@@ -34,7 +34,7 @@
 }
 
 .endo-modal-title {
-  color: #113195;
+  color: #102c68;
   font-size: 1.1rem;
   font-weight: 700;
 }
@@ -42,7 +42,7 @@
 .endo-modal-close {
   background: none;
   border: none;
-  color: #113195;
+  color: #102c68;
   cursor: pointer;
   font-size: 1.5rem;
   line-height: 1;
@@ -63,7 +63,7 @@
 
 .endo-panel-close {
   align-items: center;
-  background: #113195;
+  background: #102c68;
   border: none;
   border-radius: 999px;
   color: #fff;
@@ -81,7 +81,7 @@
 }
 
 .endo-device-panel-header {
-  color: #113195;
+  color: #102c68;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
@@ -93,7 +93,7 @@
 }
 
 .endo-device-add {
-  background: #113195;
+  background: #102c68;
   border: none;
   border-radius: 999px;
   color: #fff;
@@ -202,7 +202,7 @@
 }
 
 .endo-toast {
-  background: #113195;
+  background: #102c68;
   border-radius: 999px;
   bottom: 1.5rem;
   color: #fff;
@@ -260,7 +260,7 @@
   background: #f0f4ff;
   border: 1px solid #ccd5f3;
   border-radius: 999px;
-  color: #113195;
+  color: #102c68;
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
@@ -270,8 +270,8 @@
 }
 
 .raven-hotspot__tooltip .endo-patency-tooltip .endo-patency-button.is-selected {
-  background: #113195;
-  border-color: #113195;
+  background: #102c68;
+  border-color: #102c68;
   box-shadow: 0 0 0 2px rgba(17, 49, 149, 0.2);
   color: #fff;
 }
@@ -357,7 +357,7 @@
   background: #f0f4ff;
   border: 1px solid #ccd5f3;
   border-radius: 6px;
-  color: #113195;
+  color: #102c68;
   cursor: pointer;
   font-size: 0.85rem;
   padding: 0.35rem 0.9rem;
@@ -368,8 +368,8 @@
 .endo-clinical-indication .clinical-buttons button.selected,
 .endo-clinical-indication .laterality-buttons button.active,
 .endo-clinical-indication .clinical-buttons button.active {
-  background: #113195;
-  border-color: #113195;
+  background: #102c68;
+  border-color: #102c68;
   color: #fff;
 }
 

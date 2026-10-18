@@ -13,8 +13,8 @@ export default function StarredDeviceChoices({ profiles = [], onSelect }) {
     profile.role || profile.type,
   ].filter(Boolean).join(' · ') || profile.category || __('Saved device', 'endoplanner');
   return (
-    <div className="starred-device-choices" aria-label={__('Starred device choices', 'endoplanner')}>
-      <strong>{__('Starred choices', 'endoplanner')}</strong>
+    <div className="starred-device-choices" aria-label={__('Prefered devices', 'endoplanner')}>
+      <strong>{__('Prefered devices', 'endoplanner')}</strong>
       {profiles.map((profile, index) => (
         <button type="button" key={index} aria-label={`${__('Choose starred device', 'endoplanner')}: ${label(profile)}`} onClick={() => onSelect(profile)}>
           <span aria-hidden="true">★</span> {label(profile)}

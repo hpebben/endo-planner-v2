@@ -11,7 +11,7 @@ import {
 
 describe('European device catalogues', () => {
   test('keeps the familiar catheter options and product-specific specifications', () => {
-    expect(CATHETER_CATALOG.map((item) => item.label)).toEqual([
+    expect(CATHETER_CATALOG.slice(0, 20).map((item) => item.label)).toEqual([
       'BER2',
       'BHW',
       'Cobra 1',
