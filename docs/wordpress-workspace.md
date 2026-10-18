@@ -6,8 +6,8 @@
 - A separate Case page: the complete native WordPress application, in the same tab.
 - Use the same HTTPS domain so the existing browser-local case and preferences
   remain available. The Start case link navigates; it does not erase a case.
-- Keep the public landing page's navigation and footer. Use a minimal page
-  layout for the workspace with the plugin's compact Back to EndoPlanner link.
+- Use a minimal landing page when the teaser is the complete introduction.
+  The workspace has its own compact Back to EndoPlanner link.
 
 The plugin provides both embeds from v1.6.180. It does not automatically create
 or publish WordPress pages, change the site's home page, or clear saved cases.
@@ -39,7 +39,8 @@ scrolling section and has a compact return link. Keep one planner instance on
 this page. From v1.6.183, published dedicated workspace pages get the scoped
 `endoplanner-workspace-page` body class. The plugin removes common WordPress and
 Elementor wrapper gutters and fills the surrounding page with the workspace
-background. The landing teaser keeps its own page layout.
+background. From v1.6.184 this also covers JupiterX's Bootstrap containers,
+rows, columns and the older Elementor section/column layout.
 The existing wizard block is still supported, as is `[endoplanner layout="embedded"]`
 for layouts that already provide their own surrounding frame.
 
@@ -58,7 +59,7 @@ On the **Case page** in Elementor:
 
 The plugin expands its workspace and common wrapper elements. A custom theme
 can still supply its own framing; the Canvas template is the direct way to
-remove that frame. Keep the normal main-page template for the teaser.
+remove that frame. The teaser has its own scoped full-width page class.
 
 ### Lesion location and details
 
@@ -114,7 +115,13 @@ A custom teaser heading is optional:
 The teaser displays clinical assessment, PAT, WIfI, GLASS, pedal/woundosome
 anatomy, target routes, lesion/device planning, compatibility checks, local
 preferences, automatic browser saving, illustrated PDF and preparation list.
-The supplied Endoplanner logo appears above the introduction. The
+The default headline is **If you fail to plan, you plan to fail**. Remove an old
+`title` attribute from the shortcode to use this headline, or update that
+attribute if a custom heading is required. The original circular Endoplanner
+icon overlaps the box's top-right edge, scaling from 120px on phones to 280px
+on larger screens. Space above the box preserves the complete icon; the
+introduction wraps beneath it on smaller screens. The wordmark is no longer
+repeated inside the introduction. The
 **Endoplanner At a Glance** showcase has four horizontal numbered tabs directly
 below its title, with centered navigation dots and the active stage's highlights
 above its screenshot. The clinical highlights explicitly include woundosome
@@ -127,6 +134,31 @@ Pause/Play button is provided; reduced-motion preferences start it paused.
 The teaser loads only a small controller and scoped styles, without the
 application bundle. The compressed screenshots and original logo are included
 with the plugin.
+
+### Make the teaser the complete home page
+
+1. Set the home page's **Page Layout** to **Elementor Canvas** when the box is
+   the only page content. This removes the theme header and footer. Remove the
+   separate logo, headline and introduction widgets above the shortcode.
+2. Use a single full-width section/container with width **100%**, gap **0**, and
+   margin/padding **0**. Keep only the teaser Shortcode widget in that section.
+3. Set the widget's own margin/padding to **0**, update the page and clear the
+   page/CSS cache.
+
+The teaser itself now uses the available width, without its former 1,200px cap.
+Pages containing the shortcode (including Elementor metadata) receive the
+`endoplanner-teaser-page` class. Scoped CSS expands only wrappers containing
+the teaser/workspace, preserving separate header/footer widgets. It covers
+JupiterX's `.container`/`.container-fluid` padding, negative `.row` margins and
+column gutters, plus Elementor's `.elementor-widget-wrap` padding and boxed
+parents. These were the additional width constraints in the supplied Case page
+HTML. Both pages get the fix. There is no viewport-width breakout or hidden
+horizontal overflow; the box keeps its own responsive inner padding.
+
+The icon is the site's original
+[`endoplannericon.png`](https://endoplanner.thesisapps.com/wp-content/uploads/2023/07/endoplannericon.png),
+bundled as `assets/images/endoplanner-icon.png` so the teaser does not depend on
+the site's media URL remaining available.
 
 The teaser and all planner section/dialog titles use Kobenhavn CS from the
 provided Adobe web project (`https://use.typekit.net/dvh7rnb.css`). Body copy

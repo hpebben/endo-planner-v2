@@ -1,16 +1,31 @@
 const { test, expect } = require('@playwright/test');
 
-for (const width of [1280, 390]) {
+for (const width of [1920, 1280, 390, 320]) {
   test(`keeps the landing teaser lightweight and opens the native case workspace at ${width}px`, async ({ page }) => {
     const errors = [], scripts = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('request', (request) => { if (request.resourceType() === 'script') scripts.push(request.url()); });
     await page.setViewportSize({ width, height: 900 });
     await page.goto('./teaser-qa.html');
-    await expect(page.getByRole('heading', { name: 'Plan the intervention. Prepare the procedure.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'If you fail to plan, you plan to fail' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Endoplanner At a Glance', exact: true })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Endoplanner', exact: true })).toBeVisible();
-    expect(await page.locator('.endoplanner-teaser-logo').evaluate((node) => node.complete && node.naturalWidth === 2000)).toBe(true);
+    expect(await page.locator('.endoplanner-teaser-logo').evaluate((node) => node.complete && node.naturalWidth === 512)).toBe(true);
+    const teaser = await page.locator('.endoplanner-teaser').boundingBox();
+    const logo = await page.locator('.endoplanner-teaser-logo').boundingBox();
+    const title = await page.locator('.endoplanner-teaser-intro h2').boundingBox();
+    expect(teaser.x).toBe(0);
+    expect(teaser.width).toBe(width);
+    expect(logo.y).toBeGreaterThanOrEqual(0);
+    expect(logo.y).toBeLessThan(teaser.y);
+    expect(logo.y + logo.height).toBeGreaterThan(teaser.y);
+    expect(logo.x).toBeGreaterThan(width / 2);
+    expect(logo.x + logo.width).toBeLessThanOrEqual(width);
+    expect(title.y >= logo.y + logo.height || title.x + title.width <= logo.x).toBe(true);
+    for (const selector of ['.jupiterx-header .container', '.jupiterx-footer .container']) {
+      await expect(page.locator(selector)).toHaveCSS('max-width', '1067px');
+      await expect(page.locator(selector)).toHaveCSS('padding-left', '20px');
+    }
     await expect(page.getByText('Local device preferences · Automatic browser save', { exact: true })).toHaveCount(0);
     await expect(page.locator('.endoplanner-teaser-feature')).toHaveCount(4);
     await expect(page.locator('.endoplanner-showcase-slide')).toHaveCount(4);

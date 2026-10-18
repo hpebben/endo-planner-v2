@@ -84,7 +84,7 @@ check( array( 'endoplanner-teaser-showcase' ) === $scripts, 'Teaser pages load o
 check( in_array( 'endoplanner-pages', $styles, true ), 'Teaser style must load.' );
 check( 'https://use.typekit.net/dvh7rnb.css' === $style_registrations['endoplanner-adobe-fonts'][0], 'Use the licensed Adobe web project stylesheet.' );
 check( in_array( 'endoplanner-typography', $styles, true ), 'The teaser must load scoped heading typography.' );
-check( str_contains( $teaser, 'assets/images/endoplanner-logo.png' ) && ! str_contains( $teaser, 'endoplanner-page-eyebrow' ), 'Use the supplied logo instead of the text wordmark.' );
+check( str_contains( $teaser, 'assets/images/endoplanner-icon.png' ) && ! str_contains( $teaser, 'endoplanner-logo.png' ), 'Use the original circular icon without duplicating the wordmark.' );
 check( ! str_contains( $teaser, 'Automatic browser save' ), 'Remove the small save/preferences line.' );
 check( str_contains( $teaser, 'Endoplanner <em>At a Glance</em>' ) && str_contains( $teaser, 'Woundosome selection' ), 'The showcase needs its updated heading and explicit woundosome highlight.' );
 check( str_contains( $teaser, 'href="https://example.org/?page_id=123&amp;endoplanner_case=123"' ), 'An old /case/ link must resolve the actual workspace by ID.' );
@@ -92,7 +92,8 @@ check( 4 === substr_count( $teaser, 'role="tab"' ) && 4 === substr_count( $tease
 check( str_contains( $teaser, '&lt;script&gt;unsafe&lt;/script&gt;' ), 'Custom heading must be escaped.' );
 check( ! str_contains( $teaser, 'endo-newcase-trigger' ) && ! str_contains( $teaser, 'id="startnewcase"' ), 'Teaser must not use legacy reset triggers.' );
 check( ! str_contains( $teaser, 'endoplanner-root' ), 'Teaser must not mount the application.' );
-check( ! in_array( 'endoplanner-workspace-page', apply_filters( 'body_class', array() ), true ), 'The landing teaser must retain its theme layout.' );
+check( ! in_array( 'endoplanner-workspace-page', apply_filters( 'body_class', array() ), true ), 'The landing teaser must not be classified as a workspace.' );
+check( in_array( 'endoplanner-teaser-page', apply_filters( 'body_class', array() ), true ), 'The landing teaser needs its scoped full-width page class.' );
 foreach ( array( 'javascript:alert(1)', 'https://other.example/case/', 'http://example.org/case/', '#case' ) as $bad_url ) {
     check( 'https://example.org/case/' === endoplanner_v2_case_url( array( 'url' => $bad_url ) ), 'Invalid or cross-origin case URLs must fall back safely.' );
 }
@@ -128,6 +129,10 @@ $_GET['endoplanner_case'] = array( '123' );
 check( '/normal/' === apply_filters( 'redirect_canonical', '/normal/' ), 'Malformed route markers must be ignored.' );
 $post = $landing; $post->post_content = 'An ordinary landing page'; $_GET['endoplanner_case'] = '12';
 check( '/normal/' === apply_filters( 'redirect_canonical', '/normal/' ), 'An unrelated page must retain canonical redirects even with a matching marker.' );
+check( array() === apply_filters( 'body_class', array() ), 'Ordinary pages must retain their existing layout classes.' );
+$elementor_data = '[{"widgetType":"shortcode","settings":{"shortcode":"[endoplanner_teaser]"}}]';
+check( array( 'endoplanner-teaser-page' ) === apply_filters( 'body_class', array() ), 'Elementor teaser metadata needs the same scoped page layout.' );
+$elementor_data = '';
 unset( $_GET['endoplanner_case'] );
 check( '/normal/' === apply_filters( 'redirect_canonical', '/normal/' ), 'Normal requests must retain canonical redirects.' );
 
@@ -151,11 +156,17 @@ check( in_array( 'endoplanner-v2-wizard-view-script', $scripts, true ), 'Existin
 check( in_array( 'endoplanner-intervention', $scripts, true ), 'Legacy embeds retain their scripts.' );
 
 if ( ! empty( $argv[1] ) ) {
-    $head = '<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/assets/css/page-embeds.css"><link rel="stylesheet" href="/assets/css/brand-typography.css"><style>body{margin:0;background:#fafbfe}</style></head><body>';
+    // Reproduce the supplied JupiterX page tree and its real Bootstrap gutters,
+    // plus constrained Elementor ancestors. Theme styles intentionally load last.
+    $head = '<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/assets/css/page-embeds.css"><link rel="stylesheet" href="/assets/css/brand-typography.css"><style>*{box-sizing:border-box}body{margin:20px;padding:20px;background:#fafbfe}.container,.container-fluid{width:100%;padding-right:20px;padding-left:20px;margin:auto}.container{max-width:1067px}.row{display:flex;flex-wrap:wrap;margin-right:-15px;margin-left:-15px}.col-lg-12{position:relative;width:100%;padding-right:15px;padding-left:15px}.jupiterx-main-content{padding:24px 0}.elementor-widget-wrap{padding:10px}.elementor-container{display:flex}.elementor-column{width:100%}.jupiterx-main{border-inline:10px solid #eee}</style></head><body>';
+    $frame = function( $content ) {
+        return '<div class="jupiterx-site"><header class="jupiterx-header"><div class="container"></div></header><main class="jupiterx-main"><div class="jupiterx-main-content"><div class="container-fluid"><div class="row"><div class="jupiterx-primary col-lg-12"><div class="jupiterx-content"><article class="jupiterx-post"><div class="jupiterx-post-body"><div class="jupiterx-post-content"><div class="elementor" data-elementor-type="wp-page"><section class="elementor-section elementor-section-full_width"><div class="elementor-container elementor-column-gap-default"><div class="elementor-column elementor-col-100"><div class="elementor-widget-wrap elementor-element-populated"><div class="entry-content" style="max-width:960px;margin:24px;padding:32px"><div class="e-con e-parent" style="max-width:960px;padding:24px"><div class="e-con-inner"><div class="elementor-widget-shortcode"><div class="elementor-widget-container"><div class="elementor-shortcode">' . $content . '</div></div></div></div></div></div></div></div></div></section></div></div></div></article></div></div></div></div></div></main><footer class="jupiterx-footer"><div class="container"></div></footer></div>';
+    };
     $teaser = str_replace( '/wp-content/plugins/endo-planner-v2/assets/', '/assets/', endoplanner_v2_teaser_shortcode( array( 'url' => '/e2e/workspace-qa.html' ) ) );
-    file_put_contents( $argv[1] . '/teaser-qa.html', $head . $teaser . '<script src="/assets/js/teaser-showcase.js"></script></body></html>' );
+    $teaser_head = str_replace( '<body>', '<body class="endoplanner-teaser-page">', $head );
+    file_put_contents( $argv[1] . '/teaser-qa.html', $teaser_head . $frame( $teaser ) . '<script src="/assets/js/teaser-showcase.js"></script></body></html>' );
     file_put_contents( $argv[1] . '/workspace-markup.html', endoplanner_v2_workspace_shortcode() );
     $workspace_head = str_replace( '<body>', '<body class="endoplanner-workspace-page">', str_replace( '</head>', '<link rel="stylesheet" href="/src/styles/style.scss"></head>', $head ) );
-    file_put_contents( $argv[1] . '/workspace-qa.html', $workspace_head . '<main class="entry-content" style="max-width:960px;padding:32px"><div class="e-con e-parent" style="max-width:960px;padding:24px"><div class="elementor-widget-shortcode"><div class="elementor-widget-container">' . endoplanner_v2_workspace_shortcode() . '</div></div></div></main><script type="module" src="/e2e/main.jsx"></script></body></html>' );
+    file_put_contents( $argv[1] . '/workspace-qa.html', $workspace_head . $frame( endoplanner_v2_workspace_shortcode() ) . '<script type="module" src="/e2e/main.jsx"></script></body></html>' );
 }
 echo "WordPress embed checks passed.\n";
