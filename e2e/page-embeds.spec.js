@@ -49,7 +49,7 @@ for (const width of [1920, 1280, 390, 320]) {
     expect(layout.image.y).toBeGreaterThanOrEqual(layout.caption.bottom);
     await expect(page.locator('.endoplanner-showcase-slide:not([hidden]) figcaption')).toHaveCSS('text-align', 'center');
     await expect(page.locator('.endoplanner-teaser-intro h2')).toHaveCSS('font-family', /kobenhavn-cs/);
-    expect(await page.getByRole('tabpanel').locator('img').evaluate((node) => node.complete && node.naturalWidth === 1280)).toBe(true);
+    expect(await page.getByRole('tabpanel').locator('img').evaluate((node) => node.complete && node.naturalWidth === 2560 && node.naturalHeight === 1600)).toBe(true);
     await expect(page.locator('.endoplanner-root')).toHaveCount(0);
     // Vite may inject its development client; the teaser has no app bundle.
     expect(scripts.filter((url) => /main\.jsx|build\/index|\/src\//.test(url))).toEqual([]);
@@ -90,7 +90,7 @@ test('rotates real stage screenshots every five seconds and wraps to the first s
     await expect(tabs.nth(stage)).toHaveCSS('background-color', 'rgb(16, 44, 104)');
     await expect(page.getByRole('tabpanel')).toHaveAttribute('data-slide', String(stage));
     await expect(page.locator(`[data-dot="${stage}"]`)).toHaveAttribute('aria-pressed', 'true');
-    await expect.poll(() => page.getByRole('tabpanel').locator('img').evaluate((node) => node.complete && node.naturalWidth === 1280)).toBe(true);
+    await expect.poll(() => page.getByRole('tabpanel').locator('img').evaluate((node) => node.complete && node.naturalWidth === 2560 && node.naturalHeight === 1600)).toBe(true);
   }
 });
 

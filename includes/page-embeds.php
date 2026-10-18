@@ -110,6 +110,12 @@ function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
         array( '3', 'Intervention plan', array( 'Access planning', 'Crossing and treatment devices', 'Closure', 'Compatibility review' ) ),
         array( '4', 'Case summary', array( 'Selected anatomy', 'Illustrated case PDF', 'Materials preparation checklist' ) ),
     );
+    $preview_descriptions = array(
+        'Example clinical assessment with WIfI grades, hallux woundosome selection and pedal acceleration time readings of 260 ms and 200 ms.',
+        'Example disease anatomy with left superficial femoral and anterior tibial occlusions, a peroneal stenosis and a pedal target route.',
+        'Example intervention plan with separate crossing and balloon treatment selections for three lesions.',
+        'Example case summary with woundosome images, three arterial lesions and PAT measurements.',
+    );
     ob_start(); ?>
     <div class="endoplanner-teaser-shell">
     <section class="endoplanner-teaser" aria-label="EndoPlanner overview">
@@ -130,7 +136,7 @@ function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
             <?php foreach ( $features as $index => $feature ) : ?>
                 <figure class="endoplanner-showcase-slide" role="tabpanel" id="<?php echo esc_attr( $instance . '-slide-' . $index ); ?>" aria-labelledby="<?php echo esc_attr( $instance . '-tab-' . $index ); ?>" <?php echo 0 === $index ? '' : 'hidden'; ?> data-slide="<?php echo esc_attr( $index ); ?>">
                     <figcaption><strong><?php echo esc_html( $feature[1] ); ?></strong><ul class="endoplanner-showcase-highlights"><?php foreach ( $feature[2] as $highlight ) : ?><li><?php echo esc_html( $highlight ); ?></li><?php endforeach; ?></ul></figcaption>
-                    <img src="<?php echo esc_url( plugins_url( 'assets/showcase/stage-' . ( $index + 1 ) . '.webp', $plugin ) ); ?>" width="1280" height="800" alt="<?php echo esc_attr( $feature[1] . ' - example of the actual EndoPlanner application' ); ?>" loading="<?php echo 0 === $index ? 'eager' : 'lazy'; ?>" decoding="async" />
+                    <img src="<?php echo esc_url( add_query_arg( array( 'ver' => endoplanner_v2_get_version() ), plugins_url( 'assets/showcase/stage-' . ( $index + 1 ) . '.webp', $plugin ) ) ); ?>" width="2560" height="1600" alt="<?php echo esc_attr( $preview_descriptions[$index] ); ?>" loading="<?php echo 0 === $index ? 'eager' : 'lazy'; ?>" decoding="async" />
                 </figure>
             <?php endforeach; ?>
         </div>
