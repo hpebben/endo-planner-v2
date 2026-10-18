@@ -21,7 +21,7 @@ or publish WordPress pages, change the site's home page, or clear saved cases.
    blank/full-width template is another option if Elementor is not used.
 4. Use a single full-width container, no sidebar, and no minimum/fixed height,
    entrance animation or boxed-width parent. Set outer gap/padding to 0; the
-   workspace provides its own responsive padding and maximum width.
+   workspace provides its own small responsive inner padding.
 5. Add an Elementor **Shortcode** widget (or a Gutenberg **Shortcode** block):
 
    ```text
@@ -34,10 +34,51 @@ or publish WordPress pages, change the site's home page, or clear saved cases.
    [endoplanner layout="workspace" back_url="/endoplanner/"]
    ```
 
-The workspace gives the application up to 1440 px, replaces the old scrolling
-section and has a compact return link. Keep one planner instance on this page.
+The workspace fills the page width and viewport height, replaces the old
+scrolling section and has a compact return link. Keep one planner instance on
+this page. From v1.6.183, published dedicated workspace pages get the scoped
+`endoplanner-workspace-page` body class. The plugin removes common WordPress and
+Elementor wrapper gutters and fills the surrounding page with the workspace
+background. The landing teaser keeps its own page layout.
 The existing wizard block is still supported, as is `[endoplanner layout="embedded"]`
 for layouts that already provide their own surrounding frame.
+
+### Full-screen page settings
+
+On the **Case page** in Elementor:
+
+1. Open **Page Settings → Page Layout → Elementor Canvas**. Canvas removes the
+   site header, footer and sidebar from this page.
+2. Select the outer container: **Layout → Content Width → Full Width** and set
+   its width to **100%**. Use one container for the workspace shortcode.
+3. Under **Advanced**, set outer **margin and padding to 0** and remove any
+   container border. Set the container gap to **0**.
+4. Set the Shortcode widget's margin and padding to **0** as well, publish, and
+   clear the site's page/CSS cache.
+
+The plugin expands its workspace and common wrapper elements. A custom theme
+can still supply its own framing; the Canvas template is the direct way to
+remove that frame. Keep the normal main-page template for the teaser.
+
+### Lesion location and details
+
+- In Disease anatomy, drag the **red lesion fill** to move it within its artery.
+  This changes schematic placement and preserves the recorded lesion length.
+  Focus a selected artery and use arrow keys, Home or End for keyboard placement.
+- The lesion editor's **Lesion extent on map (optional)** section also provides
+  a position slider and Proximal/Middle/Distal shortcuts.
+- When a popliteal artery is selected, **P1, P2 and P3** buttons record the involved
+  anatomical segments; more than one can be selected. These fields are separate
+  from the schematic drawing and do not assume equal anatomical thirds.
+- Position and popliteal selections are saved and carried into the plan,
+  illustrated summary and PDF. The diagrams remain schematic.
+- Lesions are labeled **Lesion 1**, **Lesion 2**, etc. throughout the workflow.
+  The planning section is named **Lesion crossing, vessel preparation & treatment**.
+- Woundosome anatomy notes, route guidance and references are available through
+  the round blue info buttons. The artery-label toggle uses the same dark blue
+  style as the planner controls.
+
+P1–P3 definition source: [ESR ECR 2025 anatomical overview](https://epos.myesr.org/poster/esr/ecr2025/C-16124/findings%20and%20procedure%20details).
 
 ## Configure the main page
 

@@ -46,6 +46,10 @@ for (const width of [1280, 390]) {
     await expect(page.getByRole('heading', { name: 'Fontaine stage', exact: true })).toHaveCSS('font-family', /kobenhavn-cs/);
     await expect(page.locator('.endoplanner-workspace .endo-wizard')).toHaveCount(1);
     await expect(page.getByRole('link', { name: 'Back to EndoPlanner' })).toBeVisible();
+    const workspace = await page.locator('.endoplanner-workspace').boundingBox();
+    expect(workspace.x).toBe(0);
+    expect(workspace.width).toBe(width);
+    await expect(page.locator('body')).toHaveCSS('margin', '0px');
     const appWidth = await page.locator('.endo-wizard').evaluate((node) => node.getBoundingClientRect().width);
     if (width > 1000) expect(appWidth).toBeGreaterThan(1000);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);

@@ -141,7 +141,7 @@ test('offers local preferences as starred choices without adding unused devices'
     const data = JSON.parse(localStorage.getItem(key))?.data;
     return { nav: data?.navRows, therapy: data?.therapyRows, sheath: data?.accessRows?.[0]?.sheaths?.[0], closure: data?.closureRows?.[0]?.method || '' };
   }, STATE_KEY)).toEqual({ nav: [], therapy: [], sheath: {}, closure: '' });
-  const composer = page.getByTestId('plan-scope-group-L1');
+  const composer = page.getByTestId('plan-scope-group-Lesion-1');
   await composer.getByRole('button', { name: 'Add crossing device', exact: true }).click();
   await composer.getByRole('button', { name: 'Wire', exact: true }).click();
   const dialog = page.getByRole('dialog');
@@ -228,7 +228,7 @@ test('plans lesions without a PATH tab and keeps shared support available in rou
 
   const workspace = page.getByTestId('visual-intervention-planner');
   await expect(workspace.getByTestId('visual-scope-PATH')).toHaveCount(0);
-  await expect(workspace.getByTestId('visual-scope-L1')).toContainText('Left superficial femoral artery');
+  await expect(workspace.getByTestId('visual-scope-Lesion-1')).toContainText('Left superficial femoral artery');
 
   const support = workspace.locator('.visual-plan-schematic').getByTestId('shared-route-support');
   await expect(workspace.locator('.visual-plan-foot-context').getByTestId('shared-route-support')).toHaveCount(0);
@@ -240,7 +240,7 @@ test('plans lesions without a PATH tab and keeps shared support available in rou
   });
   await sfaPlanningTarget.focus();
   await page.keyboard.press('Enter');
-  const lesionComposer = workspace.getByTestId('plan-scope-group-L1');
+  const lesionComposer = workspace.getByTestId('plan-scope-group-Lesion-1');
   await lesionComposer.getByRole('button', { name: 'Add crossing device' }).click();
   await lesionComposer.getByRole('button', { name: 'Add treatment device' }).click();
   await expect(page.getByTestId('target-lesion-select')).toHaveCount(0);
@@ -266,7 +266,7 @@ test('shows chosen devices as schematics below the anatomy and selected woundoso
   await page.goto('./');
 
   const workspace = page.getByTestId('visual-intervention-planner');
-  const lesionSummary = workspace.getByTestId('visual-scope-L1');
+  const lesionSummary = workspace.getByTestId('visual-scope-Lesion-1');
   await expect(lesionSummary).toContainText('ASAHI Gladius MG 18 PV ES');
   await expect(lesionSummary).toContainText('5 × 120 mm');
   await expect(lesionSummary.locator('.device-glyph--wire')).toHaveCount(1);
@@ -348,7 +348,7 @@ test('starts device selection with preferred products and faceted specification 
 
   const lesionComposer = page
     .getByTestId('visual-intervention-planner')
-    .getByTestId('plan-scope-group-L1');
+    .getByTestId('plan-scope-group-Lesion-1');
   await lesionComposer
     .getByRole('button', { name: 'Asahi Intecc — Halberd', exact: true })
     .click();
@@ -415,7 +415,7 @@ test('maps Fontaine IV wound locations to a wound-informed TAP consideration', a
   await expect(selector.getByTestId('woundosome-ap')).toBeVisible();
   await expect(selector.getByTestId('woundosome-lateral')).toBeVisible();
   await expect(selector.locator('svg image')).toHaveCount(0);
-  await expect(selector.getByText('Idealized patent anatomy', { exact: true })).toBeVisible();
+  await expect(selector.getByRole('button', { name: 'Woundosome anatomy information', exact: true })).toBeVisible();
   const arterialIds = [];
   for (const view of ['ap', 'lateral']) {
     const model = selector.getByTestId(`foot-anatomy-${view}`);
@@ -433,7 +433,9 @@ test('maps Fontaine IV wound locations to a wound-informed TAP consideration', a
   await expect(selector.getByRole('button', { name: 'Hallux / first ray', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(selector.getByText('Anterior tibial → dorsalis pedis TAP')).toBeVisible();
   await expect(selector.getByText('Posterior tibial → plantar arch TAP')).toBeVisible();
-  await expect(selector.getByRole('link', { name: /Manzi et al/ })).toHaveAttribute('href', 'https://pubs.rsna.org/doi/10.1148/rg.316115511');
+  await selector.getByRole('button', { name: 'Woundosome anatomy information', exact: true }).click();
+  await expect(page.getByRole('dialog').getByRole('link', { name: /Manzi et al/ })).toHaveAttribute('href', 'https://pubs.rsna.org/doi/10.1148/rg.316115511');
+  await page.keyboard.press('Escape');
 
   await expect.poll(() => page.evaluate((key) => (
     JSON.parse(localStorage.getItem(key))?.data?.clinical?.woundLocations
@@ -725,7 +727,7 @@ for (const [stage, woundLocations] of [['iii', ['dorsum']], ['iv', []]]) {
     await page.goto('./');
     await expect(page.getByTestId('selected-woundosomes')).toHaveCount(0);
     await expect(page.getByRole('region', { name: 'Target arterial path information' })).toBeVisible();
-    await expect(page.getByTestId('visual-scope-L1')).toBeVisible();
+    await expect(page.getByTestId('visual-scope-Lesion-1')).toBeVisible();
   });
 }
 
@@ -738,14 +740,14 @@ test('keeps unlinked legacy devices as starred selector choices across reloads',
   await seed(page, data, 2);
   await page.goto('./');
   await expect(page.getByTestId('plan-scope-group-UNASSIGNED')).toHaveCount(0);
-  await expect(page.getByTestId('visual-scope-L1')).toContainText('ASAHI Gladius MG 18 PV ES');
+  await expect(page.getByTestId('visual-scope-Lesion-1')).toContainText('ASAHI Gladius MG 18 PV ES');
   await expect.poll(() => page.evaluate((key) => {
     const stored = JSON.parse(localStorage.getItem(key))?.data;
     return { nav: stored?.navRows?.length, therapy: stored?.therapyRows?.length, choices: stored?.planDeviceSuggestions?.navigation?.length };
   }, STATE_KEY)).toEqual({ nav: 1, therapy: 1, choices: 1 });
   await page.reload();
-  await page.getByTestId('visual-scope-L2').click();
-  const composer = page.getByTestId('plan-scope-group-L2');
+  await page.getByTestId('visual-scope-Lesion-2').click();
+  const composer = page.getByTestId('plan-scope-group-Lesion-2');
   await composer.getByRole('button', { name: 'Add crossing device', exact: true }).click();
   await composer.getByRole('button', { name: 'Wire', exact: true }).click();
   let dialog = page.getByRole('dialog');
@@ -762,8 +764,8 @@ test('keeps unlinked legacy devices as starred selector choices across reloads',
     return { wire: stored?.navRows?.[1]?.wire?.product, balloon: stored?.therapyRows?.[1]?.balloon?.product, scope: stored?.therapyRows?.[1]?.scope?.ids };
   }, STATE_KEY)).toEqual({ wire: 'Legacy unused wire', balloon: 'Legacy unused balloon', scope: [secondLesion] });
   await page.reload();
-  await expect(page.getByTestId('visual-scope-L2')).toContainText('Legacy unused wire');
-  await expect(page.getByTestId('visual-scope-L2')).toContainText('Legacy unused balloon');
+  await expect(page.getByTestId('visual-scope-Lesion-2')).toContainText('Legacy unused wire');
+  await expect(page.getByTestId('visual-scope-Lesion-2')).toContainText('Legacy unused balloon');
 });
 
 test('keeps anatomy, wound previews and the review popup usable on a phone', async ({ page }) => {
@@ -773,7 +775,7 @@ test('keeps anatomy, wound previews and the review popup usable on a phone', asy
   await seed(page, data, 2);
   await page.goto('./');
   await expect(page.getByTestId('selected-woundosomes').locator('[data-wound-id]')).toHaveCount(6);
-  await expect(page.getByTestId('visual-scope-L1')).toBeVisible();
+  await expect(page.getByTestId('visual-scope-Lesion-1')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
   await page.getByTestId('plan-review-button').click();
   const dialog = page.getByRole('dialog', { name: 'Plan summary & recommendations', exact: true });
@@ -789,13 +791,13 @@ test('does not assign an unlinked legacy choice just because only one lesion exi
   data.navRows = [{ id: 'unused-support', wire: { product: 'Unused local support wire', role: 'Support / exchange', platform: '0.035', length: '260 cm' } }];
   await seed(page, data, 2);
   await page.goto('./');
-  await expect(page.getByTestId('visual-scope-L1')).toContainText('No devices yet');
+  await expect(page.getByTestId('visual-scope-Lesion-1')).toContainText('No devices yet');
   await expect.poll(() => page.evaluate((key) => {
     const stored = JSON.parse(localStorage.getItem(key))?.data;
     return { selected: stored?.navRows?.length, available: stored?.planDeviceSuggestions?.navigation?.[0]?.wire?.product };
   }, STATE_KEY)).toEqual({ selected: 0, available: 'Unused local support wire' });
-  await page.getByTestId('plan-scope-group-L1').getByRole('button', { name: 'Add crossing device', exact: true }).click();
-  await page.getByTestId('plan-scope-group-L1').getByRole('button', { name: 'Wire', exact: true }).click();
+  await page.getByTestId('plan-scope-group-Lesion-1').getByRole('button', { name: 'Add crossing device', exact: true }).click();
+  await page.getByTestId('plan-scope-group-Lesion-1').getByRole('button', { name: 'Wire', exact: true }).click();
   await expect(page.getByRole('dialog').getByRole('button', { name: /Choose starred device: Unused local support wire/ })).toBeVisible();
 });
 
@@ -872,7 +874,7 @@ test('shows a 5 cm lesion as a short red fill inside a red-outlined SFA and pres
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   const planned = page.getByRole('button', { name: 'Plan devices for Left superficial femoral artery', exact: true });
   expect(Number(await planned.getAttribute('data-lesion-fraction'))).toBeCloseTo(5 / 35);
-  await expect(page.getByTestId('plan-scope-group-L1').locator('.visual-plan-composer-header')).toContainText('5 cm');
+  await expect(page.getByTestId('plan-scope-group-Lesion-1').locator('.visual-plan-composer-header')).toContainText('5 cm');
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   const downloaded = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
@@ -992,7 +994,7 @@ test('offers long access sheaths and restores the chosen length', async ({ page 
 test('selects a crossing balloon and carries it through saved plan, summary and PDF', async ({ page }, testInfo) => {
   await seed(page, completeCase(), 2, profile);
   await page.goto('./');
-  const composer = page.getByTestId('plan-scope-group-L1');
+  const composer = page.getByTestId('plan-scope-group-Lesion-1');
   await composer.getByRole('button', { name: 'Crossing balloon', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('button', { name: /Choose starred device:.*5/ }).click();
@@ -1012,7 +1014,7 @@ test('selects a crossing balloon and carries it through saved plan, summary and 
 test('reveals the full device specification in a dark blue tooltip on hover and focus', async ({ page }) => {
   await seed(page, completeCase(), 2);
   await page.goto('./');
-  const wire = page.getByTestId('plan-scope-group-L1').getByRole('button', { name: 'ASAHI Gladius MG 18 PV ES', exact: true });
+  const wire = page.getByTestId('plan-scope-group-Lesion-1').getByRole('button', { name: 'ASAHI Gladius MG 18 PV ES', exact: true });
   await wire.hover();
   const tooltip = page.getByRole('tooltip');
   await expect(tooltip).toContainText('ASAHI Gladius MG 18 PV ES');
@@ -1108,4 +1110,153 @@ test('continues long materials lists without losing the final distinct configura
   expect((pdf.match(/PREP_WIRE_24_SELECTED/g) || []).length).toBeGreaterThanOrEqual(2);
   expect(pdf).toContain('Materials preparation - continued');
   expect(pdf).toContain('CLOSURE & HAEMOSTASIS');
+});
+
+async function lesionDragPoint(locator) {
+  return locator.evaluate((node) => {
+    const shape = node.querySelector('.vessel-lesion-drag-hit');
+    const bounds = shape.getBBox(), vertical = bounds.height >= bounds.width;
+    const fraction = Number(node.dataset.lesionFraction), position = Number(node.dataset.lesionPosition);
+    const center = (1 - fraction) * position + fraction / 2;
+    let point = new DOMPoint(bounds.x + bounds.width * (vertical ? 0.5 : center), bounds.y + bounds.height * (vertical ? center : 0.5));
+    for (let index = 0; index <= 100; index++) {
+      const sample = new DOMPoint(bounds.x + bounds.width * (vertical ? index / 100 : center), bounds.y + bounds.height * (vertical ? center : index / 100));
+      if (shape.isPointInFill(sample)) { point = sample; break; }
+    }
+    const matrix = shape.getScreenCTM(), screen = point.matrixTransform(matrix);
+    return { x: screen.x, y: screen.y, travel: vertical ? bounds.height * matrix.d : bounds.width * matrix.a, vertical };
+  });
+}
+
+test('keeps woundosome explanations behind accessible blue info buttons', async ({ page }) => {
+  await seed(page, baseCase(), 0);
+  await page.goto('./');
+  const selector = page.getByTestId('woundosome-selector');
+  await expect(selector.getByText('Idealized patent anatomy', { exact: true })).toHaveCount(0);
+  await expect(selector.getByText(/Original angiographic-style reference model/)).toHaveCount(0);
+  await expect(selector.getByText(/Confirm the true feeding artery/)).toHaveCount(0);
+  await expect(selector.getByRole('link')).toHaveCount(0);
+  await expect(selector.getByTestId('foot-artery-label-toggle')).toHaveCSS('background-color', 'rgb(17, 49, 149)');
+  const anatomyInfo = selector.getByRole('button', { name: 'Woundosome anatomy information', exact: true });
+  await anatomyInfo.click();
+  await expect(page.getByRole('dialog')).toContainText('Original angiographic-style reference model');
+  await expect(page.getByRole('dialog').getByRole('link')).toHaveCount(1);
+  await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(anatomyInfo).toBeFocused();
+  const guidanceInfo = selector.getByRole('button', { name: 'Woundosome guidance and references', exact: true });
+  await guidanceInfo.click();
+  await expect(page.getByRole('dialog')).toContainText('Confirm the true feeding artery');
+  await expect(page.getByRole('dialog').getByRole('link')).toHaveCount(2);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(guidanceInfo).toBeFocused();
+});
+
+test('drags a lesion along its artery, preserves length, and carries placement into planning and PDF', async ({ page }) => {
+  const data = completeCase();
+  data.patencySegments[lesionId] = { type: 'stenosis', length: '3-10', calcium: 'moderate', measuredLengthCm: '5' };
+  await seed(page, data, 1);
+  await page.goto('./');
+  const artery = page.locator(`.patency-container #${lesionId}`);
+  await expect(artery).toHaveAttribute('data-lesion-position', '0.5');
+  const beforeFraction = await artery.getAttribute('data-lesion-fraction');
+  const point = await lesionDragPoint(artery);
+  await page.mouse.move(point.x, point.y);
+  await page.mouse.down();
+  await page.mouse.move(point.x, point.y + point.travel * 0.2, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(async () => Number(await artery.getAttribute('data-lesion-position'))).toBeGreaterThan(0.65);
+  await expect(artery).toHaveAttribute('data-lesion-fraction', beforeFraction);
+  await expect(page.locator('.param-box')).toHaveCount(0);
+  await artery.focus();
+  await page.keyboard.press('End');
+  await expect(artery).toHaveAttribute('data-lesion-position', '1');
+  await expect.poll(() => page.evaluate((id) => JSON.parse(localStorage.getItem('endoplannerState')).data.patencySegments[id], lesionId)).toEqual({ ...data.patencySegments[lesionId], positionFraction: 1 });
+  await page.reload();
+  await expect(artery).toHaveAttribute('data-lesion-position', '1');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByText('Lesion crossing, vessel preparation & treatment', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('plan-scope-group-Lesion-1').locator('.plan-scope-group-code')).toHaveText('Lesion 1');
+  await expect(page.getByTestId('plan-scope-group-Lesion-1')).toContainText('schematic distal position');
+  await expect(page.locator('.visual-plan-map .vessel-lesion-drag-hit')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.locator('.case-summary__anatomy')).toContainText('schematic distal position');
+  await expect(page.locator('.summary-disease-visual [data-lesion-position="1"]')).toHaveCount(1);
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const stream = await (await downloaded).createReadStream(), chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  const pdf = Buffer.concat(chunks).toString('latin1');
+  expect(pdf).toContain('schematic distal position');
+  expect(pdf).toContain('Lesion 1');
+});
+
+test('records multiple popliteal segments and includes them in the plan, summary and PDF', async ({ page }) => {
+  const data = completeCase(), id = 'Left_popliteal_artery_artery';
+  data.patencySegments = { [id]: { type: 'stenosis', length: '3-10', calcium: 'none', measuredLengthCm: '5' } };
+  data.navRows[0].lesionId = id;
+  data.therapyRows[0].lesionId = id;
+  await seed(page, data, 1);
+  await page.goto('./');
+  await page.locator(`.patency-container #${id}`).click();
+  const parts = page.getByRole('group', { name: 'Popliteal segments', exact: true });
+  await parts.getByRole('button', { name: 'P2', exact: true }).click();
+  await parts.getByRole('button', { name: 'P3', exact: true }).click();
+  await page.getByRole('button', { name: 'Save lesion', exact: true }).click();
+  await expect(page.locator('.selected-segments')).toContainText('P2 + P3');
+  await page.reload();
+  await page.locator(`.patency-container #${id}`).click();
+  await expect(parts.getByRole('button', { name: 'P1', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await expect(parts.getByRole('button', { name: 'P2', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(parts.getByRole('button', { name: 'P3', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Save lesion', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByTestId('plan-scope-group-Lesion-1')).toContainText('P2 + P3');
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.locator('.case-summary__anatomy')).toContainText('Lesion 1');
+  await expect(page.locator('.case-summary__anatomy')).toContainText('P2 + P3');
+  const downloaded = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  const stream = await (await downloaded).createReadStream(), chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  expect(Buffer.concat(chunks).toString('latin1')).toContain('P2 + P3');
+});
+
+test('moves a lesion with a touch drag on a narrow screen', async ({ page, context }) => {
+  const data = completeCase();
+  data.patencySegments[lesionId] = { type: 'stenosis', length: '<3', calcium: 'none', measuredLengthCm: '2' };
+  await page.setViewportSize({ width: 390, height: 900 });
+  await seed(page, data, 1);
+  await page.goto('./');
+  const artery = page.locator(`.patency-container #${lesionId}`);
+  const point = await lesionDragPoint(artery), client = await context.newCDPSession(page);
+  await client.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
+  await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: point.x, y: point.y, id: 1 }] });
+  for (let index = 1; index <= 6; index++) await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: point.x, y: point.y + point.travel * 0.15 * index / 6, id: 1 }] });
+  await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await expect.poll(async () => Number(await artery.getAttribute('data-lesion-position'))).toBeGreaterThan(0.6);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await expect(page.locator('.param-box')).toHaveCount(0);
+});
+
+test('keeps right-sided horizontal lesion dragging aligned with proximal and distal anatomy', async ({ page }) => {
+  const data = completeCase(), id = 'Right_common_iliac_artery';
+  data.patencySegments = { [id]: { type: 'stenosis', length: '<3', calcium: 'none', measuredLengthCm: '2' } };
+  data.targetArterialPath = ['Right_common_femoral_artery', 'Right_superficial_femoral_artery', 'Right_popliteal_artery_artery', 'Right_anterior_tibital_artery', 'Right_dorsal_pedal_artery'];
+  data.targetArterialPathSide = 'Right';
+  await seed(page, data, 1);
+  await page.goto('./');
+  const artery = page.locator(`.patency-container #${id}`), point = await lesionDragPoint(artery);
+  expect(point.vertical).toBe(false);
+  await page.mouse.move(point.x, point.y);
+  await page.mouse.down();
+  await page.mouse.move(point.x - point.travel * 0.15, point.y, { steps: 6 });
+  await page.mouse.up();
+  await expect.poll(async () => Number(await artery.getAttribute('data-lesion-position'))).toBeGreaterThan(0.7);
+  await expect(page.locator('.selected-segments')).toContainText('schematic distal position');
+  await artery.focus();
+  await page.keyboard.press('Home');
+  await expect(artery).toHaveAttribute('data-lesion-position', '0');
+  await page.keyboard.press('ArrowLeft');
+  await expect(artery).toHaveAttribute('data-lesion-position', '0.05');
 });

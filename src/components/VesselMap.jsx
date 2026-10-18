@@ -1,6 +1,7 @@
 import React, { useId, useLayoutEffect, useRef, useState } from 'react';
 import rawVesselData from '../assets/vessel-map.json';
 import { getLesionExtent, lesionExtentDescription } from '../utils/lesionExtent';
+import { moveLesionPosition, lesionMapDirection } from '../utils/lesionLocation';
 import '../styles/style.scss';
 
 // Determine the actual segments array regardless of JSON shape.
@@ -17,8 +18,9 @@ const parseVesselData = (data) => {
 
 const { root: vesselRoot, segments: vesselSegments } = parseVesselData(rawVesselData);
 
-function VesselShape({ shape, classes, selected, targeted, extent }) {
+function VesselShape({ segmentId, shape, classes, selected, targeted, extent, onPositionChange }) {
   const shapeRef = useRef(null);
+  const dragRef = useRef(null);
   const clipId = `lesion-${useId().replace(/:/g, '')}`;
   const [axis, setAxis] = useState('y');
   useLayoutEffect(() => {
@@ -29,8 +31,40 @@ function VesselShape({ shape, classes, selected, targeted, extent }) {
   const attrs = shape.attrs ? { ...shape.attrs } : shape.d ? { d: shape.d } : { points: shape.points };
   const tag = shape.name || (shape.points ? 'polygon' : 'path');
   delete attrs.class;
-  const start = extent?.start || 0, end = start + (extent?.fraction || 0);
+  const direction = lesionMapDirection(segmentId, axis);
+  const start = direction < 0 ? 1 - (extent?.start || 0) - (extent?.fraction || 0) : extent?.start || 0;
+  const end = start + (extent?.fraction || 0);
   const clip = axis === 'x' ? `M ${start} 0 H ${end} V 1 H ${start} Z` : `M 0 ${start} H 1 V ${end} H 0 Z`;
+  const pointOnShape = (event) => {
+    const matrix = shapeRef.current?.getScreenCTM();
+    return matrix ? new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse()) : null;
+  };
+  const startDrag = (event) => {
+    if (event.button !== 0 || !onPositionChange || extent?.fraction >= 1) return;
+    const point = pointOnShape(event), bounds = shapeRef.current.getBBox();
+    if (!point) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dragRef.current = { active: true, moved: false, point, clientX: event.clientX, clientY: event.clientY, size: axis === 'x' ? bounds.width : bounds.height, position: extent.positionFraction, fraction: extent.fraction };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const moveDrag = (event) => {
+    const drag = dragRef.current;
+    if (!drag?.active || !drag.size) return;
+    if (!drag.moved && Math.hypot(event.clientX - drag.clientX, event.clientY - drag.clientY) < 3) return;
+    const point = pointOnShape(event);
+    if (!point) return;
+    drag.moved = true;
+    event.preventDefault();
+    event.stopPropagation();
+    const delta = direction * (point[axis] - drag.point[axis]) / drag.size;
+    onPositionChange(Number(moveLesionPosition(drag.position, drag.fraction, delta).toFixed(4)));
+  };
+  const endDrag = (event) => {
+    if (!dragRef.current?.active) return;
+    dragRef.current.active = false;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
   return (
     <>
       {targeted && React.createElement(tag, { ...attrs, className: 'vessel-target-route', 'aria-hidden': true })}
@@ -39,6 +73,17 @@ function VesselShape({ shape, classes, selected, targeted, extent }) {
         <>
           <defs><clipPath id={clipId} clipPathUnits="objectBoundingBox"><path d={clip} /></clipPath></defs>
           {React.createElement(tag, { ...attrs, className: 'vessel-lesion-fill', clipPath: `url(#${clipId})`, 'aria-hidden': true })}
+          {onPositionChange && extent.fraction < 1 && React.createElement(tag, {
+            ...attrs,
+            className: 'vessel-lesion-drag-hit',
+            clipPath: `url(#${clipId})`,
+            'aria-hidden': true,
+            onPointerDown: startDrag,
+            onPointerMove: moveDrag,
+            onPointerUp: endDrag,
+            onPointerCancel: endDrag,
+            onClick: (event) => { if (dragRef.current?.moved) { event.stopPropagation(); dragRef.current = null; } },
+          })}
         </>
       )}
     </>
@@ -95,6 +140,7 @@ export default function VesselMap({
   activePlanningSegment = '',
   readOnly = false,
   toggleSegment = () => {},
+  onLesionPositionChange,
   setTooltip,
 }) {
   const [hoverSegment, setHoverSegment] = useState(null);
@@ -126,6 +172,18 @@ export default function VesselMap({
   const handleKeyDown = (id) => (event) => {
     if (routeEditMode && !targetEndpointCandidates.includes(id)) return;
     if (planningMode && !planningSegmentIds.includes(id)) return;
+    if (!readOnly && !routeEditMode && !planningMode && onLesionPositionChange && selectedSegments.includes(id)) {
+      const extent = getLesionExtent(id, lesions[id]);
+      const delta = ['ArrowUp', 'ArrowLeft'].includes(event.key) ? -0.05 : ['ArrowDown', 'ArrowRight'].includes(event.key) ? 0.05 : null;
+      if (extent.fraction > 0 && extent.fraction < 1 && (delta !== null || ['Home', 'End'].includes(event.key))) {
+        event.preventDefault();
+        const bounds = event.currentTarget.querySelector('.vessel-segment')?.getBBox();
+        const direction = bounds?.width > bounds?.height && ['ArrowLeft', 'ArrowRight'].includes(event.key) ? lesionMapDirection(id, 'x') : 1;
+        const position = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : Math.max(0, Math.min(1, extent.positionFraction + direction * delta));
+        onLesionPositionChange(id, Number(position.toFixed(4)));
+        return;
+      }
+    }
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       toggleSegment(id);
@@ -159,6 +217,7 @@ export default function VesselMap({
               id={seg.id}
               data-name={seg.name}
               data-lesion-fraction={extent?.fraction ?? undefined}
+              data-lesion-position={extent?.positionFraction ?? undefined}
               aria-description={extentDescription || undefined}
               role={readOnly ? undefined : 'button'}
               tabIndex={readOnly ? undefined : (routeEditMode && !isTargetEndpointCandidate) || (planningMode && !isPlanningSegment) ? -1 : 0}
@@ -189,7 +248,7 @@ export default function VesselMap({
                 ]
                   .filter(Boolean)
                   .join(' ');
-                return <VesselShape key={i} shape={p} classes={classes} selected={isSelected} targeted={isTargeted} extent={extent} />;
+                return <VesselShape key={i} segmentId={seg.id} shape={p} classes={classes} selected={isSelected} targeted={isTargeted} extent={extent} onPositionChange={!readOnly && !routeEditMode && !planningMode && onLesionPositionChange ? (position) => onLesionPositionChange(seg.id, position) : undefined} />;
               })}
             </g>
           );
