@@ -6,7 +6,7 @@ assets.
 
 ## Recommended WordPress page setup
 
-Use `[endoplanner_teaser url="/case/"]` on the main page and
+Use `[endoplanner_teaser page_id="123"]` on the main page (replace 123 with the actual Case page ID) and
 `[endoplanner layout="workspace"]` on a dedicated full-width Case page.
 See [the complete setup guide](docs/wordpress-workspace.md) for Elementor,
 navigation, asset loading and preservation of browser-local case data.
@@ -46,7 +46,10 @@ npm run build
 The build may emit warnings from `sass-loader` and Webpack about large bundle
 size, which do not prevent the build from finishing.
 
-## Elementor cleanup checklist (Interventional planning)
+## Legacy Elementor cleanup checklist (Interventional planning)
+
+This section applies to retained HTML embeds. For the dedicated Case page and
+its Start case link, use the shortcode setup above and the workspace guide.
 
 - Remove all Elementor HTML widgets that include `<script>` tags for the intervention UI.
 - Keep only the required IDs/classes in the layout:

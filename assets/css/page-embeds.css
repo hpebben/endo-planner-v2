@@ -11,12 +11,34 @@
 .endoplanner-teaser-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-content:center}
 .endoplanner-teaser-feature{display:flex;gap:10px;min-width:0;padding:16px 12px;border:1px solid #e0e8f6;border-radius:12px;background:#ffffffd9}
 .endoplanner-feature-number{display:flex;align-items:center;justify-content:center;flex:0 0 27px;width:27px;height:27px;border-radius:8px;background:#e8f0ff;color:#16409c;font-size:10px;font-weight:800}
-.endoplanner-teaser-feature h3{margin:1px 0 7px;color:#163a7f;font-size:13px;font-weight:750;line-height:1.4}
-.endoplanner-teaser-feature p{margin:0;color:#64738c;font-size:11px;line-height:1.6}
+.endoplanner-teaser button.endoplanner-teaser-feature{width:100%;margin:0;appearance:none;font-family:inherit;text-align:left;cursor:pointer;box-shadow:none;line-height:1.4;transition:background-color .15s,border-color .15s}
+.endoplanner-feature-title{display:block;margin:1px 0 7px;color:#163a7f;font-size:13px;font-weight:750;line-height:1.4}
+.endoplanner-feature-description{display:block;color:#64738c;font-size:11px;line-height:1.6}
+.endoplanner-teaser button.endoplanner-teaser-feature.is-active{border-color:#113195;background:#113195;color:#fff}
+.endoplanner-teaser-feature.is-active .endoplanner-feature-title,.endoplanner-teaser-feature.is-active .endoplanner-feature-description{color:#fff}
+.endoplanner-teaser-feature.is-active .endoplanner-feature-number{background:#fff;color:#113195}
+.endoplanner-teaser-feature:focus-visible{outline:3px solid #87b1ff;outline-offset:3px}
+.endoplanner-showcase{grid-column:1/-1;min-width:0;overflow:hidden;border:1px solid #d4e0f5;border-radius:14px;background:#fff;box-shadow:0 5px 20px #1438870b}
+.endoplanner-showcase-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;background:#102c68;color:#fff;font-size:13px;font-weight:700}
+.endoplanner-showcase-example{padding:4px 8px;border:1px solid #9db6eb;border-radius:20px;color:#dce7ff;font-size:10px;font-weight:500}
+.endoplanner-showcase-slide{margin:0}
+.endoplanner-showcase-slide[hidden]{display:none!important}
+.endoplanner-showcase-slide img{display:block;width:100%;height:auto;aspect-ratio:8/5;object-fit:contain;background:#f5f8fd}
+.endoplanner-showcase-slide figcaption{display:grid;gap:5px;padding:14px 18px;border-top:1px solid #e5ecf7;text-align:left}
+.endoplanner-showcase-slide figcaption strong{color:#123984;font-size:14px}
+.endoplanner-showcase-slide figcaption span{color:#61708a;font-size:12px;line-height:1.5}
+.endoplanner-showcase-controls{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 18px 14px}
+.endoplanner-showcase-dots{display:flex;align-items:center;gap:3px}
+.endoplanner-teaser .endoplanner-showcase-dot{display:grid;place-items:center;width:28px;height:28px;min-width:28px;padding:0;border:0;border-radius:50%;background:transparent;box-shadow:none;cursor:pointer}
+.endoplanner-showcase-dot:before{content:"";width:8px;height:8px;border-radius:50%;background:#bac9e4;transition:background .15s,transform .15s}
+.endoplanner-showcase-dot.is-active:before{background:#113195;transform:scale(1.35)}
+.endoplanner-teaser .endoplanner-showcase-play{padding:6px 12px;border:1px solid #c8d6ee;border-radius:7px;background:#f7faff;color:#163a7f;font:600 11px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;box-shadow:none}
+.endoplanner-showcase-controls button:focus-visible{outline:3px solid #87b1ff;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.endoplanner-teaser button.endoplanner-teaser-feature,.endoplanner-showcase-dot:before{transition:none}}
 .endoplanner-workspace{width:100%;max-width:1440px;min-height:100svh;margin:0 auto;padding:16px clamp(12px,2vw,32px) 32px;background:#f7f9fd;color:#263b5b}
 .endoplanner-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 20px;padding:4px 0 16px;border-bottom:1px solid #dce5f4;font-size:12px}
 .endoplanner-workspace-header a{color:#153985;text-decoration:none;font-weight:700}
 .endoplanner-workspace-header span{color:#6b7d98}
 .endoplanner-workspace .endoplanner-root,.endoplanner-workspace .endo-wizard{width:100%;max-width:none;margin:0;min-width:0}
 @media(max-width:850px){.endoplanner-teaser{grid-template-columns:minmax(0,1fr)}.endoplanner-teaser-intro h2{max-width:600px}.endoplanner-teaser-intro>p{max-width:600px}}
-@media(max-width:480px){.endoplanner-teaser{margin:12px auto;padding:22px 16px;border-radius:15px}.endoplanner-teaser-features{grid-template-columns:minmax(0,1fr)}.endoplanner-teaser-feature{padding:13px}.endoplanner-teaser-feature p{font-size:12px}.endoplanner-workspace-header{font-size:11px}}
+@media(max-width:480px){.endoplanner-teaser{margin:12px auto;padding:22px 16px;border-radius:15px}.endoplanner-teaser-features{grid-template-columns:minmax(0,1fr)}.endoplanner-teaser-feature{padding:13px}.endoplanner-feature-description{font-size:12px}.endoplanner-workspace-header{font-size:11px}}
