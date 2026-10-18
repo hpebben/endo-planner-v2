@@ -37,10 +37,17 @@
 .endoplanner-showcase-highlights li:before{content:"";flex:0 0 4px;width:4px;height:4px;border-radius:50%;background:#6287d5}
 .endoplanner-showcase-slide img{display:block;width:100%;height:auto;aspect-ratio:8/5;object-fit:contain;border-top:1px solid #e5ecf7;background:#f5f8fd}
 @media(prefers-reduced-motion:reduce){.endoplanner-teaser button.endoplanner-teaser-feature,.endoplanner-showcase-dot:before{transition:none}}
-.endoplanner-workspace{width:100%;max-width:1440px;min-height:100svh;margin:0 auto;padding:16px clamp(12px,2vw,32px) 32px;background:#f7f9fd;color:#263b5b}
+.endoplanner-workspace{width:100%;max-width:none;min-height:100svh;margin:0 auto;padding:12px clamp(10px,1.4vw,24px) 32px;background:#f7f9fd;color:#263b5b}
 .endoplanner-workspace-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 20px;padding:4px 0 16px;border-bottom:1px solid #dce5f4;font-size:12px}
 .endoplanner-workspace-header a{color:#153985;text-decoration:none;font-weight:700}
 .endoplanner-workspace-header span{color:#6b7d98}
 .endoplanner-workspace .endoplanner-root,.endoplanner-workspace .endo-wizard{width:100%;max-width:none;margin:0;min-width:0}
 @media(max-width:700px){.endoplanner-teaser-intro{grid-template-columns:minmax(0,1fr);gap:0}.endoplanner-teaser a.endoplanner-teaser-start{grid-column:1;grid-row:auto;justify-self:start;margin-top:22px}.endoplanner-teaser-features{gap:7px;padding:14px 12px 0}.endoplanner-teaser button.endoplanner-teaser-feature{flex-direction:column;gap:7px;padding:10px 4px}.endoplanner-feature-title{display:flex;align-items:center;justify-content:center;min-height:2.5em;font-size:14px}}
 @media(max-width:480px){.endoplanner-teaser{margin:12px auto;padding:20px 14px;border-radius:15px}.endoplanner-teaser-logo{width:280px;margin-bottom:14px}.endoplanner-teaser-intro{margin-bottom:24px}.endoplanner-teaser-features{gap:5px;padding:12px 8px 0}.endoplanner-feature-title{font-size:12px}.endoplanner-showcase-heading{padding:20px 10px 16px}.endoplanner-showcase-controls{padding-inline:72px}.endoplanner-teaser .endoplanner-showcase-play{right:10px;padding:5px 9px}.endoplanner-showcase-slide figcaption{min-height:126px;padding:0 12px 16px}.endoplanner-showcase-highlights{gap:6px 12px;font-size:11px}.endoplanner-workspace-header{font-size:11px}}
+
+/* Remove theme/Elementor gutters only on a dedicated published workspace page. */
+body.endoplanner-workspace-page{margin:0!important;padding:0!important;max-width:none;background:#f7f9fd}
+body.endoplanner-workspace-page :is(#page,#content,.site,.site-content,.content-area,.site-main,.entry-content,.wp-site-blocks,.wp-block-post-content){width:100%;max-width:none!important;margin:0!important;padding:0!important}
+body.endoplanner-workspace-page .e-con.e-parent{--container-max-width:100%;--container-default-padding-top:0;--container-default-padding-right:0;--container-default-padding-bottom:0;--container-default-padding-left:0;width:100%;max-width:none!important;margin:0!important;padding:0!important}
+body.endoplanner-workspace-page .e-con>.e-con-inner,body.endoplanner-workspace-page .elementor-section.elementor-section-boxed>.elementor-container{max-width:none!important;padding-inline:0!important}
+body.endoplanner-workspace-page .elementor-widget-shortcode,body.endoplanner-workspace-page .elementor-widget-shortcode>.elementor-widget-container{width:100%;max-width:none!important;margin:0!important;padding:0!important}

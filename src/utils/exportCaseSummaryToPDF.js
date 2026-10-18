@@ -2,7 +2,8 @@ import computePrognosis from './prognosis';
 import computeGlass from './glass';
 import { WIFI_STAGE_INFO, getWifiAction } from './guidelineRecommendations';
 import { analyzePlan } from './planAnalysis';
-import { formatTargetArterialPath, getLesionOptions, sideFromVesselId, vesselName, lesionLengthLabel, calcificationLabel } from './lesions';
+import { formatTargetArterialPath, getLesionOptions, sideFromVesselId, lesionVesselName, lesionLengthLabel, calcificationLabel } from './lesions';
+import { lesionPositionLabel } from './lesionLocation';
 import { formatScopeLabel, getScopeLesionIds } from './planScopes';
 import { getWoundosomeAdvice } from '../data/woundosome';
 import { getPatSummaryLines } from '../data/pedalAccelerationTime';
@@ -46,7 +47,7 @@ const planLines = (data) => {
   const scopeText = (row) => {
     const label = formatScopeLabel(row, lesionOptions);
     const ids = getScopeLesionIds(row);
-    return ids.length === 1 ? `${label} ${vesselName(ids[0])}` : label;
+    return ids.length === 1 ? `${label} ${lesionVesselName(ids[0], data.patencySegments?.[ids[0]])}` : label;
   };
   (data.accessRows || []).forEach((row, index) => {
     lines.push(`Approach ${index + 1}: ${[row.approach, row.side, row.vessel].filter(Boolean).join(' ') || 'Not entered'}`);
@@ -108,9 +109,10 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     clinicalLines.push('Confirm direct wound-bed filling, pedal arch and collateral quality with AP and lateral foot angiography.');
   }
 
-  const anatomyLines = Object.entries(data.patencySegments || {}).map(([id, values]) => (
-    `${vesselName(id)}: ${[values.type, lesionLengthLabel(values), calcificationLabel(values.calcium)].filter(Boolean).join(', ')}`
-  ));
+  const anatomyLines = getLesionOptions(data.patencySegments || {}, data.targetArterialPath || []).map((lesion) => {
+    const values = lesion.findings;
+    return `${lesion.code} - ${lesionVesselName(lesion.value, values)}: ${[values.type, lesionLengthLabel(values), calcificationLabel(values.calcium), lesionPositionLabel(values)].filter(Boolean).join(', ')}`;
+  });
   if (!anatomyLines.length) anatomyLines.push('No vessel data entered.');
   anatomyLines.push(data.targetArterialPath?.length
     ? `Target path: ${formatTargetArterialPath(data.targetArterialPath)}`
@@ -145,7 +147,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     doc.setPage(page);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(100, 105, 115);
     doc.text(page >= materialsStartPage ? 'Selected case materials: confirm quantities and missing specifications before opening.' : 'Reference anatomy and clinical estimates: confirm against source imaging and guidelines.', 28, 805);
-    doc.text(`EndoPlanner v1.6.182 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
+    doc.text(`EndoPlanner v1.6.183 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
   }
 
   doc.save(reportFilename(data));

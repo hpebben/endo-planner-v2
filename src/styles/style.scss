@@ -80,6 +80,15 @@
   stroke-width: 2.6;
   pointer-events: none;
 }
+.vessel-lesion-drag-hit {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 16;
+  pointer-events: all;
+  touch-action: none;
+  cursor: grab;
+}
+.vessel-lesion-drag-hit:active { cursor: grabbing; }
 
 .selected-segments {
   margin-left: auto; /* center within column */
@@ -867,34 +876,51 @@ svg .vessel-path:hover {
 .woundosome-model-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.75rem;
 
-  button {
+  .woundosome-label-toggle {
     min-height: 44px;
     padding: 0.5rem 0.75rem;
-    border: 1px solid #b9c6dd;
+    border: 1px solid #113195;
     border-radius: 8px;
-    background: #fff;
-    color: #25314f;
+    background: #113195;
+    color: #fff;
     font-size: 0.72rem;
     cursor: pointer;
 
-    &[aria-pressed='true'] { background: #e1eafb; border-color: #1747a6; }
+    &[aria-pressed='true'], &:hover { background: #082468; border-color: #082468; color: #fff; }
     &:focus-visible { outline: 2px solid #1747a6; outline-offset: 2px; }
   }
 }
 
-.woundosome-model-badge {
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
-  background: #dceee8;
-  color: #21574b;
-  font-size: 0.7rem;
-  font-weight: 700;
+.woundosome-info-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 1px solid #113195;
+  border-radius: 50%;
+  background: #113195;
+  color: #fff;
+  font: 700 15px/1 Arial, sans-serif;
+  text-transform: none;
+  cursor: pointer;
 }
+.woundosome-info-button:hover { background: #082468; color: #fff; }
+.woundosome-info-button:focus-visible { outline: 3px solid #87b1ff; outline-offset: 3px; }
+.woundosome-advice-heading,.selected-woundosome-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.5rem; }
+.selected-woundosome-heading h3 { margin: 0; }
+.woundosome-info-dialog { width: min(640px, calc(100vw - 32px)); }
+.woundosome-info-dialog p { color: #465572; font-size: 0.9rem; line-height: 1.65; text-align: left; }
+.woundosome-info-dialog .woundosome-references { display: grid; gap: 0.65rem; margin: 1rem 0; font-size: 0.8rem; text-align: left; }
+.woundosome-info-close { margin: 0.5rem 0 0; padding: 0.6rem 1.2rem; border-radius: 7px; }
 
 .woundosome-projection figcaption {
   padding: 0.55rem 0.75rem;
@@ -2591,14 +2617,16 @@ svg .vessel-path:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 25px;
+  min-width: 65px;
   height: 20px;
   margin-right: 0.4rem;
+  padding: 0 0.45rem;
   border-radius: 999px;
   background: #123b93;
   color: #fff;
   font-size: 0.62rem;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 /* Path/lesion-scoped procedural sequence -------------------------------------- */
@@ -3891,3 +3919,14 @@ svg .vessel-path:hover {
   .case-summary .plan-label { margin-top: 0.65rem; text-align: left; font-size: 0.7rem; color: #48618c; }
   .case-summary .plan-value { min-width: 0; line-height: 1.6; overflow-wrap: anywhere; }
 }
+
+.popliteal-segment-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+.popliteal-segment-buttons .stage-btn[aria-pressed='true'] { background: #113195; color: #fff; }
+.popliteal-segment-buttons .stage-btn:focus-visible { outline: 3px solid #87b1ff; outline-offset: 3px; }
+.lesion-position-control { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
+.lesion-position-control>span { text-align: left; }
+.lesion-position-control input[type='range'] { width: 100%; accent-color: #113195; padding: 0; }
+.visual-scope-code { min-width: 65px; white-space: nowrap; }
+.woundosome-info-close { border: 1px solid #0f2c86; background: #113195; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+.woundosome-info-close:hover { background: #082468; color: #fff; }
+.selected-woundosome-heading h3 { margin: 0; }

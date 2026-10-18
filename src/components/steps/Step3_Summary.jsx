@@ -11,7 +11,8 @@ import { analyzePlan } from '../../utils/planAnalysis';
 import { getWoundosomeAdvice, WOUNDOSOME_REFERENCE } from '../../data/woundosome';
 import { getPatSummaryLines } from '../../data/pedalAccelerationTime';
 import { getActiveWoundLocations } from '../../utils/clinicalStage';
-import { formatTargetArterialPath, getLesionOptions, vesselName, lesionLengthLabel, calcificationLabel } from '../../utils/lesions';
+import { formatTargetArterialPath, getLesionOptions, lesionVesselName, lesionLengthLabel, calcificationLabel } from '../../utils/lesions';
+import { lesionPositionLabel } from '../../utils/lesionLocation';
 import {
   buildScopeOptions,
   hasPlanItemContent,
@@ -244,8 +245,8 @@ export default function StepSummary({ data, setStep }) {
                 <li key={id}>
                   <span className="dash-bullet">–</span>
                   <span>
-                    <strong>{vesselName(id)}</strong>{' '}
-                    {[values.type, lesionLengthLabel(values), calcificationLabel(values.calcium)].filter(Boolean).join(', ')}
+                    <strong>{lesionOptions.find((lesion) => lesion.value === id)?.code} · {lesionVesselName(id, values)}</strong>{' '}
+                    {[values.type, lesionLengthLabel(values), calcificationLabel(values.calcium), lesionPositionLabel(values)].filter(Boolean).join(', ')}
                   </span>
                 </li>
               ))}

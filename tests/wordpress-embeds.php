@@ -92,6 +92,7 @@ check( 4 === substr_count( $teaser, 'role="tab"' ) && 4 === substr_count( $tease
 check( str_contains( $teaser, '&lt;script&gt;unsafe&lt;/script&gt;' ), 'Custom heading must be escaped.' );
 check( ! str_contains( $teaser, 'endo-newcase-trigger' ) && ! str_contains( $teaser, 'id="startnewcase"' ), 'Teaser must not use legacy reset triggers.' );
 check( ! str_contains( $teaser, 'endoplanner-root' ), 'Teaser must not mount the application.' );
+check( ! in_array( 'endoplanner-workspace-page', apply_filters( 'body_class', array() ), true ), 'The landing teaser must retain its theme layout.' );
 foreach ( array( 'javascript:alert(1)', 'https://other.example/case/', 'http://example.org/case/', '#case' ) as $bad_url ) {
     check( 'https://example.org/case/' === endoplanner_v2_case_url( array( 'url' => $bad_url ) ), 'Invalid or cross-origin case URLs must fall back safely.' );
 }
@@ -135,6 +136,7 @@ $post->post_content = '';
 $elementor_data = '[{"widgetType":"shortcode","settings":{"shortcode":"[endoplanner layout=\"workspace\"]"}}]';
 run_actions( 'wp_enqueue_scripts' );
 $workspace = endoplanner_v2_workspace_shortcode();
+check( in_array( 'endoplanner-workspace-page', apply_filters( 'body_class', array() ), true ), 'A dedicated workspace needs its scoped full-width body class.' );
 check( in_array( 'endoplanner-v2-wizard-view-script', $scripts, true ), 'Elementor shortcode must load the registered view script.' );
 check( in_array( 'endoplanner-adobe-fonts', $styles, true ) && in_array( 'endoplanner-typography', $styles, true ), 'Workspace pages must load the same Adobe font and scoped typography.' );
 check( in_array( 'endoplanner-v2-wizard-style', $styles, true ) && in_array( 'wp-components', $styles, true ), 'Workspace must load wizard and WordPress control styles.' );
@@ -153,6 +155,7 @@ if ( ! empty( $argv[1] ) ) {
     $teaser = str_replace( '/wp-content/plugins/endo-planner-v2/assets/', '/assets/', endoplanner_v2_teaser_shortcode( array( 'url' => '/e2e/workspace-qa.html' ) ) );
     file_put_contents( $argv[1] . '/teaser-qa.html', $head . $teaser . '<script src="/assets/js/teaser-showcase.js"></script></body></html>' );
     file_put_contents( $argv[1] . '/workspace-markup.html', endoplanner_v2_workspace_shortcode() );
-    file_put_contents( $argv[1] . '/workspace-qa.html', str_replace( '</head>', '<link rel="stylesheet" href="/src/styles/style.scss"></head>', $head ) . endoplanner_v2_workspace_shortcode() . '<script type="module" src="/e2e/main.jsx"></script></body></html>' );
+    $workspace_head = str_replace( '<body>', '<body class="endoplanner-workspace-page">', str_replace( '</head>', '<link rel="stylesheet" href="/src/styles/style.scss"></head>', $head ) );
+    file_put_contents( $argv[1] . '/workspace-qa.html', $workspace_head . '<main class="entry-content" style="max-width:960px;padding:32px"><div class="e-con e-parent" style="max-width:960px;padding:24px"><div class="elementor-widget-shortcode"><div class="elementor-widget-container">' . endoplanner_v2_workspace_shortcode() . '</div></div></div></main><script type="module" src="/e2e/main.jsx"></script></body></html>' );
 }
 echo "WordPress embed checks passed.\n";

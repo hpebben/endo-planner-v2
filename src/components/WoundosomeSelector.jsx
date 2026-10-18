@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import {
-  FOOT_ANATOMY_REFERENCE,
   getWoundosomeAdvice,
-  WOUNDOSOME_REFERENCE,
   WOUND_ZONES,
 } from '../data/woundosome';
 import { WOUND_PROJECTIONS } from '../data/woundosomeProjections';
 import FootAngiographicModel from './FootAngiographicModel';
+import WoundosomeInfoButton from './WoundosomeInfoButton';
 
 export default function WoundosomeSelector({ value = [], onChange }) {
   const [inspected, setInspected] = useState('');
@@ -46,15 +45,16 @@ export default function WoundosomeSelector({ value = [], onChange }) {
       </div>
 
       <div className="woundosome-model-toolbar">
-        <span className="woundosome-model-badge">{__('Idealized patent anatomy', 'endoplanner')}</span>
         <button
           type="button"
+          className="woundosome-label-toggle"
           aria-pressed={showArteryLabels}
           onClick={() => setShowArteryLabels((shown) => !shown)}
           data-testid="foot-artery-label-toggle"
         >
           {__('Artery labels', 'endoplanner')}
         </button>
+        <WoundosomeInfoButton anatomy />
       </div>
       <div className="woundosome-projections">
         {WOUND_PROJECTIONS.map((projection) => (
@@ -137,9 +137,6 @@ export default function WoundosomeSelector({ value = [], onChange }) {
         ))}
       </div>
 
-      <p className="woundosome-image-caption">
-        {__('Original angiographic-style reference model based on Manzi et al. (RadioGraphics, 2011). All black arteries are patent; colors mark wound locations. Both views show the same classical arterial configuration, including the pedal–plantar loop. Individual branching and wound supply vary.', 'endoplanner')}
-      </p>
       <div className="woundosome-zone-list" aria-label={__('Wound locations', 'endoplanner')}>
         {WOUND_ZONES.map((zone, index) => (
           <button
@@ -162,9 +159,9 @@ export default function WoundosomeSelector({ value = [], onChange }) {
       </div>
 
       <div className="woundosome-advice" aria-live="polite">
+        <div className="woundosome-advice-heading"><strong>{__('TAP revascularization to consider', 'endoplanner')}</strong><WoundosomeInfoButton /></div>
         {advice.zones.length ? (
           <>
-            <strong>{__('TAP revascularization to consider', 'endoplanner')}</strong>
             <p>{advice.primaryLabels.join(' + ')}</p>
             <ul>
               {advice.routes.map((route) => <li key={route}>{route}</li>)}
@@ -175,18 +172,10 @@ export default function WoundosomeSelector({ value = [], onChange }) {
                 {advice.alternativeLabels.join(' + ')}
               </p>
             )}
-            <p className="woundosome-caution">
-              {__('Confirm the true feeding artery with AP and lateral oblique foot angiography. A patent pedal arch or robust collaterals may make indirect revascularization effective; multi-zone wounds may require more than one inflow route.', 'endoplanner')}
-            </p>
           </>
         ) : (
           <p>{__('Select at least one wound location to generate a TAP consideration.', 'endoplanner')}</p>
         )}
-        <div className="woundosome-references">
-          {[FOOT_ANATOMY_REFERENCE, WOUNDOSOME_REFERENCE].map((reference) => (
-            <a key={reference.url} href={reference.url} target="_blank" rel="noreferrer">{reference.label}</a>
-          ))}
-        </div>
       </div>
     </section>
   );

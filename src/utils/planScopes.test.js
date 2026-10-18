@@ -21,13 +21,13 @@ const targetPath = [
 const lesions = [
 	{
 		value: 'Left_superficial_femoral_artery',
-		code: 'L1',
+		code: 'Lesion 1',
 		name: 'Left superficial femoral artery',
 		side: 'Left',
 	},
 	{
 		value: 'Left_anterior_tibial_artery',
-		code: 'L2',
+		code: 'Lesion 2',
 		name: 'Left anterior tibial artery',
 		side: 'Left',
 	},
@@ -50,7 +50,7 @@ describe( 'plan device scopes', () => {
 				createLesionScope( lesions.map( ( lesion ) => lesion.value ) ),
 				lesions
 			)
-		).toBe( 'ZONE L1 + L2' );
+		).toBe( 'ZONE Lesion 1 + Lesion 2' );
 	} );
 
 	test( 'offers the target path, individual lesions and an adjacent combined zone', () => {
@@ -59,9 +59,9 @@ describe( 'plan device scopes', () => {
 		} );
 		expect( options.map( ( option ) => option.shortLabel ) ).toEqual( [
 			'PATH',
-			'L1',
-			'L2',
-			'ZONE L1 + L2',
+			'Lesion 1',
+			'Lesion 2',
+			'ZONE Lesion 1 + Lesion 2',
 		] );
 	} );
 

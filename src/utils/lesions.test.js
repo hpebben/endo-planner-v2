@@ -34,7 +34,7 @@ describe( 'target arterial path and lesion labels', () => {
 		} );
 		expect( options[ 0 ] ).toMatchObject( {
 			value: 'Left_superficial_femoral_artery',
-			code: 'L1',
+			code: 'Lesion 1',
 			side: 'Left',
 			territory: 'femoropopliteal',
 		} );

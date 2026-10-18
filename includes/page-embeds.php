@@ -162,10 +162,17 @@ add_action( 'wp_enqueue_scripts', function() {
         return;
     }
     $markup = endoplanner_v2_page_markup( $post );
-    if ( has_shortcode( $markup, 'endoplanner_teaser' ) || has_shortcode( $markup, 'endoplanner' ) ) {
+    if ( has_shortcode( $markup, 'endoplanner_teaser' ) || has_shortcode( $markup, 'endoplanner' ) || endoplanner_v2_is_workspace_page( $post ) ) {
         endoplanner_v2_enqueue_page_styles();
     }
 }, 15 );
+
+add_filter( 'body_class', function( $classes ) {
+    if ( is_singular() && endoplanner_v2_is_workspace_page( get_post() ) ) {
+        $classes[] = 'endoplanner-workspace-page';
+    }
+    return $classes;
+} );
 
 // Preserve the explicit page-ID route only for a real published workspace.
 // This avoids a canonical redirect back to a broken/stale pretty permalink.

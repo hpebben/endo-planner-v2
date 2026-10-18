@@ -13,6 +13,7 @@ import {
   buildTargetPathToSegment,
   getLesionOptions,
   lesionLengthLabel,
+  lesionVesselName,
   inferTargetPathKey,
   shortVesselName,
   sideFromVesselId,
@@ -20,6 +21,7 @@ import {
   TARGET_ROUTE_ENDPOINT_IDS,
   validateTargetArterialPath,
 } from '../../utils/lesions';
+import { lesionPositionLabel } from '../../utils/lesionLocation';
 import { getWoundosomeAdvice } from '../../data/woundosome';
 import { getActiveWoundLocations } from '../../utils/clinicalStage';
 
@@ -236,9 +238,13 @@ export default function Step2_Patency({ data, setData }) {
               targetEndpointCandidates={endpointCandidates}
               routeEditMode={routeEditMode}
               toggleSegment={routeEditMode ? chooseRouteEndpoint : openSegment}
+              onLesionPositionChange={(id, positionFraction) => {
+                setActiveSegment(null);
+                setData((previous) => ({ ...previous, patencySegments: { ...previous.patencySegments, [id]: { ...previous.patencySegments[id], positionFraction } } }));
+              }}
               setTooltip={handleTooltip}
             />
-            <p className="lesion-map-caption">{__('Red outline = affected artery; solid red = estimated lesion extent. Position is schematic.', 'endoplanner')}</p>
+            <p className="lesion-map-caption">{__('Red outline: affected artery. Red fill: lesion extent. Drag the red fill to reposition it within the artery.', 'endoplanner')}</p>
             {routeEditMode && (
               <div className="route-edit-map-badge" role="status">
                 {__('Editing target route', 'endoplanner')}
@@ -262,8 +268,7 @@ export default function Step2_Patency({ data, setData }) {
               <h4>{__('Selected segments', 'endoplanner')}</h4>
               <ul className="vessel-summary arrow-list">
                 {selectedSegments.map((id) => {
-                  const seg = vesselSegments.find((s) => s.id === id);
-                  const name = seg ? seg.name : id;
+                  const name = lesionVesselName(id, data.patencySegments[id]);
                   const lesion = lesionById.get(id);
                   const vals = data.patencySegments[id] || {};
                   const lengthMap = {
@@ -274,7 +279,7 @@ export default function Step2_Patency({ data, setData }) {
                     '>20': '>20cm',
                   };
                   const lengthLabel = vals.measuredLengthCm ? lesionLengthLabel(vals) : lengthMap[vals.length] || vals.length;
-                  const summary = `${vals.type || ''} | ${lengthLabel} | ${vals.calcium}`;
+                  const summary = [vals.type, lengthLabel, vals.calcium, lesionPositionLabel(vals)].filter(Boolean).join(' | ');
                   const extent = getLesionExtent(id, vals);
                   return (
                     <li key={id}>

@@ -4,7 +4,7 @@
  * heading font rules from replacing this face within these plugin scopes.
  */
 .endoplanner-teaser :is(h1,h2,h3,h4,h5,h6,.endoplanner-feature-title,.endoplanner-showcase-slide figcaption>strong),
-.endoplanner-root .endo-wizard :is(h1,h2,h3,h4,h5,h6,.wizard-step-label,.section-title,.section-heading,.subsection-title,.card-title,.main-plan-title,.lesion-plan-title,.row-title,.param-title,.prefs-panel-title,.wire-role-heading,.visual-plan-schematic-heading>strong,.visual-scope-body>strong,.visual-plan-support summary>span:first-child,.target-path-options strong,.target-path-editor>strong,.pat-toggle strong,.wizard-validation>strong),
+.endoplanner-root .endo-wizard :is(h1,h2,h3,h4,h5,h6,.wizard-step-label,.section-title,.section-heading,.subsection-title,.card-title,.main-plan-title,.lesion-plan-title,.row-title,.param-title,.prefs-panel-title,.wire-role-heading,.visual-plan-schematic-heading>strong,.visual-scope-body>strong,.visual-plan-support summary>span:first-child,.target-path-options strong,.target-path-editor>strong,.pat-toggle strong,.woundosome-advice-heading>strong,.wizard-validation>strong),
 .inline-modal :is(h1,h2,h3,h4,h5,h6,.modal-header,.card-title,.section-title,.param-title,.device-filter-heading strong,.plan-review-heading strong) {
     font-family: "kobenhavn-cs", "Arial Narrow", Arial, sans-serif !important;
     font-weight: 400;

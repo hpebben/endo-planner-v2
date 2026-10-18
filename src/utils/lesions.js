@@ -2,6 +2,7 @@ import rawVesselData from '../assets/vessel-map.json';
 import { buildPedalRoute, defaultPedalTarget, footArteryIdForVessel, getPedalVessels, pedalVesselId, PEDAL_ROUTE_CONNECTIONS } from '../data/pedalRoutes';
 import { getActiveWoundLocations } from './clinicalStage';
 import { positiveLength } from './lesionExtent';
+import { poplitealSegmentLabel, lesionPositionLabel } from './lesionLocation';
 
 const vesselSegments = Array.isArray( rawVesselData?.segments )
 	? rawVesselData.segments
@@ -57,18 +58,23 @@ const lengthLabel = ( value ) =>
 
 export const lesionLengthLabel = (values = {}) => positiveLength(values.measuredLengthCm) ? `${positiveLength(values.measuredLengthCm)} cm` : lengthLabel(values.length);
 export const calcificationLabel = (value) => !value ? '' : value === 'none' ? 'no calcification' : `${value} calcification`;
+export const lesionVesselName = (id, values = {}) => {
+  const parts = poplitealSegmentLabel(id, values);
+  return `${vesselName(id)}${parts ? ` (${parts})` : ''}`;
+};
 
 export const lesionLabel = ( id, values = {} ) => {
 	const findings = [
 		values.type,
 		lesionLengthLabel( values ),
 		values.calcium && `${ values.calcium } calcium`,
+		lesionPositionLabel(values),
 	]
 		.filter( Boolean )
 		.join( ', ' );
 	return findings
-		? `${ vesselName( id ) } — ${ findings }`
-		: vesselName( id );
+		? `${ lesionVesselName( id, values ) } — ${ findings }`
+		: lesionVesselName( id, values );
 };
 
 const territoryRank = ( id ) =>
@@ -111,9 +117,9 @@ export const getLesionOptions = ( segments = {}, targetPath = [] ) => {
 
 	return entries.map( ( [ id, values ], index ) => ( {
 		value: id,
-		code: `L${ index + 1 }`,
-		label: `L${ index + 1 } — ${ lesionLabel( id, values ) }`,
-		name: vesselName( id ),
+		code: `Lesion ${ index + 1 }`,
+		label: `Lesion ${ index + 1 } — ${ lesionLabel( id, values ) }`,
+		name: lesionVesselName( id, values ),
 		side: sideFromVesselId( id ),
 		territory: territoryFromVesselId( id ),
 		findings: values,

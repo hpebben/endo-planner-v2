@@ -80,7 +80,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.182';
+const APPLICATION_VERSION = '1.6.183';
 
 const preferenceTypes = [
   { key: 'needle', legacyId: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg, modal: 'needle' },
@@ -1871,7 +1871,7 @@ export default function Step4({ data, setData }) {
       </section>
 
       <section className="intervention-section scoped-plan-section" data-testid="scoped-intervention-plan">
-        <div className="section-heading">{__('Visual device plan', 'endoplanner')}</div>
+        <div className="section-heading">{__('Lesion crossing, vessel preparation & treatment', 'endoplanner')}</div>
         <p className="scoped-plan-intro">
           {__('Review the anatomy and selected woundosomes, then select a lesion below to plan its crossing and treatment devices.', 'endoplanner')}
         </p>

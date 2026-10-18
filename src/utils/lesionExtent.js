@@ -1,5 +1,6 @@
 // Drawing references, not patient measurements or universal population means.
 // Study-derived values and illustrative defaults are distinguished in the UI.
+import { normalizeLesionPosition, lesionPositionName } from './lesionLocation';
 export const SEGMENT_LENGTH_REFERENCES = [
   { pattern: /superficial_femoral/, cm: 35, basis: 'published model', url: 'https://doi.org/10.1177/1708538115586939' },
   { pattern: /common_femoral/, cm: 4, basis: 'illustrative reference' },
@@ -31,15 +32,16 @@ export const getLesionExtent = (segmentId, values = {}) => {
   const measuredCm = positiveLength(values.measuredLengthCm);
   const lesionCm = measuredCm || rangeEstimates[values.length] || null;
   const fraction = referenceCm && lesionCm ? Math.min(1, lesionCm / referenceCm) : null;
-  const position = 'middle';
-  const start = fraction === null ? 0 : (1 - fraction) / 2;
+  const positionFraction = normalizeLesionPosition(values.positionFraction) ?? 0.5;
+  const position = lesionPositionName(positionFraction);
+  const start = fraction === null ? 0 : (1 - fraction) * positionFraction;
   const kind = measuredCm ? 'measured' : values.length === '>20' ? 'lower-bound' : lesionCm ? 'range estimate' : 'not entered';
-  return { referenceCm, lesionCm, fraction, start, kind, position, basis: customReference ? 'entered reference' : reference?.basis || '', sourceUrl: customReference ? '' : reference?.url || '' };
+  return { referenceCm, lesionCm, fraction, start, kind, position, positionFraction, basis: customReference ? 'entered reference' : reference?.basis || '', sourceUrl: customReference ? '' : reference?.url || '' };
 };
 
 export const lesionExtentDescription = (segmentId, values) => {
   const extent = getLesionExtent(segmentId, values);
   if (extent.fraction === null) return 'Affected segment outlined; lesion extent is not estimated.';
   const sign = extent.kind === 'lower-bound' ? '≥' : '≈';
-  return `${extent.lesionCm} cm (${extent.kind}); ${sign}${Math.round(extent.fraction * 100)}% of a ${extent.referenceCm} cm drawing reference. Position is schematic.${extent.lesionCm > extent.referenceCm ? ' Length exceeds the drawing reference; fill is capped at the whole segment.' : ''}`;
+  return `${extent.lesionCm} cm (${extent.kind}); ${sign}${Math.round(extent.fraction * 100)}% of a ${extent.referenceCm} cm drawing reference. Position is schematic${normalizeLesionPosition(values?.positionFraction) === null ? '' : ` (${extent.position})`}.${extent.lesionCm > extent.referenceCm ? ' Length exceeds the drawing reference; fill is capped at the whole segment.' : ''}`;
 };

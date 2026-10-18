@@ -5,6 +5,7 @@ import FootAngiographicModel from './FootAngiographicModel';
 import { WOUND_PROJECTIONS } from '../data/woundosomeProjections';
 import { getWoundZones, WOUND_ZONES } from '../data/woundosome';
 import { getPedalRouteHighlights } from '../data/pedalRoutes';
+import WoundosomeInfoButton from './WoundosomeInfoButton';
 
 export default function SelectedWoundosomeSummary({ selectedIds, targetPath = [], imagesOnly = false }) {
   const zones = getWoundZones(selectedIds);
@@ -12,7 +13,7 @@ export default function SelectedWoundosomeSummary({ selectedIds, targetPath = []
   if (!zones.length) return null;
   return (
     <section className="selected-woundosomes" data-testid="selected-woundosomes" aria-label={__('Selected woundosomes', 'endoplanner')}>
-      {!imagesOnly && <h3>{__('Selected woundosomes', 'endoplanner')}</h3>}
+      {!imagesOnly && <div className="selected-woundosome-heading"><h3>{__('Selected woundosomes', 'endoplanner')}</h3><WoundosomeInfoButton /></div>}
       <div className="selected-woundosome-views">
         {WOUND_PROJECTIONS.map((projection) => (
           <figure key={projection.id}>
@@ -47,7 +48,6 @@ export default function SelectedWoundosomeSummary({ selectedIds, targetPath = []
           </li>
         ))}
       </ul>}
-      {!imagesOnly && <p className="selected-woundosome-caption">{__('Patent reference anatomy; colors mark wound locations. Blue follows the planned pedal route. Confirm the route and wound filling on the patient’s angiography.', 'endoplanner')}</p>}
     </section>
   );
 }

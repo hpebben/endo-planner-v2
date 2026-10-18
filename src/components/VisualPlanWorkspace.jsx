@@ -9,6 +9,7 @@ import PlanReviewButton from './PlanReviewButton';
 import { createLesionScope, createTargetPathScope, formatScopeLabel, scopeKey } from '../utils/planScopes';
 import { formatTargetArterialPath, sideFromVesselId, lesionLengthLabel } from '../utils/lesions';
 import { getVisualPlanItems, rowsForPlanScope } from '../utils/visualPlan';
+import { lesionPositionLabel } from '../utils/lesionLocation';
 
 const scopeDescription = (option, targetPath) => {
   if (option.scope.type === 'targetPath') return formatTargetArterialPath(targetPath);
@@ -17,6 +18,7 @@ const scopeDescription = (option, targetPath) => {
       option.lesion.findings?.type,
       lesionLengthLabel(option.lesion.findings),
       option.lesion.findings?.calcium && `${option.lesion.findings.calcium} calcium`,
+      lesionPositionLabel(option.lesion.findings),
     ].filter(Boolean);
     return findings.join(' • ') || option.lesion.name;
   }
@@ -158,7 +160,7 @@ export default function VisualPlanWorkspace({
             )}
         </div>
 
-      {activeOption ? <div className="visual-plan-composer" data-testid={`plan-scope-group-${activeOption.code}`}>
+      {activeOption ? <div className="visual-plan-composer" data-testid={`plan-scope-group-${activeOption.code.replace(/\s+/g, '-')}`}>
         <header className="visual-plan-composer-header">
           <span className="plan-scope-group-code">{activeOption.code}</span>
           <div>
