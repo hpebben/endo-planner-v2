@@ -99,7 +99,7 @@ function endoplanner_v2_case_url( $attributes ) {
 }
 
 function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
-    $attributes = shortcode_atts( array( 'url' => '', 'page_id' => '', 'link_mode' => 'direct', 'title' => 'Plan the intervention. Prepare the procedure.' ), $attributes, 'endoplanner_teaser' );
+    $attributes = shortcode_atts( array( 'url' => '', 'page_id' => '', 'link_mode' => 'direct', 'title' => 'If you fail to plan, you plan to fail' ), $attributes, 'endoplanner_teaser' );
     endoplanner_v2_enqueue_page_styles();
     $plugin = dirname( __DIR__ ) . '/endo-planner.php';
     wp_enqueue_script( 'endoplanner-teaser-showcase', plugins_url( 'assets/js/teaser-showcase.js', $plugin ), array(), endoplanner_v2_get_version(), true );
@@ -111,9 +111,10 @@ function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
         array( '4', 'Case summary', array( 'Selected anatomy', 'Illustrated case PDF', 'Materials preparation checklist' ) ),
     );
     ob_start(); ?>
+    <div class="endoplanner-teaser-shell">
     <section class="endoplanner-teaser" aria-label="EndoPlanner overview">
+        <img class="endoplanner-teaser-logo" src="<?php echo esc_url( plugins_url( 'assets/images/endoplanner-icon.png', $plugin ) ); ?>" width="512" height="512" alt="Endoplanner" decoding="async" />
         <div class="endoplanner-teaser-intro">
-            <img class="endoplanner-teaser-logo" src="<?php echo esc_url( plugins_url( 'assets/images/endoplanner-logo.png', $plugin ) ); ?>" width="2000" height="500" alt="Endoplanner" decoding="async" />
             <h2><?php echo esc_html( $attributes['title'] ); ?></h2>
             <p>Clinical assessment, arterial anatomy and devices in one guided workflow.</p>
             <a class="endoplanner-teaser-start" href="<?php echo esc_url( endoplanner_v2_case_url( $attributes ) ); ?>">Start case <span aria-hidden="true">&rarr;</span></a>
@@ -134,6 +135,7 @@ function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
             <?php endforeach; ?>
         </div>
     </section>
+    </div>
     <?php return ob_get_clean();
 }
 
@@ -168,8 +170,13 @@ add_action( 'wp_enqueue_scripts', function() {
 }, 15 );
 
 add_filter( 'body_class', function( $classes ) {
-    if ( is_singular() && endoplanner_v2_is_workspace_page( get_post() ) ) {
-        $classes[] = 'endoplanner-workspace-page';
+    if ( is_singular() ) {
+        $page = get_post();
+        if ( endoplanner_v2_is_workspace_page( $page ) ) {
+            $classes[] = 'endoplanner-workspace-page';
+        } elseif ( $page && has_shortcode( endoplanner_v2_page_markup( $page ), 'endoplanner_teaser' ) ) {
+            $classes[] = 'endoplanner-teaser-page';
+        }
     }
     return $classes;
 } );
