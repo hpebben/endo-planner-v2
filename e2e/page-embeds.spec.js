@@ -29,6 +29,7 @@ for (const width of [1920, 1280, 390, 320]) {
     await expect(page.getByText('Local device preferences · Automatic browser save', { exact: true })).toHaveCount(0);
     await expect(page.locator('.endoplanner-teaser-feature')).toHaveCount(4);
     await expect(page.locator('.endoplanner-showcase-slide')).toHaveCount(4);
+    await expect(page.getByRole('link', { name: 'View example PDF', exact: true })).toBeVisible();
     await expect(page.getByRole('tabpanel')).toHaveCount(1);
     await expect(page.getByRole('tabpanel').getByText('Woundosome selection', { exact: true })).toBeVisible();
     const layout = await page.evaluate(() => {
@@ -71,6 +72,28 @@ for (const width of [1920, 1280, 390, 320]) {
     expect(errors).toEqual([]);
   });
 }
+
+test('shows intervention materials and offers the actual illustrated PDF and preparation checklist', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('./teaser-qa.html');
+  await page.getByRole('tab', { name: 'Case summary', exact: true }).click();
+  const preview = page.getByRole('tabpanel');
+  await expect(preview.getByText('Intervention materials', { exact: true })).toBeVisible();
+  await expect(preview.getByRole('img')).toHaveAttribute('alt', /access, crossing, treatment and closure devices.*exported case report and preparation checklist/);
+  const example = page.getByRole('link', { name: 'View example PDF', exact: true });
+  await expect(example).toHaveAttribute('target', '_blank');
+  await expect(example).toHaveAttribute('rel', 'noopener noreferrer');
+  const url = await example.getAttribute('href');
+  expect(url).toMatch(/example-case-summary\.pdf\?ver=/);
+  const response = await page.request.get(url);
+  expect(response.ok()).toBe(true);
+  expect(response.headers()['content-type']).toContain('application/pdf');
+  const content = (await response.body()).toString('latin1');
+  expect(content.startsWith('%PDF-')).toBe(true);
+  expect(content).toContain('INTERVENTION PLAN');
+  expect(content).toContain('MATERIALS PREPARATION');
+  expect(content).toContain('DEMO-001');
+});
 
 async function openWithClock(page) {
   await page.clock.install({ time: new Date('2026-10-18T10:00:00Z') });

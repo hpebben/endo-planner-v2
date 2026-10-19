@@ -108,13 +108,13 @@ function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
         array( '1', 'Clinical indication', array( 'Fontaine stage', 'WIfI assessment', 'Woundosome selection', 'Optional pedal acceleration time' ) ),
         array( '2', 'Disease anatomy', array( 'Lesion extent', 'GLASS stage', 'Pedal target routes', 'Woundosome-guided anatomy' ) ),
         array( '3', 'Intervention plan', array( 'Access planning', 'Crossing and treatment devices', 'Closure', 'Compatibility review' ) ),
-        array( '4', 'Case summary', array( 'Selected anatomy', 'Illustrated case PDF', 'Materials preparation checklist' ) ),
+        array( '4', 'Case summary', array( 'Intervention materials', 'Illustrated case PDF', 'Materials preparation checklist' ) ),
     );
     $preview_descriptions = array(
         'Example clinical assessment with WIfI grades, hallux woundosome selection and pedal acceleration time readings of 260 ms and 200 ms.',
         'Example disease anatomy with left superficial femoral and anterior tibial occlusions, a peroneal stenosis and a pedal target route.',
         'Example intervention plan with separate crossing and balloon treatment selections for three lesions.',
-        'Example case summary with woundosome images, three arterial lesions and PAT measurements.',
+        'Example intervention materials summary with access, crossing, treatment and closure devices, alongside the exported case report and preparation checklist.',
     );
     ob_start(); ?>
     <div class="endoplanner-teaser-shell">
@@ -139,6 +139,11 @@ function endoplanner_v2_teaser_shortcode( $attributes = array() ) {
                     <img src="<?php echo esc_url( add_query_arg( array( 'ver' => endoplanner_v2_get_version() ), plugins_url( 'assets/showcase/stage-' . ( $index + 1 ) . '.webp', $plugin ) ) ); ?>" width="2560" height="1600" alt="<?php echo esc_attr( $preview_descriptions[$index] ); ?>" loading="<?php echo 0 === $index ? 'eager' : 'lazy'; ?>" decoding="async" />
                 </figure>
             <?php endforeach; ?>
+            <div class="endoplanner-showcase-export">
+                <svg class="endoplanner-export-icon" viewBox="0 0 32 40" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M20 2H5a2 2 0 0 0-2 2v32a2 2 0 0 0 2 2h22a2 2 0 0 0 2-2V11L20 2Z" /><path d="M20 2v9h9M15 18h9M15 25h9M15 32h9" /><rect x="7" y="16" width="4" height="4" rx=".6" /><rect x="7" y="23" width="4" height="4" rx=".6" /><rect x="7" y="30" width="4" height="4" rx=".6" /></svg>
+                <div><h4>PDF report &amp; materials checklist</h4><p>Illustrated anatomy, selected devices and a categorized preparation checklist.</p></div>
+                <a class="endoplanner-showcase-pdf-link" href="<?php echo esc_url( add_query_arg( array( 'ver' => endoplanner_v2_get_version() ), plugins_url( 'assets/showcase/example-case-summary.pdf', $plugin ) ) ); ?>" target="_blank" rel="noopener noreferrer">View example PDF <span aria-hidden="true">&#8599;</span></a>
+            </div>
         </div>
     </section>
     </div>
