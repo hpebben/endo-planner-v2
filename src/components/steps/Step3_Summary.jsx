@@ -91,7 +91,7 @@ function PlanSection({ title, rows }) {
 
 
 
-function GuidelineModal({ title, isOpen, onRequestClose, recommendations, details }) {
+function GuidelineModal({ title, isOpen, onRequestClose, recommendations, details, references = [] }) {
   return (
     <InlineModal title={title} isOpen={isOpen} onRequestClose={onRequestClose}>
       {details}
@@ -99,7 +99,13 @@ function GuidelineModal({ title, isOpen, onRequestClose, recommendations, detail
       <ul className="guideline-recommendations">
         {recommendations.map((recommendation) => <li key={recommendation}>{recommendation}</li>)}
       </ul>
+      <h3 className="guideline-modal-subtitle">{__('References', 'endoplanner')}</h3>
       <p className="guideline-citation">{GVG_CITATION}</p>
+      {references.map((reference) => (
+        <p className="guideline-citation" key={reference.url}>
+          <a href={reference.url} target="_blank" rel="noreferrer">{reference.label}</a>
+        </p>
+      ))}
       <div className="popup-close-row">
         <button type="button" className="circle-btn close-modal-btn" onClick={onRequestClose}>
           &times;
@@ -115,6 +121,10 @@ GuidelineModal.propTypes = {
   onRequestClose: PropTypes.func.isRequired,
   recommendations: PropTypes.arrayOf(PropTypes.string).isRequired,
   details: PropTypes.node,
+  references: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    url: PropTypes.string.isRequired,
+  })),
 };
 
 PlanSection.propTypes = {
@@ -215,14 +225,13 @@ export default function StepSummary({ data, setStep }) {
           {woundAdvice.zones.length > 0 && (
             <div className="woundosome-summary" data-testid="woundosome-summary">
               <div><b>{__('Wound location', 'endoplanner')}:</b> {woundAdvice.zones.map((zone) => zone.label).join(', ')}</div>
-              <div><b>{__('Wound-informed TAP to consider', 'endoplanner')}:</b> {woundAdvice.primaryLabels.join(' or ')}</div>
-              <a href={WOUNDOSOME_REFERENCE.url} target="_blank" rel="noreferrer">{WOUNDOSOME_REFERENCE.label}</a>
+              <div><b>{__('Wound-informed target arterial path to consider', 'endoplanner')}:</b> {woundAdvice.primaryLabels.join(' or ')}</div>
             </div>
           )}
           {wifi.isApplicable && (wifi.isComplete ? (
             <div className="clinical-guidance wifi-prediction">
               <button type="button" className="guideline-link" onClick={() => setWifiGuidelineOpen(true)}>
-                {__('See CTLI guideline prognosis and recommendations', 'endoplanner')}
+                {__('See CLTI guideline prognosis and recommendations', 'endoplanner')}
               </button>
             </div>
           ) : (
@@ -325,6 +334,7 @@ export default function StepSummary({ data, setStep }) {
           isOpen={wifiGuidelineOpen}
           onRequestClose={() => setWifiGuidelineOpen(false)}
           recommendations={getWifiRecommendations(wifi.wifiStage, wifi.ischemia).slice(1)}
+          references={woundAdvice.zones.length ? [WOUNDOSOME_REFERENCE] : []}
           details={(
             <div className="guideline-stage-details">
               <p>{`Clinical stage ${wifi.wifiStage}, approximately ${wifiInfo.riskPercent}% pooled estimated 1-year risk of major amputation. ${getWifiAction(wifi.wifiStage, wifi.ischemia)}`}</p>

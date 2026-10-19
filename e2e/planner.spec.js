@@ -167,7 +167,7 @@ test('opens WIfI and GLASS guideline dialogs from the case summary', async ({ pa
   await seed(page, completeCase(), 3);
   await page.goto('./');
 
-  await page.getByRole('button', { name: /CTLI guideline prognosis and recommendations/i }).click();
+  await page.getByRole('button', { name: /CLTI guideline prognosis and recommendations/i }).click();
   await expect(page.getByRole('dialog').locator('.modal-header')).toHaveText(/WIfI clinical stage/);
   await expect(page.getByRole('dialog').getByText('Guideline recommendations')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -432,8 +432,9 @@ test('maps Fontaine IV wound locations to a wound-informed TAP consideration', a
   await selector.getByTestId('wound-zone-ap-hallux-first-ray').locator('.wound-zone-marker').click();
   await expect(selector.getByTestId('wound-zone-lateral-hallux-first-ray')).toHaveAttribute('aria-checked', 'true');
   await expect(selector.getByRole('button', { name: 'Hallux / first ray', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(selector.getByText('Anterior tibial → dorsalis pedis TAP')).toBeVisible();
-  await expect(selector.getByText('Posterior tibial → plantar arch TAP')).toBeVisible();
+  await expect(selector.getByText('Anterior tibial → dorsalis pedis target arterial path')).toBeVisible();
+  await expect(selector.getByText('Posterior tibial → plantar arch target arterial path')).toBeVisible();
+  await expect(selector).not.toContainText(/\bTAP\b/);
   await selector.getByRole('button', { name: 'Woundosome anatomy information', exact: true }).click();
   await expect(page.getByRole('dialog').getByRole('link', { name: /Manzi et al/ })).toHaveAttribute('href', 'https://pubs.rsna.org/doi/10.1148/rg.316115511');
   await page.keyboard.press('Escape');
@@ -566,7 +567,7 @@ test('preserves stage-specific assessments and PAT without leaking hidden result
   const pdf = readFileSync(pdfPath, 'latin1');
   expect(pdf).not.toContain('WIfI:');
   expect(pdf).not.toContain('Wound location:');
-  expect(pdf).not.toContain('Wound-informed TAP to consider:');
+  expect(pdf).not.toContain('Wound-informed target arterial path to consider:');
   expect(pdf).toContain('PAT: Dorsalis pedis artery');
   expect(pdf).toContain('120 ms');
   await indication.getByRole('button', { name: 'Edit clinical assessment', exact: true }).click();
@@ -1049,8 +1050,14 @@ for (const width of [1280, 390]) {
     await expect(summary.getByRole('heading', { name: 'Case summary', exact: true })).toBeVisible();
     await expect(page.locator('.case-summary-patient-id')).toHaveText('Patient IDANON-A024');
     await expect(summary).not.toContainText('pooled estimated');
-    await page.getByRole('button', { name: 'See CTLI guideline prognosis and recommendations', exact: true }).click();
+    await expect(summary.locator('.case-summary__indication')).not.toContainText('Patrone');
+    await expect(summary.locator('.case-summary__indication')).not.toContainText(/\bTAP\b/);
+    await page.getByRole('button', { name: 'See CLTI guideline prognosis and recommendations', exact: true }).click();
     await expect(page.getByRole('dialog')).toContainText('pooled estimated 1-year risk of major amputation');
+    const woundosomeReference = page.getByRole('dialog').getByRole('link', { name: 'Patrone et al. — The woundosome concept (2024)', exact: true });
+    await expect(woundosomeReference).toHaveAttribute('href', 'https://orbi.uliege.be/bitstream/2268/322037/1/L.Patrone%20Journal%20of%20Endovascular%20Therapy%20%282024%29%201-2.pdf');
+    await woundosomeReference.scrollIntoViewIfNeeded();
+    await expect(woundosomeReference).toBeInViewport();
     await page.keyboard.press('Escape');
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     if (width === 1280) {

@@ -159,7 +159,7 @@ export default function WoundosomeSelector({ value = [], onChange }) {
       </div>
 
       <div className="woundosome-advice" aria-live="polite">
-        <div className="woundosome-advice-heading"><strong>{__('TAP revascularization to consider', 'endoplanner')}</strong><WoundosomeInfoButton /></div>
+        <div className="woundosome-advice-heading"><strong>{__('Target arterial path to consider', 'endoplanner')}</strong><WoundosomeInfoButton /></div>
         {advice.zones.length ? (
           <>
             <p>{advice.primaryLabels.join(' + ')}</p>
@@ -174,7 +174,7 @@ export default function WoundosomeSelector({ value = [], onChange }) {
             )}
           </>
         ) : (
-          <p>{__('Select at least one wound location to generate a TAP consideration.', 'endoplanner')}</p>
+          <p>{__('Select at least one wound location to see target arterial path considerations.', 'endoplanner')}</p>
         )}
       </div>
     </section>

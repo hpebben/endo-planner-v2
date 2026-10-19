@@ -1,7 +1,7 @@
 # Teaser stage screenshots
 
 These four 2560 × 1600 WebP images show actual EndoPlanner interface panels,
-captured in Chromium from the v1.6.186 production application with the licensed
+captured in Chromium from the v1.6.187 production application with the licensed
 Kobenhavn CS heading font loaded. The browser renders at 3× device scale;
 panels are then downsampled and arranged on an 8:5 canvas for the teaser.
 These are fresh renders, not enlargements of the previous 1280 × 800 images.

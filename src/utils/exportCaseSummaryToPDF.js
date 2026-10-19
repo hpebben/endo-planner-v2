@@ -108,7 +108,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
   clinicalLines.push(...getPatSummaryLines(data.clinical));
   if (woundAdvice.zones.length) {
     clinicalLines.push(`Wound location: ${woundAdvice.zones.map((zone) => zone.label).join(', ')}`);
-    clinicalLines.push(`Wound-informed TAP to consider: ${woundAdvice.primaryLabels.join(' or ')}`);
+    clinicalLines.push(`Wound-informed target arterial path to consider: ${woundAdvice.primaryLabels.join(' or ')}`);
     clinicalLines.push('Confirm direct wound-bed filling, pedal arch and collateral quality with AP and lateral foot angiography.');
   }
 
@@ -150,7 +150,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     doc.setPage(page);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(100, 105, 115);
     doc.text(page >= materialsStartPage ? 'Selected case materials: confirm quantities and missing specifications before opening.' : 'Reference anatomy and clinical estimates: confirm against source imaging and guidelines.', 28, 805);
-    doc.text(`EndoPlanner v1.6.186 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
+    doc.text(`EndoPlanner v1.6.187 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
   }
 
   doc.save(reportFilename(data));
