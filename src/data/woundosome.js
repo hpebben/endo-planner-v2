@@ -102,9 +102,9 @@ export const WOUND_ZONES = [
 ];
 
 const TAP_LABELS = {
-  anterior: 'Anterior tibial → dorsalis pedis TAP',
-  posterior: 'Posterior tibial → plantar arch TAP',
-  peroneal: 'Peroneal → distal collateral TAP',
+  anterior: 'Anterior tibial → dorsalis pedis target arterial path',
+  posterior: 'Posterior tibial → plantar arch target arterial path',
+  peroneal: 'Peroneal → distal collateral target arterial path',
 };
 
 const unique = (values) => [...new Set(values.filter(Boolean))];
