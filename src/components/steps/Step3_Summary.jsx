@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import PropTypes from 'prop-types';
 import { __ } from '@wordpress/i18n';
 import computePrognosis from '../../utils/prognosis';
@@ -70,22 +70,37 @@ const formatTherapy = (value) => {
   return summarize(value);
 };
 
-function PlanSection({ title, rows }) {
+function PlanRows({ rows }) {
   const items = rows.filter((row) => row.value);
   if (!items.length) return <p className="summary-empty">{__('Not entered.', 'endoplanner')}</p>;
 
   return (
-    <div className="plan-section">
-      <div className="section-title subsection-title">{title}</div>
-      <div className="plan-grid">
-        {items.map((item, index) => (
-          <React.Fragment key={`${item.label}-${index}`}>
-            <div className="plan-label">{item.label}</div>
-            <div className="plan-value">{item.value}</div>
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
+    <dl className="plan-grid">
+      {items.map((item, index) => (
+        <div className="plan-row" key={`${item.label}-${index}`}>
+          <dt className="plan-label">{item.label}</dt>
+          <dd className="plan-value">{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function PlanSection({ title, phase, rows = [], groups = [] }) {
+  const headingId = useId();
+  return (
+    <section className="plan-section" aria-labelledby={headingId} data-plan-phase={phase}>
+      <h3 className="plan-section-heading" id={headingId}>
+        <span className="plan-section-number" aria-hidden="true">{phase}</span>
+        <span>{title}</span>
+      </h3>
+      {groups.length ? groups.map((group) => (
+        <div className={`lesion-plan-group${group.unlinked ? ' lesion-plan-group--unlinked' : ''}`} key={group.id}>
+          <h4 className="lesion-plan-title">{group.label}</h4>
+          <PlanRows rows={group.rows} />
+        </div>
+      )) : <PlanRows rows={rows} />}
+    </section>
   );
 }
 
@@ -127,11 +142,21 @@ GuidelineModal.propTypes = {
   })),
 };
 
+const planRowsType = PropTypes.arrayOf(PropTypes.shape({
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string,
+}));
+PlanRows.propTypes = { rows: planRowsType.isRequired };
 PlanSection.propTypes = {
   title: PropTypes.string.isRequired,
-  rows: PropTypes.arrayOf(
-    PropTypes.shape({ label: PropTypes.string.isRequired, value: PropTypes.string }),
-  ).isRequired,
+  phase: PropTypes.string.isRequired,
+  rows: planRowsType,
+  groups: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    rows: planRowsType.isRequired,
+    unlinked: PropTypes.bool,
+  })),
 };
 
 export default function StepSummary({ data, setStep }) {
@@ -185,11 +210,18 @@ export default function StepSummary({ data, setStep }) {
     includeTreatmentZones: true,
   });
   const knownScopeKeys = new Set(scopeOptions.map((option) => option.value));
-  const activeScopeOptions = scopeOptions.filter((option) => (
-    [...activeNavRows, ...activeTherapyRows].some((row) => scopeKey(row) === option.value)
-  ));
   const unlinkedNavRows = activeNavRows.filter((row) => !knownScopeKeys.has(scopeKey(row)));
   const unlinkedTherapyRows = activeTherapyRows.filter((row) => !knownScopeKeys.has(scopeKey(row)));
+  const planGroups = (rows, describe, unlinked) => {
+    const groups = scopeOptions.map((option) => ({
+      id: option.value,
+      label: option.label,
+      rows: describe(rows.filter((row) => scopeKey(row) === option.value)).filter((item) => item.value),
+    })).filter((group) => group.rows.length);
+    const unlinkedItems = describe(unlinked).filter((item) => item.value);
+    if (unlinkedItems.length) groups.push({ id: 'unlinked', label: __('Unlinked plan items', 'endoplanner'), rows: unlinkedItems, unlinked: true });
+    return groups;
+  };
 
   const closureItems = closureRows.map((row) => ({
     label: 'CLOSURE',
@@ -298,30 +330,10 @@ export default function StepSummary({ data, setStep }) {
 
         <div className="summary-card intervention-plan">
           <header className="summary-card-heading"><div className="card-title main-plan-title">{__('Intervention plan', 'endoplanner')}</div><button type="button" className="summary-edit-button" aria-label="Edit intervention plan" onClick={() => setStep?.(2)}>EDIT</button></header>
-          <PlanSection title={__('ACCESS', 'endoplanner')} rows={accessItems} />
-          {activeScopeOptions.map((option) => {
-            const linkedNavigation = activeNavRows.filter((row) => scopeKey(row) === option.value);
-            const linkedTherapy = activeTherapyRows.filter((row) => scopeKey(row) === option.value);
-            return (
-              <div className="lesion-plan-group" key={option.value}>
-                <div className="lesion-plan-title">{option.label}</div>
-                {linkedNavigation.length > 0 && (
-                  <PlanSection title={__('NAVIGATION & CROSSING', 'endoplanner')} rows={navigationItems(linkedNavigation)} />
-                )}
-                {linkedTherapy.length > 0 && (
-                  <PlanSection title={__('VESSEL PREPARATION & THERAPY', 'endoplanner')} rows={therapyItems(linkedTherapy)} />
-                )}
-              </div>
-            );
-          })}
-          {(unlinkedNavRows.length > 0 || unlinkedTherapyRows.length > 0) && (
-            <div className="lesion-plan-group lesion-plan-group--unlinked">
-              <div className="lesion-plan-title">{__('Unlinked plan items', 'endoplanner')}</div>
-              <PlanSection title={__('NAVIGATION & CROSSING', 'endoplanner')} rows={navigationItems(unlinkedNavRows)} />
-              <PlanSection title={__('VESSEL PREPARATION & THERAPY', 'endoplanner')} rows={therapyItems(unlinkedTherapyRows)} />
-            </div>
-          )}
-          <PlanSection title={__('CLOSURE', 'endoplanner')} rows={closureItems} />
+          <PlanSection title={__('Access', 'endoplanner')} phase="01" rows={accessItems} />
+          <PlanSection title={__('Navigation & crossing', 'endoplanner')} phase="02" groups={planGroups(activeNavRows, navigationItems, unlinkedNavRows)} />
+          <PlanSection title={__('Vessel preparation & therapy', 'endoplanner')} phase="03" groups={planGroups(activeTherapyRows, therapyItems, unlinkedTherapyRows)} />
+          <PlanSection title={__('Closure', 'endoplanner')} phase="04" rows={closureItems} />
 
         </div>
 

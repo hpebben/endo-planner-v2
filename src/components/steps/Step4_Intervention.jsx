@@ -80,7 +80,7 @@ const deviceImg =
 const closureImg =
   'https://endoplanner.thesisapps.com/wp-content/uploads/2025/07/closuredeviceicon.png';
 
-const APPLICATION_VERSION = '1.6.188';
+const APPLICATION_VERSION = '1.6.189';
 
 const preferenceTypes = [
   { key: 'needle', legacyId: 'needleimg', label: __('Needle', 'endoplanner'), img: needleImg, modal: 'needle' },
