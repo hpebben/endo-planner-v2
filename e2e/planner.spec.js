@@ -177,6 +177,39 @@ test('opens WIfI and GLASS guideline dialogs from the case summary', async ({ pa
   await expect(page.getByRole('dialog').getByText('Expected 1-year limb-based patency')).toBeVisible();
 });
 
+for (const width of [1280, 390]) {
+  test(`keeps devices in the correct intervention summary sections and lesion groups at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const data = completeCase(), ata = 'Left_anterior_tibial_artery';
+    data.patencySegments[ata] = { type: 'occlusion', length: '3-10', calcium: 'moderate' };
+    data.navRows[0].wire.product = 'SFA crossing wire';
+    data.therapyRows[0].balloon.product = 'SFA treatment balloon';
+    data.navRows.push({ id: 'nav-ata', lesionId: ata, wire: { product: 'ATA crossing wire', platform: '0.018', length: '300 cm' } });
+    data.navRows.push({ id: 'nav-support', scope: { type: 'targetPath', ids: ['primary'] }, wire: { product: 'Shared route support wire', role: 'Support / exchange', platform: '0.018', length: '300 cm' } });
+    data.therapyRows.push({ id: 'therapy-ata', lesionId: ata, balloon: { product: 'ATA treatment balloon', platform: '0.018', diameter: '3', length: '80', shaft: '135 cm' } });
+    await seed(page, data, 3);
+    await page.goto('./');
+    const plan = page.locator('.intervention-plan');
+    for (const title of ['Access', 'Navigation & crossing', 'Vessel preparation & therapy', 'Closure']) {
+      await expect(plan.getByRole('region', { name: title, exact: true })).toBeVisible();
+    }
+    await expect(plan.getByRole('region', { name: 'Access', exact: true })).toContainText('21 Gauge');
+    await expect(plan.getByRole('region', { name: 'Closure', exact: true })).toContainText('Manual pressure');
+    const crossing = plan.getByRole('region', { name: 'Navigation & crossing', exact: true });
+    const therapy = plan.getByRole('region', { name: 'Vessel preparation & therapy', exact: true });
+    for (const [code, product] of [['Lesion 1', 'SFA'], ['Lesion 2', 'ATA']]) {
+      await expect(crossing.locator('.lesion-plan-group').filter({ hasText: code })).toContainText(`${product} crossing wire`);
+      await expect(therapy.locator('.lesion-plan-group').filter({ hasText: code })).toContainText(`${product} treatment balloon`);
+    }
+    await expect(crossing.locator('.lesion-plan-group').filter({ hasText: 'Shared route support wire' })).toContainText(/target arterial path/i);
+    await expect(therapy).not.toContainText('Shared route support wire');
+    await expect(therapy).not.toContainText('crossing wire');
+    await expect(crossing).not.toContainText('treatment balloon');
+    await expect(plan.getByRole('button', { name: 'Edit intervention plan', exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  });
+}
+
 test('exports a PDF report from case data', async ({ page }) => {
   await seed(page, completeCase(), 3);
   await page.goto('./');

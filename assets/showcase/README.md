@@ -2,7 +2,7 @@
 
 These four 2560 × 1600 WebP images show actual EndoPlanner interface panels,
 captured in Chromium from the production application (stages 1–3: v1.6.187;
-stage 4 and the PDF: v1.6.188) with the licensed
+stage 4 and the PDF: v1.6.189) with the licensed
 Kobenhavn CS heading font loaded. The browser renders at 3× device scale;
 panels are then downsampled and arranged on an 8:5 canvas for the teaser.
 These are fresh renders, not enlargements of the previous 1280 × 800 images.
@@ -29,8 +29,9 @@ No patient data is included. The teaser labels the images “Example case.”
 2. Disease map, all three lesions, target path and selected woundosome views.
 3. Plan at a glance with three lesion rows, shared route support and the active
    lesion's crossing/treatment editor.
-4. Actual intervention-materials summary excerpts: access, Lesion 1 crossing and
-   therapy, closure and the Export PDF button. Alongside these, actual pages of
+4. Actual intervention-materials summary excerpts in four numbered navy section
+   cards: access, Lesion 1 crossing, Lesion 1 preparation/therapy and closure,
+   alongside the Export PDF button. Alongside these, actual pages of
    the exported report show the illustrated clinical summary and categorized
    preparation checklist. The image explicitly labels the lesion excerpt; the
    complete PDF includes all three lesions.
@@ -48,8 +49,10 @@ heading font before capturing the actual panels. Keep the filenames, 2560 ×
 so browsers fetch the refreshed assets after a plugin update.
 
 For the fourth composition, capture the real intervention summary at 3× scale;
-use the access and first-lesion excerpt plus the closure section, clearly label
-the excerpt and retain the actual export button. Render the exported PDF pages
-at 200 dpi before arranging them beside the summary. Keep labels in Kobenhavn
-CS and use the same 2560 × 1600 output canvas. The first three screenshots do
+capture each of the four phase cards. For crossing and therapy, show the first
+lesion group; show all access and closure rows. Stack these actual excerpts,
+clearly label the excerpt and retain the actual export button. Render the
+exported PDF pages at 160 dpi or above before arranging them beside the summary.
+The exported intervention plan uses matching numbered navy phase headings.
+Keep labels in Kobenhavn CS and use the same 2560 × 1600 output canvas. The first three screenshots do
 not need recapture when only this export showcase changes.

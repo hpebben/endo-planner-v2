@@ -56,7 +56,7 @@ const planLines = (data) => {
     if (valuesOnly(row.sheaths)) lines.push(`Sheath: ${valuesOnly(row.sheaths)}`);
     if (valuesOnly(row.catheters)) lines.push(`Catheter: ${valuesOnly(row.catheters)}`);
   });
-  lines.push('::NAVIGATION & CROSSING');
+  lines.push({ heading: true, phase: '02', text: 'NAVIGATION & CROSSING' });
   (data.navRows || []).forEach((row) => {
     const scope = scopeText(row);
     if (valuesOnly(row.wire)) lines.push(`${scope} - wire: ${valuesOnly(row.wire)}`);
@@ -64,14 +64,14 @@ const planLines = (data) => {
     if (valuesOnly(row.balloon)) lines.push(`${scope} - crossing balloon: ${valuesOnly(row.balloon)}`);
     if (valuesOnly(row.device)) lines.push(`${scope} - special: ${valuesOnly(row.device)}`);
   });
-  lines.push('::VESSEL PREPARATION & THERAPY');
+  lines.push({ heading: true, phase: '03', text: 'VESSEL PREPARATION & THERAPY' });
   (data.therapyRows || []).forEach((row) => {
     const scope = scopeText(row);
     if (valuesOnly(row.balloon)) lines.push(`${scope} - balloon: ${valuesOnly(row.balloon)}`);
     if (valuesOnly(row.stent)) lines.push(`${scope} - stent: ${valuesOnly(row.stent)}`);
     if (valuesOnly(row.device)) lines.push(`${scope} - special: ${valuesOnly(row.device)}`);
   });
-  lines.push('::CLOSURE');
+  lines.push({ heading: true, phase: '04', text: 'CLOSURE' });
   (data.closureRows || []).forEach((row) => {
     const closure = [row.method, valuesOnly(row.device)].filter(Boolean).join(' | ');
     if (closure) lines.push(`Closure: ${closure}`);
@@ -138,7 +138,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     'Colors mark selected wound locations; blue marks the planned pedal route.');
   layout.card('DISEASE ANATOMY', anatomyLines, images.disease,
     'Red: lesion outline / estimated extent. Blue: target path. Schematic position.');
-  layout.card('INTERVENTION PLAN', ['::ACCESS', ...planLines(data)]);
+  layout.card('INTERVENTION PLAN', [{ heading: true, phase: '01', text: 'ACCESS' }, ...planLines(data)]);
   layout.card('RECOMMENDATIONS & CONSIDERATIONS', findings.length
     ? findings.map((item) => ({ label: `${item.level === 'error' ? 'Critical' : item.level === 'warning' ? 'Warning' : 'Recommendation'} | ${item.title}`, text: item.summary, level: item.level }))
     : recommendationLines.slice(1));
@@ -150,7 +150,7 @@ export default async function exportCaseSummaryToPDF(data = {}) {
     doc.setPage(page);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(100, 105, 115);
     doc.text(page >= materialsStartPage ? 'Selected case materials: confirm quantities and missing specifications before opening.' : 'Reference anatomy and clinical estimates: confirm against source imaging and guidelines.', 28, 805);
-    doc.text(`EndoPlanner v1.6.188 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
+    doc.text(`EndoPlanner v1.6.189 | ${page} / ${pageCount}`, pageWidth - 28, 805, { align: 'right' });
   }
 
   doc.save(reportFilename(data));

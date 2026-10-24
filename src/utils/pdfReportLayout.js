@@ -40,7 +40,7 @@ export default function createPdfReportLayout(doc, branding = {}) {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(p.heading ? 10 : 8.5);
     const labelLines = p.label ? doc.splitTextToSize(cleanPdfText(p.label), width) : [];
     doc.setFont('helvetica', p.bold || p.heading ? 'bold' : 'normal'); doc.setFontSize(p.heading ? 10 : 9.5);
-    const textLines = doc.splitTextToSize(cleanPdfText(p.text), width);
+    const textLines = doc.splitTextToSize(cleanPdfText(p.text), width - (p.phase ? 36 : 0));
     return { ...p, labelLines, textLines, height: labelLines.length * 11 + textLines.length * 12.5 + (p.heading ? 12 : 10) };
   };
   const card = (title, lines, images = [], caption = '') => {
@@ -91,6 +91,18 @@ export default function createPdfReportLayout(doc, branding = {}) {
       }
       let textY = y + 46;
       chunk.forEach((p) => {
+        if (p.phase) {
+          doc.setFillColor(...PDF_COLORS.blue);
+          doc.roundedRect(textX - 3, textY - 6, textWidth + 5, p.height - 4, 4, 4, 'F');
+          doc.setFillColor(42, 69, 121);
+          doc.roundedRect(textX + 3, textY - 3, 23, 15, 3, 3, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+          doc.text(p.phase, textX + 14.5, textY + 7, { align: 'center' });
+          doc.setFontSize(10); doc.text(p.textLines, textX + 35, textY + 7);
+          textY += p.height;
+          return;
+        }
         if (p.level || p.badge) {
           doc.setFillColor(...(p.level === 'error' ? [255, 241, 244] : p.level === 'warning' ? [255, 248, 235] : PDF_COLORS.pale));
           doc.roundedRect(textX - 3, textY - 10, textWidth + 5, p.height - 3, 4, 4, 'F');
